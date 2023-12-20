@@ -1,0 +1,17 @@
+# Settings for zoning
+
+# Span settings [mm]
+#			maximum span,		minimum span
+A,			24000,			3000
+
+# Solution space settings [Y/N]
+#			large?			whole-space zones only?
+B,			Y,			N
+
+# Alternative grammar settings [Y/N]
+#			structural floors?	adaptive thickness?
+C,			N,			N
+
+# Check unzoned design [Y/N]
+#			unzoned?
+D,			N

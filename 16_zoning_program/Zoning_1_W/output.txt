@@ -1,0 +1,49 @@
+Heya, welcome to my program
+Initialised the MS model (0.307 ms)
+Initialised the CF model (0.867 ms)
+Made the CF model conformal (3.325 ms)
+Initialised the zoning model (0.059 ms)
+
+Zone 1: cuboids(1, 2, 3, 4)
+type: 1 w/p: 1, 0 Floor: 0, Floor above: 1
+Min coords: (0, 9000, 0)
+Max coords: (12000, 12000, 3000)
+X-dim: 12000 Y-dim: 3000
+Floating: 0
+
+Zone 2: cuboids(19, 20, 21, 22, 23, 24)
+type: 1 w/p: 1, 0 Floor: 2, Floor above: 3
+Min coords: (3000, 0, 6000)
+Max coords: (15000, 6000, 9000)
+X-dim: 12000 Y-dim: 6000
+Floating: 1
+
+Zone 3: cuboids(5, 6, 7, 8, 9, 10, 13, 14, 15, 16, 17, 18)
+type: 4 w/p: 1, 0 Floor: 0, Floor above: 2
+Min coords: (3000, 0, 0)
+Max coords: (9000, 9000, 6000)
+X-dim: 6000 Y-dim: 9000
+Floating: 0
+
+Zone 4: cuboids(11, 12)
+type: 5 w/p: 1, 0 Floor: 1, Floor above: 2
+Min coords: (3000, 9000, 3000)
+Max coords: (9000, 12000, 6000)
+X-dim: 6000 Y-dim: 3000
+Floating: 0
+
+Design 1: zones(1, 2, 3, 4)
+finished zoning (1.867 ms)
+Commencing Visualisation....
+Total compliance in the unzoned design: 910157
+Structural volume: 120.15
+Total compliance in zoned design 1: 1.22615e+06
+Structural volume: 105.3
+
+Compliances:
+1.22615e+06
+
+Volumes:
+105.3
+Lowest total compliance (1.22615e+06) in zoned design 1
+Finished visualisation (6264.07 ms)

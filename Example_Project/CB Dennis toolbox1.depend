@@ -1,0 +1,13 @@
+# depslib dependency file v1.0
+1533469425 source:c:\cb dennis toolbox1\16_zoning_program\stabilize_1_s\main.cpp
+	<iostream>
+	<ctime>
+	<BSO/Spatial_Design/Movable_Sizable.hpp>
+	<BSO/Spatial_Design/Conformation.hpp>
+	<BSO/Spatial_Design/Zoning.hpp>
+	<BSO/Structural_Design/SD_Analysis.hpp>
+	<BSO/Structural_Design/Stabilization/Stabilize.hpp>
+	<BSO/Visualisation/Visualisation.hpp>
+	<BSO/Performance_Indexing.hpp>
+	<AEI Grammar/Grammar_stabilize.hpp>
+

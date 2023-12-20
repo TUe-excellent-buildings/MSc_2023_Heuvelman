@@ -1,0 +1,5 @@
+Heya, welcome to my program
+Initialised the MS model (0.425 ms)
+Initialised the CF model (1.53 ms)
+Made the CF model conformal (8.959 ms)
+Initialised the zoning model (0.041 ms)

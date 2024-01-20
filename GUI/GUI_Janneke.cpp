@@ -72,12 +72,9 @@ void drawArrow(float x, float y, bool leftArrow);
 void drawUndoRedoButtons();
 void drawTextField(int x, int y, int width, int height, TextField& textfield);
 void onMouseClick(int button, int state, int x, int y);
-void drawBuilding();
-void drawTwoColumnTable(int x, int y, int width, int cellHeight, const std::vector<std::string>& column1, const std::vector<std::string>& column2);
 
 
-void display() {
-    glDisable(GL_MULTISAMPLE);
+void display() { 
     // Clear the window with white background
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -236,7 +233,7 @@ void drawButton(const char *text, float x, float y, float width, float height, B
 
 void onMouseClick(int button, int state, int x, int y) {
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-        float mouseY = screenHeight - static_cast<float>(y); 
+        float mouseY = screenHeight - static_cast<float>(y);
         float mouseX = static_cast<float>(x);
 
         for (const auto& btn : buttons) {
@@ -366,117 +363,9 @@ void drawUndoRedoButtons() {
     drawButton("Reset", 10, screenHeight - 120, 110, 50, buttonClicked);
 }
 
-void drawBuilding() {
-    glColor3f(0.0, 0.0, 0.0); // Blue color for the building structure
-    glBegin(GL_LINES);
-
-    // Base of the building
-    glVertex2f(100.0f, 300.0f);
-    glVertex2f(600.0f, 300.0f);
-
-    glVertex2f(600.0f, 300.0f);
-    glVertex2f(600.0f, 800.0f);
-
-    glVertex2f(600.0f, 800.0f);
-    glVertex2f(100.0f, 800.0f);
-
-    glVertex2f(100.0f, 800.0f);
-    glVertex2f(100.0f, 300.0f);
-
-    // Top of the building
-    glVertex2f(100.0f, 200.0f);
-    glVertex2f(600.0f, 200.0f);
-
-    glVertex2f(600.0f, 200.0f);
-    glVertex2f(600.0f, 700.0f);
-
-    glVertex2f(600.0f, 700.0f);
-    glVertex2f(100.0f, 700.0f);
-
-    glVertex2f(100.0f, 700.0f);
-    glVertex2f(100.0f, 200.0f);
-
-    // Vertical lines
-    glVertex2f(100.0f, 200.0f);
-    glVertex2f(100.0f, 300.0f);
-
-    glVertex2f(600.0f, 200.0f);
-    glVertex2f(600.0f, 300.0f);
-
-    glVertex2f(600.0f, 700.0f);
-    glVertex2f(600.0f, 800.0f);
-
-    glVertex2f(100.0f, 700.0f);
-    glVertex2f(100.0f, 800.0f);
-
-    // Interior lines - for simplicity, just a couple are drawn here
-    glVertex2f(350.0f, 200.0f);
-    glVertex2f(350.0f, 700.0f);
-
-    glVertex2f(350.0f, 250.0f);
-    glVertex2f(600.0f, 250.0f);
-
-    glEnd();
-}
-
-void drawTwoColumnTable(int x, int y, int width, int cellHeight, const std::vector<std::string>& column1, const std::vector<std::string>& column2) {
-    // Calculate the number of rows based on the data in the columns
-    size_t numRows = std::max(column1.size(), column2.size());
-
-    // Calculate the height of the table based on the number of rows and cell height
-    int tableHeight = numRows * cellHeight;
-
-    // Set the color for cell borders and text
-    glColor3f(0.0, 0.0, 0.0); // Black color for borders and text
-
-    // Draw cell borders and content for column 1
-    int currentY = y + tableHeight;
-    int column1Width = width / 2;
-    int column2X = x + column1Width;
-
-    for (size_t i = 0; i < numRows; ++i) {
-        // Draw horizontal cell border
-        glBegin(GL_LINES);
-        glVertex2f(x, currentY);
-        glVertex2f(x + width, currentY);
-        glEnd();
-
-        // Draw content for column 1
-        if (i < column1.size()) {
-            glRasterPos2f(x + 5, currentY - cellHeight / 2); // Add padding for text
-            for (char c : column1[i]) {
-                glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c);
-            }
-        }
-
-        currentY -= cellHeight;
-    }
-
-    // Draw cell borders and content for column 2
-    currentY = y + tableHeight;
-
-    for (size_t i = 0; i < numRows; ++i) {
-        // Draw vertical cell border
-        glBegin(GL_LINES);
-        glVertex2f(column2X, currentY);
-        glVertex2f(column2X, y);
-        glEnd();
-
-        // Draw content for column 2
-        if (i < column2.size()) {
-            glRasterPos2f(column2X + 5, currentY - cellHeight / 2); // Add padding for text
-            for (char c : column2[i]) {
-                glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c);
-            }
-        }
-
-        currentY -= cellHeight;
-    }
-}
-
 
 void mainScreen() {
-    drawText("Hello and welcome to this MSc project by Janneke Heuvelman. We are glad to have you here and hope you will have a nice experience. In case of any problems, be sure to contact Janneke via email: j.h.heuvelman@student.tue.nl. Please select the Assignment number:", 
+    drawText("Hello and welcome to this MSc project by Janneke Heuvelman. We are glad to have you here and hope you will have a nice experience. In case of any problems, be sure to contact Janneke via email: j.h.heuvelman@student.tue.nl. Please select the Assignment number:",
     900, 800, 400);
 
     drawButton("Assignment 1", 800, 650, 200, 50, buttonClicked);
@@ -490,7 +379,7 @@ void mainScreen() {
 }
 
 void assignmentDescriptionScreen() {
-    drawText("You will in a moment go through a design task. You are asked to perform this task in the way you are used to go about a commission in your daily practice. It is important that you say aloud everything that you think or do in designing. ​So, in every step, explain what you do and why you do it. Try to keep speaking constantly and not be silent for longer than 20 seconds. ​Good luck!​", 
+    drawText("You will in a moment go through a design task. You are asked to perform this task in the way you are used to go about a commission in your daily practice. It is important that you say aloud everything that you think or do in designing. ​So, in every step, explain what you do and why you do it. Try to keep speaking constantly and not be silent for longer than 20 seconds. ​Good luck!​",
     900, 600, 400);
 
     drawButton("<- | Previous step", 1380, 50, 200, 50, buttonClicked);
@@ -554,7 +443,7 @@ void drawBuilding() {
 
 void screen3() {
     // Screen layout and colors should be adjusted as necessary.
-    
+
     // Draw structural design illustration placeholder (left side)
     drawBuilding();
 

@@ -68,7 +68,13 @@ void reshape(int width, int height);
 void mainScreen();
 void assignmentDescriptionScreen();
 void screen3();
-void screen4();
+void screen4a();
+void screen4b();
+void screen4c();
+void screen4d();
+void screen4e();
+void screen4f();
+void screen5();
 void drawText(const char *text, float x, float y);
 void drawButton(const char *text, float x, float y, float width, float height, ButtonCallback callback, int variable);
 void drawArrow(float x, float y, bool leftArrow);
@@ -107,7 +113,13 @@ void display() {
         case 0: mainScreen(); break;
         case 1: assignmentDescriptionScreen(); break;
         case 2: screen3(); break;
-        case 3: screen4(); break;
+        case 3: screen4a(); break;
+        case 4: screen4b(); break;
+        case 5: screen4c(); break;
+        case 6: screen4d(); break;
+        case 7: screen4e(); break;
+        case 8: screen4f(); break;
+        case 9: screen5(); break;
         // Ensure you have a default case, even if it does nothing,
         // to handle any unexpected values of currentScreen
         default: break;
@@ -150,10 +162,16 @@ void reshape(int width, int height) {
 
 void keyboard(unsigned char key, int x, int y) {
     // Change screens based on key press
-    if (key == '!') currentScreen = 0;
-    if (key == '@') currentScreen = 1;
-    if (key == '#') currentScreen = 2;
-    if (key == '$') currentScreen = 3;
+    if (key == 'q') currentScreen = 0;
+    if (key == 'w') currentScreen = 1;
+    if (key == 'e') currentScreen = 2;
+    if (key == 'r') currentScreen = 3;
+    if (key == 't') currentScreen = 4;
+    if (key == 'y') currentScreen = 5;
+    if (key == 'u') currentScreen = 6;
+    if (key == 'i') currentScreen = 7;
+    if (key == 'o') currentScreen = 8;
+    if (key == 'p') currentScreen = 9;
 
     GLenum err;
     while ((err = glGetError()) != GL_NO_ERROR) {
@@ -433,10 +451,11 @@ void mainScreen() {
     drawButton("Assignment 2", 800, 580, 200, 50, buttonClicked, 1);
     drawButton("Assignment 3", 800, 510, 200, 50, buttonClicked, 1);
     drawButton("Assignment 4", 800, 440, 200, 50, buttonClicked, 1);
-    drawButton("Assignment 5", 800, 370, 200, 50, buttonClicked, 1);
-    drawButton("Assignment 6", 800, 300, 200, 50, buttonClicked, 1);
 
     drawUndoRedoButtons();
+
+    // Draw the "Next step" button in the bottom right corner
+    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 1);
 }
 
 void assignmentDescriptionScreen() {
@@ -453,12 +472,12 @@ void screen3() {
     // Screen layout and colors should be adjusted as necessary.
 
     // Draw structural design illustration placeholder (left side)
-    // drawBuilding();
-    BSO::Spatial_Design::MS_Building MS("MS_Input.txt");
+    drawBuilding();
+    // BSO::Spatial_Design::MS_Building MS("MS_Input.txt");
 
-    BSO::Visualisation::init_visualisation_without();
-    BSO::Visualisation::visualise(MS);
-    BSO::Visualisation::end_visualisation();
+    // BSO::Visualisation::init_visualisation_without();
+    // BSO::Visualisation::visualise(MS);
+    // BSO::Visualisation::end_visualisation();
 
     glColor3f(0.0, 0.0, 0.0);
     glBegin(GL_LINES);
@@ -470,37 +489,47 @@ void screen3() {
     drawUndoRedoButtons();
 
     // Draw the counter area
-    drawText("Number of diagonals: 0", 1600, screenHeight - 220, 200);
-    drawText("Number of beams: 0", 1600, screenHeight - 240, 200);
+    drawText("Number of diagonals: 0", 1200, screenHeight - 100, 200);
+    drawText("Number of beams: 0", 1200, screenHeight - 120, 200);
 
     // Draw control buttons (right side)
-    drawButton("Add diagonal", screenWidth - 310, 500, 200, 50, changeScreen, 3);
-    drawButton("Add beam", screenWidth - 310, 560, 200, 50, buttonClicked, 1);
-    drawButton("Remove diagonal", screenWidth - 310, 620, 200, 50, buttonClicked, 1);
-    drawButton("Remove beam", screenWidth - 310, 680, 200, 50, buttonClicked, 1);
+    //drawButton("Add diagonal", screenWidth - 310, 500, 200, 50, changeScreen, 3);
+    //drawButton("Add beam", screenWidth - 310, 560, 200, 50, buttonClicked, 1);
+    //drawButton("Remove diagonal", screenWidth - 310, 620, 200, 50, buttonClicked, 1);
+    //drawButton("Remove beam", screenWidth - 310, 680, 200, 50, buttonClicked, 1);
+
+    drawText("Add elements", screenWidth - 170, 820, 200);
+    drawButton("Add truss diagonally", screenWidth - 310, 760, 200, 50, buttonClicked, 1);
+    drawButton("Replace truss by beam", screenWidth - 310, 700, 200, 50, buttonClicked, 1);
+    drawText("Remove elements", screenWidth - 180, 660, 200);
+    drawButton("Delete diagonal truss", screenWidth - 310, 600, 200, 50, buttonClicked, 1);
+    drawButton("Replace beam by truss", screenWidth - 310, 540, 200, 50, buttonClicked, 1);
+
+    drawButton("Hide member numbers", 1100, 50, 200, 50, buttonClicked, 1);
 
     // Draw the message at the bottom of the structure illustration
-    drawText("Stabilize the structural design while trying to achieve high stiffness with minimal adjustments.", 1550, 300, 250);
+    drawText("Stabilize the structural design while trying to achieve high stiffness with minimal adjustments.", 1550, 150, 250);
 
     // Draw the "Next step" button in the bottom right corner
     drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 3);
 }
 
-void screen4() {
-    drawText("1. Did you like the assignment?", 400, 800, 400);
-    drawButton("1", 300, 750, 50, 30, buttonClicked, 1);
-    drawButton("2", 350, 750, 50, 30, buttonClicked, 1);
-    drawButton("3", 400, 750, 50, 30, buttonClicked, 1);
-    drawButton("4", 450, 750, 50, 30, buttonClicked, 1);
-    drawButton("5", 500, 750, 50, 30, buttonClicked, 1);
-    drawButton("6", 550, 750, 50, 30, buttonClicked, 1);
-    drawButton("7", 600, 750, 50, 30, buttonClicked, 1);
-    drawButton("8", 650, 750, 50, 30, buttonClicked, 1);
-    drawButton("9", 700, 750, 50, 30, buttonClicked, 1);
-    drawButton("10", 750, 750, 50, 30, buttonClicked, 1);
+void screen4a() {
+    drawText("1. How much did you enjoy performing this assignment?", 600, 800, 600);
+    drawButton("1", 300, 725, 50, 30, buttonClicked, 1);
+    drawButton("2", 350, 725, 50, 30, buttonClicked, 1);
+    drawButton("3", 400, 725, 50, 30, buttonClicked, 1);
+    drawButton("4", 450, 725, 50, 30, buttonClicked, 1);
+    drawButton("5", 500, 725, 50, 30, buttonClicked, 1);
 
-    drawText("Please explain:", 300, 630, 200);
-    drawTextField(300, 400, 300, 200, opinionTF);
+    drawText("1: Not at all", 600, 700, 600);
+    drawText("5: Very much", 600, 670, 600);
+
+    drawText("Please explain your answer:", 600, 500, 600);
+    drawTextField(300, 270, 500, 200, opinionTF);
+
+    // Draw the message at the bottom of the structure illustration
+    drawText("Questionnaire.", 1550, 150, 250);
 
     glColor3f(0.0, 0.0, 0.0);
     glBegin(GL_LINES);
@@ -508,7 +537,125 @@ void screen4() {
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
 
-    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 5);
+    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 8);
+}
+
+void screen4b() {
+    drawText("2. How would you rate the level of ease in performing this assignment?", 600, 800, 600);
+    drawButton("1", 300, 725, 50, 30, buttonClicked, 1);
+    drawButton("2", 350, 725, 50, 30, buttonClicked, 1);
+    drawButton("3", 400, 725, 50, 30, buttonClicked, 1);
+    drawButton("4", 450, 725, 50, 30, buttonClicked, 1);
+    drawButton("5", 500, 725, 50, 30, buttonClicked, 1);
+
+    drawText("1: Very hard", 600, 700, 600);
+    drawText("5: Very easy", 600, 670, 600);
+
+    drawText("Please explain your answer:", 600, 500, 600);
+    drawTextField(300, 270, 500, 200, opinionTF);
+
+    drawText("Questionnaire.", 1550, 150, 250);
+
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
+    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
+    glEnd();
+
+    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 9);
+}
+
+void screen4c() {
+    drawText("3. How well do you think you performed the assignment?", 600, 800, 600);
+    drawButton("1", 300, 725, 50, 30, buttonClicked, 1);
+    drawButton("2", 350, 725, 50, 30, buttonClicked, 1);
+    drawButton("3", 400, 725, 50, 30, buttonClicked, 1);
+    drawButton("4", 450, 725, 50, 30, buttonClicked, 1);
+    drawButton("5", 500, 725, 50, 30, buttonClicked, 1);
+
+    drawText("1: I have no idea what I am doing, probably unstable, redundant members. ", 700, 700, 800);
+    drawText("5: Confident, stable, little redundancy.", 700, 670, 800);
+
+    drawText("Please explain your answer:", 600, 500, 600);
+    drawTextField(300, 270, 500, 200, opinionTF);
+
+    drawText("Questionnaire.", 1550, 150, 250);
+
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
+    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
+    glEnd();
+
+    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 10);
+}
+
+void screen4d() {
+    drawText("4. Do you think it would have gone better with the assistance of an AI tool that you could ask for eight suggestions?", 600, 800, 600);
+    drawButton("Yes", 300, 725, 75, 30, buttonClicked, 1);
+    drawButton("No", 375, 725, 75, 30, buttonClicked, 1);
+    drawButton("No idea", 450, 725, 75, 30, buttonClicked, 1);
+
+    drawText("Please explain your answer:", 600, 500, 600);
+    drawTextField(300, 270, 500, 200, opinionTF);
+
+    drawText("Questionnaire.", 1550, 150, 250);
+
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
+    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
+    glEnd();
+
+    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 11);
+}
+
+void screen4e() {
+    drawText("5. Do you think the AI tool itself can perform stabilization better than you?", 600, 800, 600);
+    drawButton("Yes", 300, 725, 75, 30, buttonClicked, 1);
+    drawButton("No", 375, 725, 75, 30, buttonClicked, 1);
+    drawButton("No idea", 450, 725, 75, 30, buttonClicked, 1);
+
+    drawText("Please explain your answer:", 600, 500, 600);
+    drawTextField(300, 270, 500, 200, opinionTF);
+
+    drawText("Questionnaire.", 1550, 150, 250);
+
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
+    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
+    glEnd();
+
+    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 12);
+}
+
+void screen4f() {
+    drawText("6. What criteria did you keep in mind while performing this assignment?", 600, 800, 600);
+    drawText("(For example, structural, aesthetical, functional, and stability requirements.)", 600, 770, 600);
+    drawTextField(300, 530, 500, 200, opinionTF);
+
+    drawText("Questionnaire.", 1550, 150, 250);
+
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
+    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
+    glEnd();
+
+    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 13);
+}
+
+void screen5() {
+    drawText("Thank you for your participation, this is the end of the assignment.", 600, 800, 600);
+
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
+    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
+    glEnd();
+
+    drawButton("-> | Next", 1590, 50, 200, 50, buttonClicked, 1);
 }
 
 int main(int argc, char** argv) {

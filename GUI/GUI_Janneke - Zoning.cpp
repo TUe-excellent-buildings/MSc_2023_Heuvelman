@@ -2,14 +2,17 @@
 #include <cmath>
 #include <vector>
 #include <iostream>
+#include <BSO/Spatial_Design/Movable_Sizable.hpp>
+#include <BSO/Visualisation/Visualisation.hpp>
 
 
-typedef void (*ButtonCallback)(void);
+typedef void (*ButtonCallback)(int);
 
 struct Button {
     float x, y, width, height;
     ButtonCallback callback;
     const char* text;
+    int variable;
 };
 
 struct TextField {
@@ -77,11 +80,22 @@ void screen4e();
 void screen4f();
 void screen5();
 void drawText(const char *text, float x, float y);
-void drawButton(const char *text, float x, float y, float width, float height, ButtonCallback callback);
+void drawButton(const char *text, float x, float y, float width, float height, ButtonCallback callback, int variable);
 void drawArrow(float x, float y, bool leftArrow);
 void drawUndoRedoButtons();
 void drawTextField(int x, int y, int width, int height, TextField& textfield);
 void onMouseClick(int button, int state, int x, int y);
+void drawBuilding();
+
+void buttonClicked(int variable) {
+    std::cout << "Button clicked: " << variable << std::endl;
+}
+
+void changeScreen(int screen) {
+    currentScreen = screen;
+    std::cout << "Changed to screen: " << currentScreen << std::endl;
+    glutPostRedisplay();
+}
 
 
 void display() {
@@ -157,20 +171,21 @@ void reshape(int width, int height) {
 
 void keyboard(unsigned char key, int x, int y) {
     // Change screens based on key press
-    if (key == 'a') currentScreen = 0;
-    if (key == 'b') currentScreen = 1;
-    if (key == 'c') currentScreen = 2;
-    if (key == 'd') currentScreen = 3;
-    if (key == 'e') currentScreen = 4;
-    if (key == 'f') currentScreen = 5;
-    if (key == 'g') currentScreen = 6;
-    if (key == 'h') currentScreen = 7;
-    if (key == 'i') currentScreen = 8;
-    if (key == 'j') currentScreen = 9;
-    if (key == 'k') currentScreen = 10;
-    if (key == 'l') currentScreen = 11;
-    if (key == 'm') currentScreen = 12;
-    if (key == 'n') currentScreen = 13;
+    if (key == 'q') currentScreen = 0;
+    if (key == 'w') currentScreen = 1;
+    if (key == 'e') currentScreen = 2;
+    if (key == 'r') currentScreen = 3;
+    if (key == 't') currentScreen = 4;
+    if (key == 'y') currentScreen = 5;
+    if (key == 'u') currentScreen = 6;
+    if (key == 'i') currentScreen = 7;
+    if (key == 'o') currentScreen = 8;
+    if (key == 'p') currentScreen = 9;
+    if (key == 'a') currentScreen = 10;
+    if (key == 's') currentScreen = 11;
+    if (key == 'd') currentScreen = 12;
+    if (key == 'f') currentScreen = 13;
+
     GLenum err;
     while ((err = glGetError()) != GL_NO_ERROR) {
         std::cerr << "OpenGL error: " << gluErrorString(err) << std::endl;
@@ -222,12 +237,7 @@ void drawText(const char *text, float centerX, float centerY, float textWidth) {
     }
 }
 
-void buttonClicked() {
-    std::cout << "Button clicked" << std::endl;
-}
-
-
-void drawButton(const char *text, float x, float y, float width, float height, ButtonCallback callback) {
+void drawButton(const char *text, float x, float y, float width, float height, ButtonCallback callback, int variable) {
     float borderWidth = 2.0;
 
     glColor3f(0.0, 0.0, 0.0); // Black color for border
@@ -256,8 +266,10 @@ void drawButton(const char *text, float x, float y, float width, float height, B
     glColor3f(0.0, 0.0, 0.0);
     drawText(text, centerX, centerY, textWidth);
 
-    Button button = {x, y, width, height, callback, text};
+    Button button = {x, y, width, height, callback, text, variable};
     buttons.push_back(button);
+
+    std::cout << "Button coordinates: (" << x << ", " << y << "), Dimensions: (" << width << " x " << height << ")" << std::endl;
 }
 
 void onMouseClick(int button, int state, int x, int y) {
@@ -270,11 +282,17 @@ void onMouseClick(int button, int state, int x, int y) {
                 mouseY >= btn.y && mouseY <= btn.y + btn.height) {
                 // Button was clicked
                 if (btn.callback) {
-                    btn.callback();
+                    btn.callback(btn.variable);
                 }
                 break;
             }
         }
+    }
+
+    std::cout << "Mouse clicked at (" << x << ", " << y << ")" << std::endl;
+
+    for (const auto& btn : buttons) {
+        std::cout << "Button: (" << btn.x << ", " << btn.y << "), Dimensions: (" << btn.width << " x " << btn.height << ")" << std::endl;
     }
 }
 
@@ -377,42 +395,19 @@ void drawArrow(float x, float y, bool leftArrow) {
 void drawUndoRedoButtons() {
     // Undo Button
     glColor3f(0.7, 0.7, 0.7); // Button color
-    drawButton("", 10, screenHeight - 60, 50, 50, buttonClicked);
+    drawButton("", 10, screenHeight - 60, 50, 50, buttonClicked, 1);
     glColor3f(0, 0, 0); // Arrow color
     drawArrow(10, screenHeight - 60, false); // Left arrow for undo
 
     // Redo Button
     glColor3f(0.7, 0.7, 0.7); // Button color
-    drawButton("", 70, screenHeight - 60, 50, 50, buttonClicked);
+    drawButton("", 70, screenHeight - 60, 50, 50, buttonClicked, 1);
     glColor3f(0, 0, 0); // Arrow color
     drawArrow(70, screenHeight - 60, true); // Right arrow for redo
 
     // Reset Button
     glColor3f(0.7, 0.7, 0.7); // Button color
-    drawButton("Reset", 10, screenHeight - 120, 110, 50, buttonClicked);
-}
-
-
-void mainScreen() {
-    drawText("Hello and welcome to this MSc project by Janneke Heuvelman. We are glad to have you here and hope you will have a nice experience. In case of any problems, be sure to contact Janneke via email: j.h.heuvelman@student.tue.nl. Please select the Assignment number:",
-    900, 800, 400);
-
-    drawButton("Assignment 1", 800, 650, 200, 50, buttonClicked);
-    drawButton("Assignment 2", 800, 580, 200, 50, buttonClicked);
-    drawButton("Assignment 3", 800, 510, 200, 50, buttonClicked);
-    drawButton("Assignment 4", 800, 440, 200, 50, buttonClicked);
-
-    drawUndoRedoButtons();
-}
-
-void assignmentDescriptionScreen() {
-    drawText("You will in a moment go through a design task. You are asked to perform this task in the way you are used to go about a commission in your daily practice. It is important that you say aloud everything that you think or do in designing. ​So, in every step, explain what you do and why you do it. Try to keep speaking constantly and not be silent for longer than 20 seconds. ​Good luck!​",
-    900, 600, 400);
-
-    drawButton("<- | Previous step", 1380, 50, 200, 50, buttonClicked);
-    drawButton("-> | Next step", 1590, 50, 200, 50, buttonClicked);
-
-    drawUndoRedoButtons();
+    drawButton("Reset", 10, screenHeight - 120, 110, 50, buttonClicked, 1);
 }
 
 void drawBuilding() {
@@ -468,11 +463,41 @@ void drawBuilding() {
     glEnd();
 }
 
+void mainScreen() {
+    drawText("Hello and welcome to this MSc project by Janneke Heuvelman. We are glad to have you here and hope you will have a nice experience. In case of any problems, be sure to contact Janneke via email: j.h.heuvelman@student.tue.nl. Please select the Assignment number:",
+    900, 800, 400);
+
+    drawButton("Assignment 1", 800, 650, 200, 50, buttonClicked, 1);
+    drawButton("Assignment 2", 800, 580, 200, 50, changeScreen, 1);
+    drawButton("Assignment 3", 800, 510, 200, 50, buttonClicked, 1);
+    drawButton("Assignment 4", 800, 440, 200, 50, buttonClicked, 1);
+
+    drawUndoRedoButtons();
+
+    // Draw the "Next step" button in the bottom right corner
+    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 1);
+}
+
+void assignmentDescriptionScreen() {
+    drawText("You will in a moment go through a design task. You are asked to perform this task in the way you are used to go about a commission in your daily practice. It is important that you say aloud everything that you think or do in designing. ​So, in every step, explain what you do and why you do it. Try to keep speaking constantly and not be silent for longer than 20 seconds. ​Good luck!​",
+    900, 600, 400);
+
+    drawButton("<- | Previous step", 1380, 50, 200, 50, changeScreen, 0);
+    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 2);
+
+    drawUndoRedoButtons();
+}
+
 void screen3a() {
     // Screen layout and colors should be adjusted as necessary.
 
     // Draw structural design illustration placeholder (left side)
     drawBuilding();
+    // BSO::Spatial_Design::MS_Building MS("MS_Input.txt");
+
+    // BSO::Visualisation::init_visualisation_without();
+    // BSO::Visualisation::visualise(MS);
+    // BSO::Visualisation::end_visualisation();
 
     glColor3f(0.0, 0.0, 0.0);
     glBegin(GL_LINES);
@@ -489,17 +514,17 @@ void screen3a() {
 
     // Draw control buttons (right side)
     drawText("Zones", screenWidth - 150, 820, 200);
-    drawButton("Create zone", screenWidth - 310, 760, 200, 50, buttonClicked);
-    drawButton("Delete zone", screenWidth - 310, 700, 200, 50, buttonClicked);
+    drawButton("Create zone", screenWidth - 310, 760, 200, 50, buttonClicked, 1);
+    drawButton("Delete zone", screenWidth - 310, 700, 200, 50, buttonClicked, 1);
     drawText("Zoned designs", screenWidth - 180, 660, 200);
-    drawButton("Create zoned design", screenWidth - 310, 600, 200, 50, buttonClicked);
-    drawButton("Delete zoned design", screenWidth - 310, 540, 200, 50, buttonClicked);
+    drawButton("Create zoned design", screenWidth - 310, 600, 200, 50, buttonClicked, 1);
+    drawButton("Delete zoned design", screenWidth - 310, 540, 200, 50, buttonClicked, 1);
 
     // Draw the message at the bottom of the structure illustration
     drawText("Step 1: Find all zoned designs.", 1550, 150, 250);
 
     // Draw the "Next step" button in the bottom right corner
-    drawButton("-> | Next step", 1590, 50, 200, 50, buttonClicked);
+    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 3);
 }
 
 void screen3b() {
@@ -526,7 +551,7 @@ void screen3b() {
     drawText("Step 2: Pick the design you would like to continue with.", 1550, 150, 250);
 
     // Draw the "Next step" button in the bottom right corner
-    drawButton("-> | Next step", 1590, 50, 200, 50, buttonClicked);
+    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 4);
 }
 
 void screen3c() {
@@ -553,7 +578,7 @@ void screen3c() {
     drawText("Step 3: This time, pick the one of which you think its structural design has the highest stiffness.", 1550, 150, 250);
 
     // Draw the "Next step" button in the bottom right corner
-    drawButton("-> | Next step", 1590, 50, 200, 50, buttonClicked);
+    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 5);
 }
 
 void screen3d() {
@@ -570,16 +595,16 @@ void screen3d() {
     drawUndoRedoButtons();
 
     // Draw control buttons (right side)
-    drawButton("Add space", screenWidth - 310, 760, 200, 50, buttonClicked);
-    drawButton("Delete space", screenWidth - 310, 700, 200, 50, buttonClicked);
-    drawButton("Move space", screenWidth - 310, 640, 200, 50, buttonClicked);
-    drawButton("Resize space", screenWidth - 310, 580, 200, 50, buttonClicked);
+    drawButton("Add space", screenWidth - 310, 760, 200, 50, buttonClicked, 1);
+    drawButton("Delete space", screenWidth - 310, 700, 200, 50, buttonClicked, 1);
+    drawButton("Move space", screenWidth - 310, 640, 200, 50, buttonClicked, 1);
+    drawButton("Resize space", screenWidth - 310, 580, 200, 50, buttonClicked, 1);
 
     // Draw the message at the bottom of the structure illustration
     drawText("Step 4: You may adapt the BSD you started with to create any new BSD you desire. Keep the function of the building in mind, as well as the resulting zoned designs and their stiffnesses.", 1550, 200, 250);
 
     // Draw the "Next step" button in the bottom right corner
-    drawButton("-> | Next step", 1590, 50, 200, 50, buttonClicked);
+    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 6);
 }
 
 void screen3e() {
@@ -601,26 +626,26 @@ void screen3e() {
 
     // Draw control buttons (right side)
     drawText("Zones", screenWidth - 150, 820, 200);
-    drawButton("Create zone", screenWidth - 310, 760, 200, 50, buttonClicked);
-    drawButton("Delete zone", screenWidth - 310, 700, 200, 50, buttonClicked);
+    drawButton("Create zone", screenWidth - 310, 760, 200, 50, buttonClicked, 1);
+    drawButton("Delete zone", screenWidth - 310, 700, 200, 50, buttonClicked, 1);
     drawText("Zoned designs", screenWidth - 180, 660, 200);
-    drawButton("Create zoned design", screenWidth - 310, 600, 200, 50, buttonClicked);
-    drawButton("Delete zoned design", screenWidth - 310, 540, 200, 50, buttonClicked);
+    drawButton("Create zoned design", screenWidth - 310, 600, 200, 50, buttonClicked, 1);
+    drawButton("Delete zoned design", screenWidth - 310, 540, 200, 50, buttonClicked, 1);
 
     // Draw the message at the bottom of the structure illustration
     drawText("Step 5: Find all zoned designs.", 1550, 150, 250);
 
     // Draw the "Next step" button in the bottom right corner
-    drawButton("-> | Next step", 1590, 50, 200, 50, buttonClicked);
+    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 7);
 }
 
 void screen4a() {
     drawText("1. How much did you enjoy performing this assignment?", 600, 800, 600);
-    drawButton("1", 300, 725, 50, 30, buttonClicked);
-    drawButton("2", 350, 725, 50, 30, buttonClicked);
-    drawButton("3", 400, 725, 50, 30, buttonClicked);
-    drawButton("4", 450, 725, 50, 30, buttonClicked);
-    drawButton("5", 500, 725, 50, 30, buttonClicked);
+    drawButton("1", 300, 725, 50, 30, buttonClicked, 1);
+    drawButton("2", 350, 725, 50, 30, buttonClicked, 1);
+    drawButton("3", 400, 725, 50, 30, buttonClicked, 1);
+    drawButton("4", 450, 725, 50, 30, buttonClicked, 1);
+    drawButton("5", 500, 725, 50, 30, buttonClicked, 1);
 
     drawText("1: Not at all", 600, 700, 600);
     drawText("5: Very much", 600, 670, 600);
@@ -637,16 +662,16 @@ void screen4a() {
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
 
-    drawButton("-> | Next", 1590, 50, 200, 50, buttonClicked);
+    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 8);
 }
 
 void screen4b() {
     drawText("2. How would you rate the level of ease in performing this assignment?", 600, 800, 600);
-    drawButton("1", 300, 725, 50, 30, buttonClicked);
-    drawButton("2", 350, 725, 50, 30, buttonClicked);
-    drawButton("3", 400, 725, 50, 30, buttonClicked);
-    drawButton("4", 450, 725, 50, 30, buttonClicked);
-    drawButton("5", 500, 725, 50, 30, buttonClicked);
+    drawButton("1", 300, 725, 50, 30, buttonClicked, 1);
+    drawButton("2", 350, 725, 50, 30, buttonClicked, 1);
+    drawButton("3", 400, 725, 50, 30, buttonClicked, 1);
+    drawButton("4", 450, 725, 50, 30, buttonClicked, 1);
+    drawButton("5", 500, 725, 50, 30, buttonClicked, 1);
 
     drawText("1: Very hard", 600, 700, 600);
     drawText("5: Very easy", 600, 670, 600);
@@ -662,16 +687,16 @@ void screen4b() {
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
 
-    drawButton("-> | Next", 1590, 50, 200, 50, buttonClicked);
+    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 9);
 }
 
 void screen4c() {
     drawText("3. How well do you think you performed the assignment?", 600, 800, 600);
-    drawButton("1", 300, 725, 50, 30, buttonClicked);
-    drawButton("2", 350, 725, 50, 30, buttonClicked);
-    drawButton("3", 400, 725, 50, 30, buttonClicked);
-    drawButton("4", 450, 725, 50, 30, buttonClicked);
-    drawButton("5", 500, 725, 50, 30, buttonClicked);
+    drawButton("1", 300, 725, 50, 30, buttonClicked, 1);
+    drawButton("2", 350, 725, 50, 30, buttonClicked, 1);
+    drawButton("3", 400, 725, 50, 30, buttonClicked, 1);
+    drawButton("4", 450, 725, 50, 30, buttonClicked, 1);
+    drawButton("5", 500, 725, 50, 30, buttonClicked, 1);
 
     drawText("1: I have no idea what I am doing, and unable to identify zoned designs and high stiffness.", 700, 700, 800);
     drawText("5: Confident, correct answers, and able to identify zoned designs and high stiffness.", 700, 670, 800);
@@ -687,14 +712,14 @@ void screen4c() {
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
 
-    drawButton("-> | Next", 1590, 50, 200, 50, buttonClicked);
+    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 10);
 }
 
 void screen4d() {
     drawText("4. Do you think it would have gone better without the AI tool?", 600, 800, 600);
-    drawButton("Yes", 300, 725, 75, 30, buttonClicked);
-    drawButton("No", 375, 725, 75, 30, buttonClicked);
-    drawButton("No idea", 450, 725, 75, 30, buttonClicked);
+    drawButton("Yes", 300, 725, 75, 30, buttonClicked, 1);
+    drawButton("No", 375, 725, 75, 30, buttonClicked, 1);
+    drawButton("No idea", 450, 725, 75, 30, buttonClicked, 1);
 
     drawText("Please explain your answer:", 600, 500, 600);
     drawTextField(300, 270, 500, 200, opinionTF);
@@ -707,14 +732,14 @@ void screen4d() {
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
 
-    drawButton("-> | Next", 1590, 50, 200, 50, buttonClicked);
+    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 11);
 }
 
 void screen4e() {
     drawText("5. Do you think the AI tool itself can perform zoning better than you?", 600, 800, 600);
-    drawButton("Yes", 300, 725, 75, 30, buttonClicked);
-    drawButton("No", 375, 725, 75, 30, buttonClicked);
-    drawButton("No idea", 450, 725, 75, 30, buttonClicked);
+    drawButton("Yes", 300, 725, 75, 30, buttonClicked, 1);
+    drawButton("No", 375, 725, 75, 30, buttonClicked, 1);
+    drawButton("No idea", 450, 725, 75, 30, buttonClicked, 1);
 
     drawText("Please explain your answer:", 600, 500, 600);
     drawTextField(300, 270, 500, 200, opinionTF);
@@ -727,7 +752,7 @@ void screen4e() {
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
 
-    drawButton("-> | Next", 1590, 50, 200, 50, buttonClicked);
+    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 12);
 }
 
 void screen4f() {
@@ -743,7 +768,7 @@ void screen4f() {
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
 
-    drawButton("-> | Next", 1590, 50, 200, 50, buttonClicked);
+    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 13);
 }
 
 void screen5() {
@@ -755,7 +780,7 @@ void screen5() {
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
 
-    drawButton("-> | Next", 1590, 50, 200, 50, buttonClicked);
+    drawButton("-> | Next", 1590, 50, 200, 50, buttonClicked, 1);
 }
 
 int main(int argc, char** argv) {

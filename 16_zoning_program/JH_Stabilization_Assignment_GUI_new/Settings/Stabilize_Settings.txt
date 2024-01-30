@@ -1,0 +1,32 @@
+# Settings for stabilization
+
+# Method:
+# (Unzoned / Partially_Zoned / Fully_Zoned)
+# Also check Zoning_Settings.txt
+A,						Partially_Zoned
+
+
+# Singular value:
+#
+B,						1
+
+
+# Point iteration unzoned:
+# (0)
+# (see below for description)
+C,						3
+
+# Zone iteration
+# (0 - 2)
+# (see below for description)
+D,						2
+
+# Point iteration zoned:
+# (1)
+# (see below for description)
+E,						1
+
+
+# Superfluous trusses..
+#						Delete?
+F,						Y

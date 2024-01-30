@@ -11,7 +11,7 @@
 #include <GL/glut.h>
 
 #elif defined(_WIN32) || defined(WIN32)
-#include <glut.h>
+#include <GL/freeglut.h>
 
 #endif
 

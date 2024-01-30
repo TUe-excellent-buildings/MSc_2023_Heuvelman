@@ -2,6 +2,8 @@
 #include <cmath>
 #include <vector>
 #include <iostream>
+#include <BSO/Spatial_Design/Movable_Sizable.hpp>
+#include <BSO/Visualisation/Visualisation.hpp>
 
 
 typedef void (*ButtonCallback)(int);
@@ -370,31 +372,6 @@ void drawUndoRedoButtons() {
     drawButton("Reset", 10, screenHeight - 120, 110, 50, buttonClicked, 1);
 }
 
-
-void mainScreen() {
-    drawText("Hello and welcome to this MSc project by Janneke Heuvelman. We are glad to have you here and hope you will have a nice experience. In case of any problems, be sure to contact Janneke via email: j.h.heuvelman@student.tue.nl. Please select the Assignment number:",
-    900, 800, 400);
-
-    drawButton("Assignment 1", 800, 650, 200, 50, changeScreen, 1);
-    drawButton("Assignment 2", 800, 580, 200, 50, buttonClicked, 1);
-    drawButton("Assignment 3", 800, 510, 200, 50, buttonClicked, 1);
-    drawButton("Assignment 4", 800, 440, 200, 50, buttonClicked, 1);
-    drawButton("Assignment 5", 800, 370, 200, 50, buttonClicked, 1);
-    drawButton("Assignment 6", 800, 300, 200, 50, buttonClicked, 1);
-
-    drawUndoRedoButtons();
-}
-
-void assignmentDescriptionScreen() {
-    drawText("You will in a moment go through a design task. You are asked to perform this task in the way you are used to go about a commission in your daily practice. It is important that you say aloud everything that you think or do in designing. ​So, in every step, explain what you do and why you do it. Try to keep speaking constantly and not be silent for longer than 20 seconds. ​Good luck!​",
-    900, 600, 400);
-
-    drawButton("<- | Previous step", 1380, 50, 200, 50, changeScreen, 0);
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 2);
-
-    drawUndoRedoButtons();
-}
-
 void drawBuilding() {
     glColor3f(0.0, 0.0, 0.0); // Blue color for the building structure
     glBegin(GL_LINES);
@@ -448,11 +425,40 @@ void drawBuilding() {
     glEnd();
 }
 
+void mainScreen() {
+    drawText("Hello and welcome to this MSc project by Janneke Heuvelman. We are glad to have you here and hope you will have a nice experience. In case of any problems, be sure to contact Janneke via email: j.h.heuvelman@student.tue.nl. Please select the Assignment number:",
+    900, 800, 400);
+
+    drawButton("Assignment 1", 800, 650, 200, 50, changeScreen, 1);
+    drawButton("Assignment 2", 800, 580, 200, 50, buttonClicked, 1);
+    drawButton("Assignment 3", 800, 510, 200, 50, buttonClicked, 1);
+    drawButton("Assignment 4", 800, 440, 200, 50, buttonClicked, 1);
+    drawButton("Assignment 5", 800, 370, 200, 50, buttonClicked, 1);
+    drawButton("Assignment 6", 800, 300, 200, 50, buttonClicked, 1);
+
+    drawUndoRedoButtons();
+}
+
+void assignmentDescriptionScreen() {
+    drawText("You will in a moment go through a design task. You are asked to perform this task in the way you are used to go about a commission in your daily practice. It is important that you say aloud everything that you think or do in designing. ​So, in every step, explain what you do and why you do it. Try to keep speaking constantly and not be silent for longer than 20 seconds. ​Good luck!​",
+    900, 600, 400);
+
+    drawButton("<- | Previous step", 1380, 50, 200, 50, changeScreen, 0);
+    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 2);
+
+    drawUndoRedoButtons();
+}
+
 void screen3() {
     // Screen layout and colors should be adjusted as necessary.
 
     // Draw structural design illustration placeholder (left side)
-    drawBuilding();
+    // drawBuilding();
+    BSO::Spatial_Design::MS_Building MS("MS_Input.txt");
+
+    BSO::Visualisation::init_visualisation_without();
+    BSO::Visualisation::visualise(MS);
+    BSO::Visualisation::end_visualisation();
 
     glColor3f(0.0, 0.0, 0.0);
     glBegin(GL_LINES);

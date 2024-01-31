@@ -57,11 +57,19 @@ TextField opinionTF3;
 TextField opinionTF4;
 TextField opinionTF5;
 TextField opinionTF6;
+TextField opinionTF7;
+TextField opinionTF8;
+TextField opinionTF9;
+TextField opinionTF10;
+TextField opinionTF11;
 
 // Global variables for current screen and screen dimensions
 int currentScreen = 0;
 const int screenWidth = 1800;
 const int screenHeight = 1000;
+
+//Global variable to indicate if the confirm button was clicked
+int confirmButtonClickFlag = 0;
 
 // Text margin as a percentage of the window width
 const float MARGIN_PERCENT = 5.0f; // Margin as a percentage of the window width
@@ -80,6 +88,10 @@ void screen4d();
 void screen4e();
 void screen4f();
 void screen5();
+void screenAddTrussDiagonally();
+void screenReplaceTrussByBeam();
+void screenDeleteDiagonalTruss();
+void screenReplaceBeamByTruss();
 void drawText(const char *text, float x, float y);
 void drawButton(const char *text, float x, float y, float width, float height, ButtonCallback callback, int variable);
 void drawArrow(float x, float y, bool leftArrow);
@@ -125,6 +137,10 @@ void display() {
         case 7: screen4e(); break;
         case 8: screen4f(); break;
         case 9: screen5(); break;
+        case 10: screenAddTrussDiagonally(); break;
+        case 11: screenReplaceTrussByBeam(); break;
+        case 12: screenDeleteDiagonalTruss(); break;
+        case 13: screenReplaceBeamByTruss(); break;
         // Ensure you have a default case, even if it does nothing,
         // to handle any unexpected values of currentScreen
         default: break;
@@ -177,6 +193,10 @@ void keyboard(unsigned char key, int x, int y) {
     if (key == 'i') currentScreen = 7;
     if (key == 'o') currentScreen = 8;
     if (key == 'p') currentScreen = 9;
+    if (key == 'a') currentScreen = 10;
+    if (key == 's') currentScreen = 11;
+    if (key == 'd') currentScreen = 12;
+    if (key == 'f') currentScreen = 13;
 
     GLenum err;
     while ((err = glGetError()) != GL_NO_ERROR) {
@@ -264,6 +284,83 @@ void keyboard(unsigned char key, int x, int y) {
             opinionTF6.text = ""; // Clear the input string after processing
         }
     }
+
+    if (currentScreen == 10) {
+		if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
+			opinionTF7.text += key; // Append the character to the input string
+		}
+		else if (key == 8 && opinionTF7.text != "") { // Backspace key
+			opinionTF7.text.pop_back(); // Remove the last character from input string
+		}
+		else if (key == 13) { // Enter key
+			// Print the entered text to the terminal
+			std::cout << "Entered text: " << opinionTF7.text << std::endl;
+			opinionTF7.text = ""; // Clear the input string after processing
+		}
+	}
+
+    if (currentScreen == 10) {
+        if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
+            opinionTF8.text += key; // Append the character to the input string
+		}
+		else if (key == 8 && opinionTF8.text != "") { // Backspace key
+			opinionTF8.text.pop_back(); // Remove the last character from input string
+		}
+		else if (key == 13) { // Enter key
+			// Print the entered text to the terminal
+			std::cout << "Entered text: " << opinionTF8.text << std::endl;
+			opinionTF8.text = ""; // Clear the input string after processing
+		}
+    }
+
+    if (currentScreen == 11) {
+        if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
+            opinionTF9.text += key; // Append the character to the input string
+        }
+        else if (key == 8 && opinionTF9.text != "") { // Backspace key
+            opinionTF9.text.pop_back(); // Remove the last character from input string
+        }
+        else if (key == 13) { // Enter key
+            // Print the entered text to the terminal
+            std::cout << "Entered text: " << opinionTF9.text << std::endl;
+            opinionTF9.text = ""; // Clear the input string after processing
+        }
+    }
+
+    if (currentScreen == 12) {
+        if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
+            opinionTF10.text += key; // Append the character to the input string
+        }
+        else if (key == 8 && opinionTF10.text != "") { // Backspace key
+            opinionTF10.text.pop_back(); // Remove the last character from input string
+        }
+        else if (key == 13) { // Enter key
+            // Print the entered text to the terminal
+            std::cout << "Entered text: " << opinionTF10.text << std::endl;
+            opinionTF10.text = ""; // Clear the input string after processing
+        }
+    }
+
+    if (currentScreen == 13) {
+        if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
+            opinionTF11.text += key; // Append the character to the input string
+        }
+        else if (key == 8 && opinionTF11.text != "") { // Backspace key
+            opinionTF11.text.pop_back(); // Remove the last character from input string
+        }
+        else if (key == 13) { // Enter key
+            // Print the entered text to the terminal
+            std::cout << "Entered text: " << opinionTF11.text << std::endl;
+            opinionTF11.text = ""; // Clear the input string after processing
+        }
+    }
+
+    //above is for text fields, below is for the confirm button to also work when 'enter' is pressed on the keyboard
+    if (key == 13) {  // ASCII code for Enter key
+        // Set the flag to indicate that Enter key was pressed
+        confirmButtonClickFlag = 1;
+    }
+
     // Redraw screen
     glutPostRedisplay();
 }
@@ -566,17 +663,12 @@ void screen3() {
     drawText("Number of beams: 0", 1200, screenHeight - 120, 200);
 
     // Draw control buttons (right side)
-    //drawButton("Add diagonal", screenWidth - 310, 500, 200, 50, changeScreen, 3);
-    //drawButton("Add beam", screenWidth - 310, 560, 200, 50, buttonClicked, 1);
-    //drawButton("Remove diagonal", screenWidth - 310, 620, 200, 50, buttonClicked, 1);
-    //drawButton("Remove beam", screenWidth - 310, 680, 200, 50, buttonClicked, 1);
-
     drawText("Add elements", screenWidth - 170, 820, 200);
-    drawButton("Add truss diagonally", screenWidth - 310, 760, 200, 50, buttonClicked, 1);
-    drawButton("Replace truss by beam", screenWidth - 310, 700, 200, 50, buttonClicked, 1);
+    drawButton("Add truss diagonally", screenWidth - 310, 760, 200, 50, changeScreen, 10);
+    drawButton("Replace truss by beam", screenWidth - 310, 700, 200, 50, changeScreen, 11);
     drawText("Remove elements", screenWidth - 180, 660, 200);
-    drawButton("Delete diagonal truss", screenWidth - 310, 600, 200, 50, buttonClicked, 1);
-    drawButton("Replace beam by truss", screenWidth - 310, 540, 200, 50, buttonClicked, 1);
+    drawButton("Delete diagonal truss", screenWidth - 310, 600, 200, 50, changeScreen, 12);
+    drawButton("Replace beam by truss", screenWidth - 310, 540, 200, 50, changeScreen, 13);
 
     drawButton("Hide member numbers", 1100, 50, 200, 50, buttonClicked, 1);
 
@@ -664,7 +756,7 @@ void screen4c() {
 }
 
 void screen4d() {
-    drawText("4. Do you think it would have gone better with the assistance of an AI tool that you could ask for eight suggestions?", 600, 800, 600);
+    drawText("4. Do you think it would have gone better with the assistance of an AI tool that you could ask for eight member placement suggestions?", 600, 800, 600);
     drawButton("Yes", 300, 725, 75, 30, buttonClicked, 1);
     drawButton("No", 375, 725, 75, 30, buttonClicked, 1);
     drawButton("No idea", 450, 725, 75, 30, buttonClicked, 1);
@@ -729,6 +821,251 @@ void screen5() {
     glEnd();
 
     drawButton("-> | Next", 1590, 50, 200, 50, buttonClicked, 1);
+}
+
+void screenAddTrussDiagonally() {
+    //same as previous screen
+    drawBuilding();
+    // BSO::Spatial_Design::MS_Building MS("MS_Input.txt");
+
+    // BSO::Visualisation::init_visualisation_without();
+    // BSO::Visualisation::visualise(MS);
+    // BSO::Visualisation::end_visualisation();
+
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
+    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
+    glEnd();
+
+    drawUndoRedoButtons();
+
+    drawText("Number of diagonals: 0", 1200, screenHeight - 100, 200);
+    drawText("Number of beams: 0", 1200, screenHeight - 120, 200);
+
+    drawText("Add elements", screenWidth - 170, 820, 200);
+    drawButton("Add truss diagonally", screenWidth - 310, 760, 200, 50, buttonClicked, 1);
+    drawButton("Replace truss by beam", screenWidth - 310, 700, 200, 50, changeScreen, 11);
+    drawText("Remove elements", screenWidth - 180, 660, 200);
+    drawButton("Delete diagonal truss", screenWidth - 310, 600, 200, 50, changeScreen, 12);
+    drawButton("Replace beam by truss", screenWidth - 310, 540, 200, 50, changeScreen, 13);
+
+    drawButton("Hide member numbers", 1100, 50, 200, 50, buttonClicked, 1);
+
+    drawText("Stabilize the structural design while trying to achieve high stiffness with minimal adjustments.", 1550, 150, 250);
+
+    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 3);
+
+    //draw text and input adding a truss diagonally
+    drawText("Enter two opposite members to place the diagonal between:", 1575, 450, 275);
+    drawTextField(screenWidth - 355, 350, 150, 50, opinionTF7);
+    drawTextField(screenWidth - 195, 350, 150, 50, opinionTF8);
+    drawButton("Confirm", screenWidth - 260, 300, 100, 30, changeScreen, 2); //go back to main screen AND a diagonal should be added
+
+    // Check if the Enter key was pressed
+    if (confirmButtonClickFlag) {
+        // Reset the flag
+        confirmButtonClickFlag = 0;
+
+        // Perform the action corresponding to the "Confirm" button
+        changeScreen(2);
+    }
+
+    //draw lines around it
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(1420.0f, 500.0f);
+    glVertex2f(1420.0f, 275.0f);
+    glVertex2f(1420.0f, 500.0f);
+    glVertex2f(1780.0f, 500.0f);
+    glVertex2f(1780.0f, 500.0f);
+    glVertex2f(1780.0f, 275.0f);
+    glVertex2f(1780.0f, 275.0f);
+    glVertex2f(1420.0f, 275.0f);
+    glEnd();
+}
+
+void screenReplaceTrussByBeam() {
+    //same as previous screen
+    drawBuilding();
+    // BSO::Spatial_Design::MS_Building MS("MS_Input.txt");
+
+    // BSO::Visualisation::init_visualisation_without();
+    // BSO::Visualisation::visualise(MS);
+    // BSO::Visualisation::end_visualisation();
+
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
+    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
+    glEnd();
+
+    drawUndoRedoButtons();
+
+    drawText("Number of diagonals: 0", 1200, screenHeight - 100, 200);
+    drawText("Number of beams: 0", 1200, screenHeight - 120, 200);
+
+    drawText("Add elements", screenWidth - 170, 820, 200);
+    drawButton("Add truss diagonally", screenWidth - 310, 760, 200, 50, changeScreen, 10);
+    drawButton("Replace truss by beam", screenWidth - 310, 700, 200, 50, buttonClicked, 1);
+    drawText("Remove elements", screenWidth - 180, 660, 200);
+    drawButton("Delete diagonal truss", screenWidth - 310, 600, 200, 50, changeScreen, 12);
+    drawButton("Replace beam by truss", screenWidth - 310, 540, 200, 50, changeScreen, 13);
+
+    drawButton("Hide member numbers", 1100, 50, 200, 50, buttonClicked, 1);
+
+    drawText("Stabilize the structural design while trying to achieve high stiffness with minimal adjustments.", 1550, 150, 250);
+
+    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 3);
+
+    //draw text and input adding a beam
+    drawText("Member to replace:", 1600, 420, 350);
+    drawTextField(screenWidth - 355, 350, 150, 50, opinionTF9);
+    drawButton("Confirm", screenWidth - 260, 300, 100, 30, changeScreen, 2); //go back to main screen AND a beam should be added/substituted
+
+    // Check if the Enter key was pressed
+    if (confirmButtonClickFlag) {
+        // Reset the flag
+        confirmButtonClickFlag = 0;
+
+        // Perform the action corresponding to the "Confirm" button
+        changeScreen(2);
+    }
+
+    //draw lines around it
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(1420.0f, 450.0f);
+    glVertex2f(1420.0f, 275.0f);
+    glVertex2f(1420.0f, 450.0f);
+    glVertex2f(1780.0f, 450.0f);
+    glVertex2f(1780.0f, 450.0f);
+    glVertex2f(1780.0f, 275.0f);
+    glVertex2f(1780.0f, 275.0f);
+    glVertex2f(1420.0f, 275.0f);
+    glEnd();
+}
+
+void screenDeleteDiagonalTruss() {
+    //same as previous screen
+    drawBuilding();
+    // BSO::Spatial_Design::MS_Building MS("MS_Input.txt");
+
+    // BSO::Visualisation::init_visualisation_without();
+    // BSO::Visualisation::visualise(MS);
+    // BSO::Visualisation::end_visualisation();
+
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
+    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
+    glEnd();
+
+    drawUndoRedoButtons();
+
+    drawText("Number of diagonals: 0", 1200, screenHeight - 100, 200);
+    drawText("Number of beams: 0", 1200, screenHeight - 120, 200);
+
+    drawText("Add elements", screenWidth - 170, 820, 200);
+    drawButton("Add truss diagonally", screenWidth - 310, 760, 200, 50, changeScreen, 10);
+    drawButton("Replace truss by beam", screenWidth - 310, 700, 200, 50, changeScreen, 11);
+    drawText("Remove elements", screenWidth - 180, 660, 200);
+    drawButton("Delete diagonal truss", screenWidth - 310, 600, 200, 50, buttonClicked, 1);
+    drawButton("Replace beam by truss", screenWidth - 310, 540, 200, 50, changeScreen, 13);
+
+    drawButton("Hide member numbers", 1100, 50, 200, 50, buttonClicked, 1);
+
+    drawText("Stabilize the structural design while trying to achieve high stiffness with minimal adjustments.", 1550, 150, 250);
+
+    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 3);
+
+    //draw text and input deleting a diagonal truss element
+    drawText("Member to delete:", 1600, 420, 350);
+    drawTextField(screenWidth - 355, 350, 150, 50, opinionTF10);
+    drawButton("Confirm", screenWidth - 260, 300, 100, 30, changeScreen, 2); //go back to main screen AND a diagonal should be deleted
+
+    // Check if the Enter key was pressed
+    if (confirmButtonClickFlag) {
+        // Reset the flag
+        confirmButtonClickFlag = 0;
+
+        // Perform the action corresponding to the "Confirm" button
+        changeScreen(2);
+    }
+
+    //draw lines around it
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(1420.0f, 450.0f);
+    glVertex2f(1420.0f, 275.0f);
+    glVertex2f(1420.0f, 450.0f);
+    glVertex2f(1780.0f, 450.0f);
+    glVertex2f(1780.0f, 450.0f);
+    glVertex2f(1780.0f, 275.0f);
+    glVertex2f(1780.0f, 275.0f);
+    glVertex2f(1420.0f, 275.0f);
+    glEnd();
+}
+
+void screenReplaceBeamByTruss() {
+    //same as previous screen
+    drawBuilding();
+    // BSO::Spatial_Design::MS_Building MS("MS_Input.txt");
+
+    // BSO::Visualisation::init_visualisation_without();
+    // BSO::Visualisation::visualise(MS);
+    // BSO::Visualisation::end_visualisation();
+
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
+    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
+    glEnd();
+
+    drawUndoRedoButtons();
+
+    drawText("Number of diagonals: 0", 1200, screenHeight - 100, 200);
+    drawText("Number of beams: 0", 1200, screenHeight - 120, 200);
+
+    drawText("Add elements", screenWidth - 170, 820, 200);
+    drawButton("Add truss diagonally", screenWidth - 310, 760, 200, 50, changeScreen, 10);
+    drawButton("Replace truss by beam", screenWidth - 310, 700, 200, 50, changeScreen, 11);
+    drawText("Remove elements", screenWidth - 180, 660, 200);
+    drawButton("Delete diagonal truss", screenWidth - 310, 600, 200, 50, changeScreen, 12);
+    drawButton("Replace beam by truss", screenWidth - 310, 540, 200, 50, buttonClicked, 1);
+
+    drawButton("Hide member numbers", 1100, 50, 200, 50, buttonClicked, 1);
+
+    drawText("Stabilize the structural design while trying to achieve high stiffness with minimal adjustments.", 1550, 150, 250);
+
+    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 3);
+
+    //draw text and input adding a beam
+    drawText("Member to replace:", 1600, 420, 350);
+    drawTextField(screenWidth - 355, 350, 150, 50, opinionTF11);
+    drawButton("Confirm", screenWidth - 260, 300, 100, 30, changeScreen, 2); //go back to main screen AND a beam should be deleted/substiuted by a truss
+
+    // Check if the Enter key was pressed
+    if (confirmButtonClickFlag) {
+        // Reset the flag
+        confirmButtonClickFlag = 0;
+
+        // Perform the action corresponding to the "Confirm" button
+        changeScreen(2);
+    }
+
+    //draw lines around it
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(1420.0f, 450.0f);
+    glVertex2f(1420.0f, 275.0f);
+    glVertex2f(1420.0f, 450.0f);
+    glVertex2f(1780.0f, 450.0f);
+    glVertex2f(1780.0f, 450.0f);
+    glVertex2f(1780.0f, 275.0f);
+    glVertex2f(1780.0f, 275.0f);
+    glVertex2f(1420.0f, 275.0f);
+    glEnd();
 }
 
 int main(int argc, char** argv) {

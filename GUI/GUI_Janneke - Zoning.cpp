@@ -52,6 +52,13 @@ struct TextField {
 
 std::vector<Button> buttons;
 TextField opinionTF;
+TextField opinionTF2;
+TextField opinionTF3;
+TextField opinionTF4;
+TextField opinionTF5;
+TextField opinionTF6;
+TextField opinionTF7;
+TextField opinionTF8;
 
 // Global variables for current screen and screen dimensions
 int currentScreen = 0;
@@ -203,6 +210,103 @@ void keyboard(unsigned char key, int x, int y) {
         }
     }
 
+    if (currentScreen == 4) {
+        if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
+            opinionTF2.text += key; // Append the character to the input string
+        }
+        else if (key == 8 && opinionTF2.text != "") { // Backspace key
+            opinionTF2.text.pop_back(); // Remove the last character from input string
+        }
+        else if (key == 13) { // Enter key
+            // Print the entered text to the terminal
+            std::cout << "Entered text: " << opinionTF2.text << std::endl;
+            opinionTF2.text = ""; // Clear the input string after processing
+        }
+    }
+
+    if (currentScreen == 7) {
+        if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
+            opinionTF3.text += key; // Append the character to the input string
+        }
+        else if (key == 8 && opinionTF3.text != "") { // Backspace key
+            opinionTF3.text.pop_back(); // Remove the last character from input string
+        }
+        else if (key == 13) { // Enter key
+            // Print the entered text to the terminal
+            std::cout << "Entered text: " << opinionTF3.text << std::endl;
+            opinionTF3.text = ""; // Clear the input string after processing
+        }
+    }
+
+    if (currentScreen == 8) {
+        if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
+            opinionTF4.text += key; // Append the character to the input string
+        }
+        else if (key == 8 && opinionTF4.text != "") { // Backspace key
+            opinionTF4.text.pop_back(); // Remove the last character from input string
+        }
+        else if (key == 13) { // Enter key
+            // Print the entered text to the terminal
+            std::cout << "Entered text: " << opinionTF4.text << std::endl;
+            opinionTF4.text = ""; // Clear the input string after processing
+        }
+    }
+
+    if (currentScreen == 9) {
+        if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
+            opinionTF5.text += key; // Append the character to the input string
+        }
+        else if (key == 8 && opinionTF5.text != "") { // Backspace key
+            opinionTF5.text.pop_back(); // Remove the last character from input string
+        }
+        else if (key == 13) { // Enter key
+            // Print the entered text to the terminal
+            std::cout << "Entered text: " << opinionTF5.text << std::endl;
+            opinionTF5.text = ""; // Clear the input string after processing
+        }
+    }
+
+    if (currentScreen == 10) {
+        if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
+            opinionTF6.text += key; // Append the character to the input string
+        }
+        else if (key == 8 && opinionTF6.text != "") { // Backspace key
+            opinionTF6.text.pop_back(); // Remove the last character from input string
+        }
+        else if (key == 13) { // Enter key
+            // Print the entered text to the terminal
+            std::cout << "Entered text: " << opinionTF6.text << std::endl;
+            opinionTF6.text = ""; // Clear the input string after processing
+        }
+    }
+
+    if (currentScreen == 11) {
+        if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
+            opinionTF7.text += key; // Append the character to the input string
+        }
+        else if (key == 8 && opinionTF7.text != "") { // Backspace key
+            opinionTF7.text.pop_back(); // Remove the last character from input string
+        }
+        else if (key == 13) { // Enter key
+            // Print the entered text to the terminal
+            std::cout << "Entered text: " << opinionTF7.text << std::endl;
+            opinionTF7.text = ""; // Clear the input string after processing
+        }
+    }
+
+    if (currentScreen == 12) {
+        if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
+            opinionTF8.text += key; // Append the character to the input string
+        }
+        else if (key == 8 && opinionTF8.text != "") { // Backspace key
+            opinionTF8.text.pop_back(); // Remove the last character from input string
+        }
+        else if (key == 13) { // Enter key
+            // Print the entered text to the terminal
+            std::cout << "Entered text: " << opinionTF8.text << std::endl;
+            opinionTF8.text = ""; // Clear the input string after processing
+        }
+    }
 
     // Redraw screen
     glutPostRedisplay();
@@ -572,7 +676,7 @@ void screen3c() {
 
     //Draw text and a textfield(textbox)
     drawText("Zoned design:", screenWidth - 180, 660, 200);
-    drawTextField(1490, 500, 200, 150, opinionTF);
+    drawTextField(1490, 500, 200, 150, opinionTF2);
 
     // Draw the message at the bottom of the structure illustration
     drawText("Step 3: This time, pick the one of which you think its structural design has the highest stiffness.", 1550, 150, 250);
@@ -651,7 +755,7 @@ void screen4a() {
     drawText("5: Very much", 600, 670, 600);
 
     drawText("Please explain your answer:", 600, 500, 600);
-    drawTextField(300, 270, 500, 200, opinionTF);
+    drawTextField(300, 270, 500, 200, opinionTF3);
 
     // Draw the message at the bottom of the structure illustration
     drawText("Step 6: Questionnaire.", 1550, 150, 250);
@@ -677,7 +781,7 @@ void screen4b() {
     drawText("5: Very easy", 600, 670, 600);
 
     drawText("Please explain your answer:", 600, 500, 600);
-    drawTextField(300, 270, 500, 200, opinionTF);
+    drawTextField(300, 270, 500, 200, opinionTF4);
 
     drawText("Step 6: Questionnaire.", 1550, 150, 250);
 
@@ -702,7 +806,7 @@ void screen4c() {
     drawText("5: Confident, correct answers, and able to identify zoned designs and high stiffness.", 700, 670, 800);
 
     drawText("Please explain your answer:", 600, 500, 600);
-    drawTextField(300, 270, 500, 200, opinionTF);
+    drawTextField(300, 270, 500, 200, opinionTF5);
 
     drawText("Step 6: Questionnaire.", 1550, 150, 250);
 
@@ -722,7 +826,7 @@ void screen4d() {
     drawButton("No idea", 450, 725, 75, 30, buttonClicked, 1);
 
     drawText("Please explain your answer:", 600, 500, 600);
-    drawTextField(300, 270, 500, 200, opinionTF);
+    drawTextField(300, 270, 500, 200, opinionTF6);
 
     drawText("Step 6: Questionnaire.", 1550, 150, 250);
 
@@ -742,7 +846,7 @@ void screen4e() {
     drawButton("No idea", 450, 725, 75, 30, buttonClicked, 1);
 
     drawText("Please explain your answer:", 600, 500, 600);
-    drawTextField(300, 270, 500, 200, opinionTF);
+    drawTextField(300, 270, 500, 200, opinionTF7);
 
     drawText("Step 6: Questionnaire.", 1550, 150, 250);
 
@@ -758,7 +862,7 @@ void screen4e() {
 void screen4f() {
     drawText("6. What criteria did you keep in mind while performing this assignment?", 600, 800, 600);
     drawText("(For example, structural, aesthetical, functional, and zoning requirements.)", 600, 770, 600);
-    drawTextField(300, 530, 500, 200, opinionTF);
+    drawTextField(300, 530, 500, 200, opinionTF8);
 
     drawText("Step 6: Questionnaire.", 1550, 150, 250);
 

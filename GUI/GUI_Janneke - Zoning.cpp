@@ -124,6 +124,25 @@ void drawTextField(int x, int y, int width, int height, TextField& textfield);
 void onMouseClick(int button, int state, int x, int y);
 void drawBuilding();
 
+//declare outputfile at global scope
+std::ofstream outputFile;
+
+//creating output in excel file
+void openOutputFile(std::string outputFileName) {
+    outputFile.open("output.csv", std::ios::app);
+    if (!outputFile.is_open()) {
+        std::cerr << "Error opening the file." << std::endl;
+    }
+}
+void closeOutputFile() {
+    outputFile.close();
+}
+void writeToOutputFile(std::string outputFileName, std::string question, std::string userAnswer, std::string userExplanation) {
+    outputFile << "Question,User Answer\n";
+    outputFile << question << "," << userAnswer << "\n";
+    outputFile << "User Explanation," << userExplanation << "\n";
+}
+
 void buttonClicked(int variable) {
     std::cout << "Button clicked: " << variable << std::endl;
 }
@@ -288,6 +307,10 @@ void keyboard(unsigned char key, int x, int y) {
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF3.text << std::endl;
+            // Write the entered text to the output file
+            openOutputFile("output.csv");
+            writeToOutputFile("output.csv", "1. How much did you enjoy performing this assignment?", "1", opinionTF3.text);
+            closeOutputFile();
             opinionTF3.text = ""; // Clear the input string after processing
         }
     }
@@ -302,6 +325,10 @@ void keyboard(unsigned char key, int x, int y) {
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF4.text << std::endl;
+            // Write the entered text to the output file
+            openOutputFile("output.csv");
+            writeToOutputFile("output.csv", "2. How would you rate the level of ease in performing this assignment?", "1", opinionTF4.text);
+            closeOutputFile();
             opinionTF4.text = ""; // Clear the input string after processing
         }
     }
@@ -316,6 +343,10 @@ void keyboard(unsigned char key, int x, int y) {
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF5.text << std::endl;
+            // Write the entered text to the output file
+            openOutputFile("output.csv");
+            writeToOutputFile("output.csv", "3. How well do you think you performed the assignment?", "1", opinionTF5.text);
+            closeOutputFile();
             opinionTF5.text = ""; // Clear the input string after processing
         }
     }
@@ -330,6 +361,10 @@ void keyboard(unsigned char key, int x, int y) {
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF6.text << std::endl;
+            // Write the entered text to the output file
+            openOutputFile("output.csv");
+            writeToOutputFile("output.csv", "4. Do you think it would have gone better with an AI tool that identifies all zoned designs for you?", "1", opinionTF6.text);
+            closeOutputFile();
             opinionTF6.text = ""; // Clear the input string after processing
         }
     }
@@ -344,6 +379,10 @@ void keyboard(unsigned char key, int x, int y) {
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF7.text << std::endl;
+            // Write the entered text to the output file
+            openOutputFile("output.csv");
+            writeToOutputFile("output.csv", "5. Do you think the AI tool itself can perform zoning better than you?", "1", opinionTF7.text);
+            closeOutputFile();
             opinionTF7.text = ""; // Clear the input string after processing
         }
     }
@@ -358,6 +397,10 @@ void keyboard(unsigned char key, int x, int y) {
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF8.text << std::endl;
+            // Write the entered text to the output file
+            openOutputFile("output.csv");
+            writeToOutputFile("output.csv", "6. What criteria did you keep in mind while performing this assignment?", "1", opinionTF8.text);
+            closeOutputFile();
             opinionTF8.text = ""; // Clear the input string after processing
         }
     }
@@ -577,6 +620,8 @@ void keyboard(unsigned char key, int x, int y) {
         // Set the flag to indicate that Enter key was pressed
         confirmButtonClickFlag = 1;
     }
+    
+    
     
     // Redraw screen
     glutPostRedisplay();
@@ -1786,6 +1831,7 @@ void screenDeleteZonedDesign2() {
     glVertex2f(1470.0f, 275.0f);
     glEnd();
 }
+
 
 int main(int argc, char** argv) {
     // Initialize GLUT

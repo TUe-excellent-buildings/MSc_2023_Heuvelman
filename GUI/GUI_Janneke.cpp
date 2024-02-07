@@ -106,7 +106,9 @@ void buttonClicked(int variable) {
 
 void changeScreen(int screen) {
     currentScreen = screen;
+    std::cout << "Changing to screen: " << screen << std::endl;
     glutPostRedisplay();
+    buttons.clear();
 }
 
 
@@ -673,7 +675,7 @@ void screen3() {
     drawButton("Hide member numbers", 1100, 50, 200, 50, buttonClicked, 1);
 
     // Draw the message at the bottom of the structure illustration
-    drawText("Stabilize the structural design while trying to achieve high stiffness with minimal adjustments.", 1550, 150, 250);
+    drawText("Stabilize the structural design with minimal structural adjustments.", 1550, 150, 250);
 
     // Draw the "Next step" button in the bottom right corner
     drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 3);
@@ -702,7 +704,7 @@ void screen4a() {
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
 
-    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 8);
+    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 4);
 }
 
 void screen4b() {
@@ -727,7 +729,7 @@ void screen4b() {
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
 
-    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 9);
+    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 5);
 }
 
 void screen4c() {
@@ -752,7 +754,7 @@ void screen4c() {
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
 
-    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 10);
+    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 6);
 }
 
 void screen4d() {
@@ -772,7 +774,7 @@ void screen4d() {
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
 
-    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 11);
+    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 7);
 }
 
 void screen4e() {
@@ -792,7 +794,7 @@ void screen4e() {
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
 
-    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 12);
+    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 8);
 }
 
 void screen4f() {
@@ -808,7 +810,7 @@ void screen4f() {
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
 
-    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 13);
+    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 9);
 }
 
 void screen5() {

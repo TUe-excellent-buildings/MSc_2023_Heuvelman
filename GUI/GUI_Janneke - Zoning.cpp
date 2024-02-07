@@ -2,6 +2,8 @@
 #include <cmath>
 #include <vector>
 #include <iostream>
+#include <chrono>
+#include <ctime>
 #include <BSO/Spatial_Design/Movable_Sizable.hpp>
 #include <BSO/Visualisation/Visualisation.hpp>
 
@@ -118,6 +120,7 @@ void screenCreateZonedDesign2();
 void screenDeleteZonedDesign2();
 void drawText(const char *text, float x, float y);
 void drawButton(const char *text, float x, float y, float width, float height, ButtonCallback callback, int variable);
+void drawButtonWithBackgroundColor(const char* text, float x, float y, float width, float height, ButtonCallback callback, int variable, float r, float g, float b);
 void drawArrow(float x, float y, bool leftArrow);
 void drawUndoRedoButtons();
 void drawTextField(int x, int y, int width, int height, TextField& textfield);
@@ -126,33 +129,119 @@ void drawBuilding();
 
 //declare outputfile at global scope
 std::ofstream outputFile;
+std::ofstream processFile;
 
 //creating output in excel file
-void openOutputFile(std::string outputFileName) {
-    outputFile.open("output.csv", std::ios::app);
-    if (!outputFile.is_open()) {
-        std::cerr << "Error opening the file." << std::endl;
-    }
-}
-void closeOutputFile() {
-    outputFile.close();
-}
 void writeToOutputFile(std::string outputFileName, std::string question, std::string userAnswer, std::string userExplanation) {
-    outputFile << "Question,User Answer\n";
+    static bool headerPrinted = false;
+    outputFile.open("output.csv", std::ios::app);
+    if (!headerPrinted) {
+        outputFile << "Question,User Answer\n";
+        headerPrinted = true;
+    }
     outputFile << question << "," << userAnswer << "\n";
     outputFile << "User Explanation," << userExplanation << "\n";
+    outputFile.close();
 }
+
+void writeToProcessFile(std::string processFileName, std::string action, std::string userInput) {
+    //headers are only printed once, so the static variable for each column
+    static bool headerPrinted = false;
+    processFile.open("process.csv", std::ios::app);
+    if (!headerPrinted) {
+        processFile << "Action,User input,Time\n";
+        headerPrinted = true;
+    }
+    //to print the time
+    auto now = std::chrono::system_clock::now();
+    auto now_c = std::chrono::system_clock::to_time_t(now);
+    std::tm timeInfo = *std::localtime(&now_c);
+    std::ostringstream oss;
+    oss << std::put_time(&timeInfo, "%H:%M:%S"); // Format time as HH:MM:SS
+    std::string timeString = oss.str();
+
+    processFile << action << "," << userInput << "," << timeString << "\n";
+    processFile.close();
+}
+
+//Declare a global variable to store the selected button label
+std::string selectedButtonLabel;
 
 void buttonClicked(int variable) {
     std::cout << "Button clicked: " << variable << std::endl;
+
+    // Set the selected button label based on the variable
+    switch (variable) {
+    case 1:
+        selectedButtonLabel = "1";
+        break;
+    case 2:
+        selectedButtonLabel = "2";
+        break;
+    case 3:
+        selectedButtonLabel = "3";
+        break;
+    case 4:
+        selectedButtonLabel = "4";
+        break;
+    case 5:
+        selectedButtonLabel = "5";
+        break;
+    case 6:
+        selectedButtonLabel = "Yes";
+        break;
+    case 7:
+        selectedButtonLabel = "No";
+        break;
+    case 8:
+        selectedButtonLabel = "No idea";
+        break;
+    }
+}
+
+// Function to get the selected button label
+std::string getSelectedButtonLabel() {
+	return selectedButtonLabel;
 }
 
 void changeScreen(int screen) {
     currentScreen = screen;
     std::cout << "Changed to screen: " << currentScreen << std::endl;
     glutPostRedisplay();
+    buttons.clear();
 }
 
+void drawText(const char* text, float centerX, float centerY, float textWidth) {
+    float lineHeight = 18; // Approximate line height, adjust as needed
+    float effectiveTextWidth = textWidth - 2 * MARGIN_PERCENT; // Effective width after considering margins
+
+    // Calculate the starting position (left align within the margin)
+    float startX = centerX - effectiveTextWidth / 2.0f;
+    float currentX = startX;
+    float currentY = centerY;
+
+    for (const char* c = text; *c != '\0'; c++) {
+        // Check if we need to wrap the line
+        if ((currentX - startX > effectiveTextWidth) && (*c == ' ' || *c == '\n')) {
+            currentY -= lineHeight;
+            currentX = startX;
+        }
+
+        glRasterPos2f(currentX, currentY);
+
+        // Set text color to black
+        glColor3f(0.0, 0.0, 0.0); // black color for text
+
+        // Draw the character
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
+
+        // Move to the next character position
+        currentX += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *c);
+    }
+}
+
+bool showSubmittedMessage = false;
+bool showSubmittedMessage2 = false;
 
 void display() {
     // Clear the window with white background
@@ -202,6 +291,14 @@ void display() {
         default: break;
     }
 
+    // Check if we need to render the "Submitted" message
+    if (showSubmittedMessage) {
+        drawText("Submitted", screenWidth, 420, 500);
+    }
+    if (showSubmittedMessage2) {
+        drawText("Submitted", 600, 200, 600);
+    }
+    
     // Swap buffers
     glutSwapBuffers();
 
@@ -238,6 +335,9 @@ void reshape(int width, int height) {
 
 
 void keyboard(unsigned char key, int x, int y) {
+    showSubmittedMessage = false;
+    showSubmittedMessage2 = false;
+
     // Change screens based on key press
     if (key == 'q') currentScreen = 0;
     if (key == 'w') currentScreen = 1;
@@ -274,134 +374,150 @@ void keyboard(unsigned char key, int x, int y) {
     if(currentScreen == 3) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
             opinionTF.text += key; // Append the character to the input string
+            showSubmittedMessage = false;
         } else if (key == 8 && opinionTF.text != "") { // Backspace key
             opinionTF.text.pop_back(); // Remove the last character from input string
+            showSubmittedMessage = false;
         } else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF.text << std::endl;
-            opinionTF.text = ""; // Clear the input string after processing
+            // Write the entered text to the output file
+            writeToOutputFile("output.csv", "Step 2: Pick the design you would like to continue with.", "", opinionTF.text);
+            //opinionTF.text = ""; // Clear the input string after processing
+            showSubmittedMessage = true;
         }
     }
 
     if (currentScreen == 4) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
             opinionTF2.text += key; // Append the character to the input string
+            showSubmittedMessage = false;
         }
         else if (key == 8 && opinionTF2.text != "") { // Backspace key
             opinionTF2.text.pop_back(); // Remove the last character from input string
+            showSubmittedMessage = false;
         }
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF2.text << std::endl;
-            opinionTF2.text = ""; // Clear the input string after processing
+            // Write the entered text to the output file
+            writeToOutputFile("output.csv", "Step 3: This time pick the one of which you think its structural design has the highest stiffness.", "", opinionTF.text);
+            //opinionTF2.text = ""; // Clear the input string after processing
+            showSubmittedMessage = true;
         }
     }
 
     if (currentScreen == 7) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
             opinionTF3.text += key; // Append the character to the input string
+            showSubmittedMessage2 = false;
         }
         else if (key == 8 && opinionTF3.text != "") { // Backspace key
             opinionTF3.text.pop_back(); // Remove the last character from input string
+            showSubmittedMessage2 = false;
         }
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF3.text << std::endl;
-            // Write the entered text to the output file
-            openOutputFile("output.csv");
-            writeToOutputFile("output.csv", "1. How much did you enjoy performing this assignment?", "1", opinionTF3.text);
-            closeOutputFile();
-            opinionTF3.text = ""; // Clear the input string after processing
+            // Write the entered text to the output file. the 1 needs to be replaced by the actual button clicked
+            writeToOutputFile("output.csv", "1. How much did you enjoy performing this assignment?", getSelectedButtonLabel(), opinionTF3.text);
+            //opinionTF3.text = ""; // Clear the input string after processing
+            showSubmittedMessage2 = true;
         }
     }
 
     if (currentScreen == 8) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
             opinionTF4.text += key; // Append the character to the input string
+            showSubmittedMessage2 = false;
         }
         else if (key == 8 && opinionTF4.text != "") { // Backspace key
             opinionTF4.text.pop_back(); // Remove the last character from input string
+            showSubmittedMessage2 = false;
         }
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF4.text << std::endl;
             // Write the entered text to the output file
-            openOutputFile("output.csv");
-            writeToOutputFile("output.csv", "2. How would you rate the level of ease in performing this assignment?", "1", opinionTF4.text);
-            closeOutputFile();
-            opinionTF4.text = ""; // Clear the input string after processing
+            writeToOutputFile("output.csv", "2. How would you rate the level of ease in performing this assignment?", getSelectedButtonLabel(), opinionTF4.text);
+            //opinionTF4.text = ""; // Clear the input string after processing
+            showSubmittedMessage2 = true;
         }
     }
 
     if (currentScreen == 9) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
             opinionTF5.text += key; // Append the character to the input string
+            showSubmittedMessage2 = false;
         }
         else if (key == 8 && opinionTF5.text != "") { // Backspace key
             opinionTF5.text.pop_back(); // Remove the last character from input string
+            showSubmittedMessage2 = false;
         }
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF5.text << std::endl;
             // Write the entered text to the output file
-            openOutputFile("output.csv");
-            writeToOutputFile("output.csv", "3. How well do you think you performed the assignment?", "1", opinionTF5.text);
-            closeOutputFile();
-            opinionTF5.text = ""; // Clear the input string after processing
+            writeToOutputFile("output.csv", "3. How well do you think you performed the assignment?", getSelectedButtonLabel(), opinionTF5.text);
+            //opinionTF5.text = ""; // Clear the input string after processing
+            showSubmittedMessage2 = true;
         }
     }
 
     if (currentScreen == 10) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
             opinionTF6.text += key; // Append the character to the input string
+            showSubmittedMessage2 = false;
         }
         else if (key == 8 && opinionTF6.text != "") { // Backspace key
             opinionTF6.text.pop_back(); // Remove the last character from input string
+            showSubmittedMessage2 = false;
         }
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF6.text << std::endl;
             // Write the entered text to the output file
-            openOutputFile("output.csv");
-            writeToOutputFile("output.csv", "4. Do you think it would have gone better with an AI tool that identifies all zoned designs for you?", "1", opinionTF6.text);
-            closeOutputFile();
-            opinionTF6.text = ""; // Clear the input string after processing
+            writeToOutputFile("output.csv", "4. Do you think it would have gone better with an AI tool that identifies all zoned designs for you?", getSelectedButtonLabel(), opinionTF6.text);
+            //opinionTF6.text = ""; // Clear the input string after processing
+            showSubmittedMessage2 = true;
         }
     }
 
     if (currentScreen == 11) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
             opinionTF7.text += key; // Append the character to the input string
+            showSubmittedMessage2 = false;
         }
         else if (key == 8 && opinionTF7.text != "") { // Backspace key
             opinionTF7.text.pop_back(); // Remove the last character from input string
+            showSubmittedMessage2 = false;
         }
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF7.text << std::endl;
             // Write the entered text to the output file
-            openOutputFile("output.csv");
-            writeToOutputFile("output.csv", "5. Do you think the AI tool itself can perform zoning better than you?", "1", opinionTF7.text);
-            closeOutputFile();
-            opinionTF7.text = ""; // Clear the input string after processing
+            writeToOutputFile("output.csv", "5. Do you think the AI tool itself can perform zoning better than you?", getSelectedButtonLabel(), opinionTF7.text);
+            //opinionTF7.text = ""; // Clear the input string after processing
+            showSubmittedMessage2 = true;
         }
     }
 
     if (currentScreen == 12) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
             opinionTF8.text += key; // Append the character to the input string
+            showSubmittedMessage2 = false;
         }
         else if (key == 8 && opinionTF8.text != "") { // Backspace key
             opinionTF8.text.pop_back(); // Remove the last character from input string
+            showSubmittedMessage2 = false;
         }
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF8.text << std::endl;
             // Write the entered text to the output file
-            openOutputFile("output.csv");
-            writeToOutputFile("output.csv", "6. What criteria did you keep in mind while performing this assignment?", "1", opinionTF8.text);
-            closeOutputFile();
-            opinionTF8.text = ""; // Clear the input string after processing
+            writeToOutputFile("output.csv", "6. What criteria did you keep in mind while performing this assignment?", "", opinionTF8.text);
+            //opinionTF8.text = ""; // Clear the input string after processing
+            showSubmittedMessage2 = true;
         }
     }
 
@@ -415,7 +531,9 @@ void keyboard(unsigned char key, int x, int y) {
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF9.text << std::endl;
-            opinionTF9.text = ""; // Clear the input string after processing
+            // Write the entered text to the process file
+            writeToProcessFile("process.csv", "Create Zone", opinionTF9.text);
+            opinionTF9.text = ""; // Clear the input string after processing, needed for the next input
         }
     }
 
@@ -429,6 +547,8 @@ void keyboard(unsigned char key, int x, int y) {
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF10.text << std::endl;
+            //Write the entered text to the process file
+            writeToProcessFile("process.csv", "Delete Zone", opinionTF10.text);
             opinionTF10.text = ""; // Clear the input string after processing
         }
     }
@@ -443,6 +563,8 @@ void keyboard(unsigned char key, int x, int y) {
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF11.text << std::endl;
+            // Write the entered text to the process file
+            writeToProcessFile("process.csv", "Create Zoned Design", opinionTF11.text);
             opinionTF11.text = ""; // Clear the input string after processing
         }
     }
@@ -457,6 +579,8 @@ void keyboard(unsigned char key, int x, int y) {
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF12.text << std::endl;
+            // Write the entered text to the process file
+            writeToProcessFile("process.csv", "Delete Zoned Design", opinionTF12.text);
             opinionTF12.text = ""; // Clear the input string after processing
         }
     }
@@ -471,6 +595,8 @@ void keyboard(unsigned char key, int x, int y) {
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF13.text << std::endl;
+            // Write the entered text to the process file
+            writeToProcessFile("process.csv", "Add Space: size", opinionTF13.text);
             opinionTF13.text = ""; // Clear the input string after processing
         }
     }
@@ -485,6 +611,8 @@ void keyboard(unsigned char key, int x, int y) {
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF14.text << std::endl;
+            // Write the entered text to the process file
+            writeToProcessFile("process.csv", "Add Space: location", opinionTF14.text);
             opinionTF14.text = ""; // Clear the input string after processing
         }
     }
@@ -499,6 +627,8 @@ void keyboard(unsigned char key, int x, int y) {
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF15.text << std::endl;
+            // Write the entered text to the process file
+            writeToProcessFile("process.csv", "Delete Space", opinionTF15.text);
             opinionTF15.text = ""; // Clear the input string after processing
         }
     }
@@ -513,6 +643,8 @@ void keyboard(unsigned char key, int x, int y) {
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF16.text << std::endl;
+            // Write the entered text to the process file
+            writeToProcessFile("process.csv", "Move Space: space", opinionTF16.text);
             opinionTF16.text = ""; // Clear the input string after processing
         }
     }
@@ -527,6 +659,8 @@ void keyboard(unsigned char key, int x, int y) {
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF17.text << std::endl;
+            // Write the entered text to the process file
+            writeToProcessFile("process.csv", "Move Space: new location", opinionTF17.text);
             opinionTF17.text = ""; // Clear the input string after processing
         }
     }
@@ -541,6 +675,8 @@ void keyboard(unsigned char key, int x, int y) {
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF18.text << std::endl;
+            // Write the entered text to the process file
+            writeToProcessFile("process.csv", "Resize Space: space", opinionTF18.text);
             opinionTF18.text = ""; // Clear the input string after processing
         }
     }
@@ -555,6 +691,8 @@ void keyboard(unsigned char key, int x, int y) {
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF19.text << std::endl;
+            // Write the entered text to the process file
+            writeToProcessFile("process.csv", "Resize Space: new size", opinionTF19.text);
             opinionTF19.text = ""; // Clear the input string after processing
         }
     }
@@ -569,6 +707,8 @@ void keyboard(unsigned char key, int x, int y) {
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF20.text << std::endl;
+            // Write the entered text to the process file
+            writeToProcessFile("process.csv", "Create Zone", opinionTF20.text);
             opinionTF20.text = ""; // Clear the input string after processing
         }
     }
@@ -583,6 +723,8 @@ void keyboard(unsigned char key, int x, int y) {
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF21.text << std::endl;
+            // Write the entered text to the process file
+            writeToProcessFile("process.csv", "Delete Zone", opinionTF21.text);
             opinionTF21.text = ""; // Clear the input string after processing
         }
     }
@@ -597,6 +739,8 @@ void keyboard(unsigned char key, int x, int y) {
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF22.text << std::endl;
+            // Write the entered text to the process file
+            writeToProcessFile("process.csv", "Create Zoned Design", opinionTF22.text);
             opinionTF22.text = ""; // Clear the input string after processing
         }
     }
@@ -611,6 +755,8 @@ void keyboard(unsigned char key, int x, int y) {
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF23.text << std::endl;
+            // Write the entered text to the process file
+            writeToProcessFile("process.csv", "Delete Zoned Design", opinionTF23.text);
             opinionTF23.text = ""; // Clear the input string after processing
         }
     }
@@ -627,34 +773,6 @@ void keyboard(unsigned char key, int x, int y) {
     glutPostRedisplay();
 }
 
-void drawText(const char *text, float centerX, float centerY, float textWidth) {
-    float lineHeight = 18; // Approximate line height, adjust as needed
-    float effectiveTextWidth = textWidth - 2 * MARGIN_PERCENT; // Effective width after considering margins
-
-    // Calculate the starting position (left align within the margin)
-    float startX = centerX - effectiveTextWidth / 2.0f;
-    float currentX = startX;
-    float currentY = centerY;
-
-    for (const char *c = text; *c != '\0'; c++) {
-        // Check if we need to wrap the line
-        if ((currentX - startX > effectiveTextWidth) && (*c == ' ' || *c == '\n')) {
-            currentY -= lineHeight;
-            currentX = startX;
-        }
-
-        glRasterPos2f(currentX, currentY);
-
-        // Set text color to black
-        glColor3f(0.0, 0.0, 0.0); // black color for text
-
-        // Draw the character
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
-
-        // Move to the next character position
-        currentX += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *c);
-    }
-}
 
 void drawButton(const char *text, float x, float y, float width, float height, ButtonCallback callback, int variable) {
     float borderWidth = 2.0;
@@ -687,33 +805,47 @@ void drawButton(const char *text, float x, float y, float width, float height, B
 
     Button button = {x, y, width, height, callback, text, variable};
     buttons.push_back(button);
-
-    //std::cout << "Button coordinates: (" << x << ", " << y << "), Dimensions: (" << width << " x " << height << ")" << std::endl;
 }
 
-void onMouseClick(int button, int state, int x, int y) {
-    if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-        float mouseY = screenHeight - static_cast<float>(y);
-        float mouseX = static_cast<float>(x);
+void drawButtonWithBackgroundColor(const char* text, float x, float y, float width, float height, ButtonCallback callback, int variable) {
+    // Draw button with specified background color
+    float borderWidth = 2.0;
 
-        for (const auto& btn : buttons) {
-            if (mouseX >= btn.x && mouseX <= btn.x + btn.width &&
-                mouseY >= btn.y && mouseY <= btn.y + btn.height) {
-                // Button was clicked
-                if (btn.callback) {
-                    btn.callback(btn.variable);
-                }
-                break;
-            }
-        }
-    }
+    glColor3f(0.0, 0.0, 0.0); // Black color for border
+    glBegin(GL_QUADS);
+    glVertex2f(x - borderWidth, y - borderWidth);
+    glVertex2f(x + width + borderWidth, y - borderWidth);
+    glVertex2f(x + width + borderWidth, y + height + borderWidth);
+    glVertex2f(x - borderWidth, y + height + borderWidth);
+    glEnd();
 
-    std::cout << "Mouse clicked at (" << x << ", " << y << ")" << std::endl;
+    // Draw button rectangle with any color background, currently gray
+    //glColor3f(0.8, 0.8, 0.8); //for light gray
+    //glColor3f(0.5, 0.5, 0.5); //for dark gray
+    glColor3f(1.0, 0.5, 0.5); //for light red
+    //glColor3f(1.0, 0.7, 0.4); //for light orange
+    glBegin(GL_QUADS);
+    glVertex2f(x, y);
+    glVertex2f(x + width, y);
+    glVertex2f(x + width, y + height);
+    glVertex2f(x, y + height);
+    glEnd();
 
-    for (const auto& btn : buttons) {
-        std::cout << "Button: (" << btn.x << ", " << btn.y << "), Dimensions: (" << btn.width << " x " << btn.height << ")" << std::endl;
-    }
+    // Centered text within the button with margin
+    float centerX = x + width / 2;
+    float centerY = y + height / 2;
+    float textWidth = width - 2 * MARGIN_PERCENT; // Text width considering margin
+
+    // Set text color to black
+    glColor3f(0.0, 0.0, 0.0);
+    drawText(text, centerX, centerY, textWidth);
+
+    Button button = { x, y, width, height, callback, text, variable };
+    buttons.push_back(button);
 }
+
+// Add a variable to keep track of the active text field
+TextField* activeTextField = nullptr;
 
 void drawTextField(int x, int y, int width, int height, TextField& textfield) {
     float borderWidth = 2.0;
@@ -788,6 +920,34 @@ void drawTextField(int x, int y, int width, int height, TextField& textfield) {
         glVertex2f(cursorX, cursorY - 18); // Adjust the Y coordinate to draw the cursor above the text
         glVertex2f(cursorX, cursorY - 3);  // Adjust the Y coordinate to draw the cursor above the text
         glEnd();
+    }
+}
+
+void onMouseClick(int button, int state, int x, int y) {
+    if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+        float mouseY = screenHeight - static_cast<float>(y);
+        float mouseX = static_cast<float>(x);
+
+        for (const auto& btn : buttons) {
+            if (mouseX >= btn.x && mouseX <= btn.x + btn.width &&
+                mouseY >= btn.y && mouseY <= btn.y + btn.height) {
+                // Button was clicked
+                if (btn.callback) {
+                    btn.callback(btn.variable);
+                }
+                break;
+            }
+        }
+
+        //if (x >= opinionTF.x && x <= opinionTF.x + opinionTF.width &&
+           // y >= opinionTF.y && y <= opinionTF.y + opinionTF.height) {
+            // Set the clicked text field as active
+            //opinionTF.isActive = true;
+       // }
+       // else {
+            // Deactivate the text field if clicked outside
+          //  opinionTF.isActive = false;
+        //}
     }
 }
 
@@ -961,9 +1121,10 @@ void screen3b() {
     //Draw text and a textfield(textbox)
     drawText("Zoned design:", screenWidth - 180, 660, 200);
     drawTextField(1490, 500, 200, 150, opinionTF);
+    drawText("Press enter to submit", screenWidth - 50, 460, 500);
 
     // Draw the message at the bottom of the structure illustration
-    drawText("Step 2: Pick the design you would like to continue with.", 1550, 150, 250);
+    drawText("Step 2: Pick one zoned design you would like to continue with.", 1550, 150, 250);
 
     // Draw the "Next step" button in the bottom right corner
     drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 4);
@@ -988,9 +1149,10 @@ void screen3c() {
     //Draw text and a textfield(textbox)
     drawText("Zoned design:", screenWidth - 180, 660, 200);
     drawTextField(1490, 500, 200, 150, opinionTF2);
+    drawText("Press enter to submit", screenWidth - 50, 460, 500);
 
     // Draw the message at the bottom of the structure illustration
-    drawText("Step 3: This time, pick the one of which you think its structural design has the highest stiffness.", 1550, 150, 250);
+    drawText("Step 3: This time, pick one based on the expected structural performace of the zoned designs.", 1550, 150, 250);
 
     // Draw the "Next step" button in the bottom right corner
     drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 5);
@@ -1016,7 +1178,7 @@ void screen3d() {
     drawButton("Resize space", screenWidth - 310, 580, 200, 50, changeScreen, 21);
 
     // Draw the message at the bottom of the structure illustration
-    drawText("Step 4: You may adapt the BSD you started with to create any new BSD you desire. Keep the function of the building in mind, as well as the resulting zoned designs and their stiffnesses.", 1550, 200, 250);
+    drawText("Step 4: Implement three modifications to adapt the initial BSD, creating any new BSD you desire. Keep the function of the building in mind, as well as the resulting zoned and structural designs.", 1550, 200, 250);
 
     // Draw the "Next step" button in the bottom right corner
     drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 6);
@@ -1055,18 +1217,20 @@ void screen3e() {
 }
 
 void screen4a() {
+    //draw buttons 1 to 5
     drawText("1. How much did you enjoy performing this assignment?", 600, 800, 600);
     drawButton("1", 300, 725, 50, 30, buttonClicked, 1);
-    drawButton("2", 350, 725, 50, 30, buttonClicked, 1);
-    drawButton("3", 400, 725, 50, 30, buttonClicked, 1);
-    drawButton("4", 450, 725, 50, 30, buttonClicked, 1);
-    drawButton("5", 500, 725, 50, 30, buttonClicked, 1);
+    drawButton("2", 350, 725, 50, 30, buttonClicked, 2);
+    drawButton("3", 400, 725, 50, 30, buttonClicked, 3);
+    drawButton("4", 450, 725, 50, 30, buttonClicked, 4);
+    drawButton("5", 500, 725, 50, 30, buttonClicked, 5);
 
     drawText("1: Not at all", 600, 700, 600);
     drawText("5: Very much", 600, 670, 600);
 
     drawText("Please explain your answer:", 600, 500, 600);
     drawTextField(300, 270, 500, 200, opinionTF3);
+    drawText("Press enter to submit", 600, 235, 600);
 
     // Draw the message at the bottom of the structure illustration
     drawText("Step 6: Questionnaire.", 1550, 150, 250);
@@ -1083,16 +1247,17 @@ void screen4a() {
 void screen4b() {
     drawText("2. How would you rate the level of ease in performing this assignment?", 600, 800, 600);
     drawButton("1", 300, 725, 50, 30, buttonClicked, 1);
-    drawButton("2", 350, 725, 50, 30, buttonClicked, 1);
-    drawButton("3", 400, 725, 50, 30, buttonClicked, 1);
-    drawButton("4", 450, 725, 50, 30, buttonClicked, 1);
-    drawButton("5", 500, 725, 50, 30, buttonClicked, 1);
+    drawButton("2", 350, 725, 50, 30, buttonClicked, 2);
+    drawButton("3", 400, 725, 50, 30, buttonClicked, 3);
+    drawButton("4", 450, 725, 50, 30, buttonClicked, 4);
+    drawButton("5", 500, 725, 50, 30, buttonClicked, 5);
 
     drawText("1: Very hard", 600, 700, 600);
     drawText("5: Very easy", 600, 670, 600);
 
     drawText("Please explain your answer:", 600, 500, 600);
     drawTextField(300, 270, 500, 200, opinionTF4);
+    drawText("Press enter to submit", 600, 235, 600);
 
     drawText("Step 6: Questionnaire.", 1550, 150, 250);
 
@@ -1108,16 +1273,17 @@ void screen4b() {
 void screen4c() {
     drawText("3. How well do you think you performed the assignment?", 600, 800, 600);
     drawButton("1", 300, 725, 50, 30, buttonClicked, 1);
-    drawButton("2", 350, 725, 50, 30, buttonClicked, 1);
-    drawButton("3", 400, 725, 50, 30, buttonClicked, 1);
-    drawButton("4", 450, 725, 50, 30, buttonClicked, 1);
-    drawButton("5", 500, 725, 50, 30, buttonClicked, 1);
+    drawButton("2", 350, 725, 50, 30, buttonClicked, 2);
+    drawButton("3", 400, 725, 50, 30, buttonClicked, 3);
+    drawButton("4", 450, 725, 50, 30, buttonClicked, 4);
+    drawButton("5", 500, 725, 50, 30, buttonClicked, 5);
 
     drawText("1: I have no idea what I am doing, and unable to identify zoned designs and high stiffness.", 700, 700, 800);
     drawText("5: Confident, correct answers, and able to identify zoned designs and high stiffness.", 700, 670, 800);
 
     drawText("Please explain your answer:", 600, 500, 600);
     drawTextField(300, 270, 500, 200, opinionTF5);
+    drawText("Press enter to submit", 600, 235, 600);
 
     drawText("Step 6: Questionnaire.", 1550, 150, 250);
 
@@ -1132,12 +1298,13 @@ void screen4c() {
 
 void screen4d() {
     drawText("4. Do you think it would have gone better with an AI tool that identifies all zoned designs for you?", 600, 800, 600);
-    drawButton("Yes", 300, 725, 75, 30, buttonClicked, 1);
-    drawButton("No", 375, 725, 75, 30, buttonClicked, 1);
-    drawButton("No idea", 450, 725, 75, 30, buttonClicked, 1);
+    drawButton("Yes", 300, 725, 75, 30, buttonClicked, 6);
+    drawButton("No", 375, 725, 75, 30, buttonClicked, 7);
+    drawButton("No idea", 450, 725, 75, 30, buttonClicked, 8);
 
     drawText("Please explain your answer:", 600, 500, 600);
     drawTextField(300, 270, 500, 200, opinionTF6);
+    drawText("Press enter to submit", 600, 235, 600);
 
     drawText("Step 6: Questionnaire.", 1550, 150, 250);
 
@@ -1152,12 +1319,13 @@ void screen4d() {
 
 void screen4e() {
     drawText("5. Do you think the AI tool itself can perform zoning better than you?", 600, 800, 600);
-    drawButton("Yes", 300, 725, 75, 30, buttonClicked, 1);
-    drawButton("No", 375, 725, 75, 30, buttonClicked, 1);
-    drawButton("No idea", 450, 725, 75, 30, buttonClicked, 1);
+    drawButton("Yes", 300, 725, 75, 30, buttonClicked, 6);
+    drawButton("No", 375, 725, 75, 30, buttonClicked, 7);
+    drawButton("No idea", 450, 725, 75, 30, buttonClicked, 8);
 
     drawText("Please explain your answer:", 600, 500, 600);
     drawTextField(300, 270, 500, 200, opinionTF7);
+    drawText("Press enter to submit", 600, 235, 600);
 
     drawText("Step 6: Questionnaire.", 1550, 150, 250);
 
@@ -1173,7 +1341,8 @@ void screen4e() {
 void screen4f() {
     drawText("6. What criteria did you keep in mind while performing this assignment?", 600, 800, 600);
     drawText("(For example, structural, aesthetical, functional, and zoning requirements.)", 600, 770, 600);
-    drawTextField(300, 530, 500, 200, opinionTF8);
+    drawTextField(300, 270, 500, 200, opinionTF8);
+    drawText("Press enter to submit", 600, 235, 600);
 
     drawText("Step 6: Questionnaire.", 1550, 150, 250);
 
@@ -1214,7 +1383,8 @@ void screenCreateZone() {
     drawText("Zoned designs: 0", 100, 150, 200);
 
     drawText("Zones", screenWidth - 150, 820, 200);
-    drawButton("Create zone", screenWidth - 310, 760, 200, 50, buttonClicked, 1);
+    //drawButton("Create zone", screenWidth - 310, 760, 200, 50, buttonClicked, 1);
+    drawButtonWithBackgroundColor("Create zone", screenWidth - 310, 760, 200, 50, buttonClicked, 1); // Highlighted button
     drawButton("Delete zone", screenWidth - 310, 700, 200, 50, changeScreen, 15);
     drawText("Zoned designs", screenWidth - 180, 660, 200);
     drawButton("Create zoned design", screenWidth - 310, 600, 200, 50, changeScreen, 16);
@@ -1228,6 +1398,7 @@ void screenCreateZone() {
     drawText("Space(s) to include:", screenWidth, 420, 600);
 	drawTextField(screenWidth - 310, 350, 200, 50, opinionTF9);
     drawButton("Confirm", screenWidth - 260, 300, 100, 30, changeScreen, 2); //go back to main zoning screen AND a zone should be created
+    drawText("Press 'confirm' or enter to submit", screenWidth - 100, 250, 500);
 
     // Check if the Enter key was pressed
     if (confirmButtonClickFlag) {
@@ -1269,7 +1440,7 @@ void screenDeleteZone() {
 
     drawText("Zones", screenWidth - 150, 820, 200);
     drawButton("Create zone", screenWidth - 310, 760, 200, 50, changeScreen, 14);
-    drawButton("Delete zone", screenWidth - 310, 700, 200, 50, buttonClicked, 1);
+    drawButtonWithBackgroundColor("Delete zone", screenWidth - 310, 700, 200, 50, buttonClicked, 1);
     drawText("Zoned designs", screenWidth - 180, 660, 200);
     drawButton("Create zoned design", screenWidth - 310, 600, 200, 50, changeScreen, 16);
     drawButton("Delete zoned design", screenWidth - 310, 540, 200, 50, changeScreen, 17);
@@ -1282,6 +1453,7 @@ void screenDeleteZone() {
     drawText("Zone to delete:", screenWidth, 420, 600);
     drawTextField(screenWidth - 310, 350, 200, 50, opinionTF10);
     drawButton("Confirm", screenWidth - 260, 300, 100, 30, changeScreen, 2); //go back to main zoning screen AND a zone should be deleted
+    drawText("Press 'confirm' or enter to submit", screenWidth - 100, 250, 500);
 
     // Check if the Enter key was pressed
     if (confirmButtonClickFlag) {
@@ -1325,7 +1497,7 @@ void screenCreateZonedDesign() {
     drawButton("Create zone", screenWidth - 310, 760, 200, 50, changeScreen, 14);
     drawButton("Delete zone", screenWidth - 310, 700, 200, 50, changeScreen, 15);
     drawText("Zoned designs", screenWidth - 180, 660, 200);
-    drawButton("Create zoned design", screenWidth - 310, 600, 200, 50, buttonClicked, 1);
+    drawButtonWithBackgroundColor("Create zoned design", screenWidth - 310, 600, 200, 50, buttonClicked, 1);
     drawButton("Delete zoned design", screenWidth - 310, 540, 200, 50, changeScreen, 17);
 
     drawText("Step 1: Find all zoned designs.", 1550, 150, 250);
@@ -1336,6 +1508,7 @@ void screenCreateZonedDesign() {
     drawText("Zone(s) to include:", screenWidth, 420, 600);
     drawTextField(screenWidth - 310, 350, 200, 50, opinionTF11);
     drawButton("Confirm", screenWidth - 260, 300, 100, 30, changeScreen, 2); //go back to main zoning screen AND a zoned design should be created
+    drawText("Press 'confirm' or enter to submit", screenWidth - 100, 250, 500);
 
     // Check if the Enter key was pressed
     if (confirmButtonClickFlag) {
@@ -1380,7 +1553,7 @@ void screenDeleteZonedDesign() {
     drawButton("Delete zone", screenWidth - 310, 700, 200, 50, changeScreen, 15);
     drawText("Zoned designs", screenWidth - 180, 660, 200);
     drawButton("Create zoned design", screenWidth - 310, 600, 200, 50, changeScreen, 16);
-    drawButton("Delete zoned design", screenWidth - 310, 540, 200, 50, buttonClicked, 1);
+    drawButtonWithBackgroundColor("Delete zoned design", screenWidth - 310, 540, 200, 50, buttonClicked, 1);
 
     drawText("Step 1: Find all zoned designs.", 1550, 150, 250);
 
@@ -1390,6 +1563,7 @@ void screenDeleteZonedDesign() {
     drawText("Zoned design to delete:", screenWidth, 420, 600);
     drawTextField(screenWidth - 310, 350, 200, 50, opinionTF12);
     drawButton("Confirm", screenWidth - 260, 300, 100, 30, changeScreen, 2); //go back to main zoning screen AND a zoned design should be deleted
+    drawText("Press 'confirm' or enter to submit", screenWidth - 100, 250, 500);
 
     // Check if the Enter key was pressed
     if (confirmButtonClickFlag) {
@@ -1426,7 +1600,7 @@ void screenAddSpace() {
 
     drawUndoRedoButtons();
 
-    drawButton("Add space", screenWidth - 310, 760, 200, 50, buttonClicked, 1);
+    drawButtonWithBackgroundColor("Add space", screenWidth - 310, 760, 200, 50, buttonClicked, 1);
     drawButton("Delete space", screenWidth - 310, 700, 200, 50, changeScreen, 19);
     drawButton("Move space", screenWidth - 310, 640, 200, 50, changeScreen, 20);
     drawButton("Resize space", screenWidth - 310, 580, 200, 50, changeScreen, 21);
@@ -1441,6 +1615,7 @@ void screenAddSpace() {
     drawTextField(screenWidth - 355, 350, 150, 50, opinionTF13);
     drawTextField(screenWidth - 195, 350, 150, 50, opinionTF14);
     drawButton("Confirm", screenWidth - 260, 300, 100, 30, changeScreen, 5); //go back to main BSD apting screen AND a space should be added
+    drawText("Press 'confirm' or enter to submit", screenWidth - 100, 250, 500);
 
     // Check if the Enter key was pressed
     if (confirmButtonClickFlag) {
@@ -1478,7 +1653,7 @@ void screenDeleteSpace() {
     drawUndoRedoButtons();
 
     drawButton("Add space", screenWidth - 310, 760, 200, 50, changeScreen, 18);
-    drawButton("Delete space", screenWidth - 310, 700, 200, 50, buttonClicked, 1);
+    drawButtonWithBackgroundColor("Delete space", screenWidth - 310, 700, 200, 50, buttonClicked, 1);
     drawButton("Move space", screenWidth - 310, 640, 200, 50, changeScreen, 20);
     drawButton("Resize space", screenWidth - 310, 580, 200, 50, changeScreen, 21);
 
@@ -1490,6 +1665,7 @@ void screenDeleteSpace() {
     drawText("Space(s) to delete:", screenWidth, 420, 600);
     drawTextField(screenWidth - 310, 350, 200, 50, opinionTF15);
     drawButton("Confirm", screenWidth - 260, 300, 100, 30, changeScreen, 5); //go back to main BSD apting screen AND a space should be deleted
+    drawText("Press 'confirm' or enter to submit", screenWidth - 100, 250, 500);
 
     // Check if the Enter key was pressed
     if (confirmButtonClickFlag) {
@@ -1528,7 +1704,7 @@ void screenMoveSpace() {
 
     drawButton("Add space", screenWidth - 310, 760, 200, 50, changeScreen, 18);
     drawButton("Delete space", screenWidth - 310, 700, 200, 50, changeScreen, 19);
-    drawButton("Move space", screenWidth - 310, 640, 200, 50, buttonClicked, 1);
+    drawButtonWithBackgroundColor("Move space", screenWidth - 310, 640, 200, 50, buttonClicked, 1);
     drawButton("Resize space", screenWidth - 310, 580, 200, 50, changeScreen, 21);
 
     drawText("Step 4: You may adapt the BSD you started with to create any new BSD you desire. Keep the function of the building in mind, as well as the resulting zoned designs and their stiffnesses.", 1550, 200, 250);
@@ -1541,6 +1717,7 @@ void screenMoveSpace() {
     drawTextField(screenWidth - 355, 350, 150, 50, opinionTF16);
     drawTextField(screenWidth - 195, 350, 150, 50, opinionTF17);
     drawButton("Confirm", screenWidth - 260, 300, 100, 30, changeScreen, 5); //go back to main BSD apting screen AND a space should be moved
+    drawText("Press 'confirm' or enter to submit", screenWidth - 100, 250, 500);
 
     // Check if the Enter key was pressed
     if (confirmButtonClickFlag) {
@@ -1580,7 +1757,7 @@ void screenResizeSpace() {
     drawButton("Add space", screenWidth - 310, 760, 200, 50, changeScreen, 18);
     drawButton("Delete space", screenWidth - 310, 700, 200, 50, changeScreen, 19);
     drawButton("Move space", screenWidth - 310, 640, 200, 50, changeScreen, 20);
-    drawButton("Resize space", screenWidth - 310, 580, 200, 50, buttonClicked, 1);
+    drawButtonWithBackgroundColor("Resize space", screenWidth - 310, 580, 200, 50, buttonClicked, 1);
 
     drawText("Step 4: You may adapt the BSD you started with to create any new BSD you desire. Keep the function of the building in mind, as well as the resulting zoned designs and their stiffnesses.", 1550, 200, 250);
 
@@ -1592,6 +1769,7 @@ void screenResizeSpace() {
     drawTextField(screenWidth - 355, 350, 150, 50, opinionTF18);
     drawTextField(screenWidth - 195, 350, 150, 50, opinionTF19);
     drawButton("Confirm", screenWidth - 260, 300, 100, 30, changeScreen, 5); //go back to main BSD apting screen AND a space should be resized
+    drawText("Press 'confirm' or enter to submit", screenWidth - 100, 250, 500);
 
     // Check if the Enter key was pressed
     if (confirmButtonClickFlag) {
@@ -1632,7 +1810,7 @@ void screenCreateZone2() {
     drawText("Zoned designs: 0", 100, 150, 200);
 
     drawText("Zones", screenWidth - 150, 820, 200);
-    drawButton("Create zone", screenWidth - 310, 760, 200, 50, buttonClicked, 1);
+    drawButtonWithBackgroundColor("Create zone", screenWidth - 310, 760, 200, 50, buttonClicked, 1);
     drawButton("Delete zone", screenWidth - 310, 700, 200, 50, changeScreen, 23);
     drawText("Zoned designs", screenWidth - 180, 660, 200);
     drawButton("Create zoned design", screenWidth - 310, 600, 200, 50, changeScreen, 24);
@@ -1646,6 +1824,7 @@ void screenCreateZone2() {
     drawText("Space(s) to include:", screenWidth, 420, 600);
     drawTextField(screenWidth - 310, 350, 200, 50, opinionTF20);
     drawButton("Confirm", screenWidth - 260, 300, 100, 30, changeScreen, 6); //go back to zoning screen 2 AND a zone should be created
+    drawText("Press 'confirm' or enter to submit", screenWidth - 100, 250, 500);
 
     // Check if the Enter key was pressed
     if (confirmButtonClickFlag) {
@@ -1687,7 +1866,7 @@ void screenDeleteZone2() {
 
     drawText("Zones", screenWidth - 150, 820, 200);
     drawButton("Create zone", screenWidth - 310, 760, 200, 50, changeScreen, 22);
-    drawButton("Delete zone", screenWidth - 310, 700, 200, 50, buttonClicked, 1);
+    drawButtonWithBackgroundColor("Delete zone", screenWidth - 310, 700, 200, 50, buttonClicked, 1);
     drawText("Zoned designs", screenWidth - 180, 660, 200);
     drawButton("Create zoned design", screenWidth - 310, 600, 200, 50, changeScreen, 24);
     drawButton("Delete zoned design", screenWidth - 310, 540, 200, 50, changeScreen, 25);
@@ -1700,6 +1879,7 @@ void screenDeleteZone2() {
     drawText("Zone to delete:", screenWidth, 420, 600);
     drawTextField(screenWidth - 310, 350, 200, 50, opinionTF21);
     drawButton("Confirm", screenWidth - 260, 300, 100, 30, changeScreen, 6); //go back to zoning screen 2  AND a zone should be deleted
+    drawText("Press 'confirm' or enter to submit", screenWidth - 100, 250, 500);
 
     // Check if the Enter key was pressed
     if (confirmButtonClickFlag) {
@@ -1743,7 +1923,7 @@ void screenCreateZonedDesign2() {
     drawButton("Create zone", screenWidth - 310, 760, 200, 50, changeScreen, 22);
     drawButton("Delete zone", screenWidth - 310, 700, 200, 50, changeScreen, 23);
     drawText("Zoned designs", screenWidth - 180, 660, 200);
-    drawButton("Create zoned design", screenWidth - 310, 600, 200, 50, buttonClicked, 1);
+    drawButtonWithBackgroundColor("Create zoned design", screenWidth - 310, 600, 200, 50, buttonClicked, 1);
     drawButton("Delete zoned design", screenWidth - 310, 540, 200, 50, changeScreen, 25);
 
     drawText("Step 5: Find all zoned designs.", 1550, 150, 250);
@@ -1754,6 +1934,7 @@ void screenCreateZonedDesign2() {
     drawText("Zone(s) to include:", screenWidth, 420, 600);
     drawTextField(screenWidth - 310, 350, 200, 50, opinionTF22);
     drawButton("Confirm", screenWidth - 260, 300, 100, 30, changeScreen, 6); //go back to zoning screen 2 AND a zoned design should be created
+    drawText("Press 'confirm' or enter to submit", screenWidth - 100, 250, 500);
 
     // Check if the Enter key was pressed
     if (confirmButtonClickFlag) {
@@ -1798,7 +1979,7 @@ void screenDeleteZonedDesign2() {
     drawButton("Delete zone", screenWidth - 310, 700, 200, 50, changeScreen, 23);
     drawText("Zoned designs", screenWidth - 180, 660, 200);
     drawButton("Create zoned design", screenWidth - 310, 600, 200, 50, changeScreen, 24);
-    drawButton("Delete zoned design", screenWidth - 310, 540, 200, 50, buttonClicked, 1);
+    drawButtonWithBackgroundColor("Delete zoned design", screenWidth - 310, 540, 200, 50, buttonClicked, 1);
 
     drawText("Step 5: Find all zoned designs.", 1550, 150, 250);
 
@@ -1808,6 +1989,7 @@ void screenDeleteZonedDesign2() {
     drawText("Zoned design to delete:", screenWidth, 420, 600);
     drawTextField(screenWidth - 310, 350, 200, 50, opinionTF23);
     drawButton("Confirm", screenWidth - 260, 300, 100, 30, changeScreen, 6); //go back to zoning screen 2 AND a zoned design should be deleted
+    drawText("Press 'confirm' or enter to submit", screenWidth - 100, 250, 500);
 
     // Check if the Enter key was pressed
     if (confirmButtonClickFlag) {

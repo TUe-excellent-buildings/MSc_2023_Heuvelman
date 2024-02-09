@@ -82,9 +82,6 @@ int currentScreen = 0;
 const int screenWidth = 1800;
 const int screenHeight = 1000;
 
-//Global variable to indicate if the confirm button was clicked
-int confirmButtonClickFlag = 0;
-
 // Text margin as a percentage of the window width
 const float MARGIN_PERCENT = 5.0f; // Margin as a percentage of the window width
 
@@ -165,7 +162,7 @@ void writeToProcessFile(std::string processFileName, std::string action, std::st
 }
 
 //Declare a global variable to store the selected button label
-std::string selectedButtonLabel;
+std::string selectedButtonLabel = "";
 
 void buttonClicked(int variable) {
     std::cout << "Button clicked: " << variable << std::endl;
@@ -204,9 +201,29 @@ std::string getSelectedButtonLabel() {
 	return selectedButtonLabel;
 }
 
+// Show the "Submitted" message or not
+bool showSubmittedMessage = false;
+bool showSubmittedMessage2 = false;
+
+void initializeScreen() {
+    // Your initialization code for the screen
+
+    // Set initial active state for opinionTF13
+    opinionTF13.isActive = true;
+    opinionTF14.isActive = false;
+    opinionTF16.isActive = true;
+    opinionTF17.isActive = false;
+    opinionTF18.isActive = true;
+    opinionTF19.isActive = false;
+}
+
 void changeScreen(int screen) {
     currentScreen = screen;
     std::cout << "Changed to screen: " << currentScreen << std::endl;
+    showSubmittedMessage = false;
+    showSubmittedMessage2 = false;
+    selectedButtonLabel = "";
+    initializeScreen();
     glutPostRedisplay();
     buttons.clear();
 }
@@ -239,9 +256,6 @@ void drawText(const char* text, float centerX, float centerY, float textWidth) {
         currentX += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *c);
     }
 }
-
-bool showSubmittedMessage = false;
-bool showSubmittedMessage2 = false;
 
 void display() {
     // Clear the window with white background
@@ -332,7 +346,6 @@ void reshape(int width, int height) {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 }
-
 
 void keyboard(unsigned char key, int x, int y) {
     showSubmittedMessage = false;
@@ -534,6 +547,7 @@ void keyboard(unsigned char key, int x, int y) {
             // Write the entered text to the process file
             writeToProcessFile("process.csv", "Create Zone", opinionTF9.text);
             opinionTF9.text = ""; // Clear the input string after processing, needed for the next input
+            changeScreen(2);
         }
     }
 
@@ -550,6 +564,7 @@ void keyboard(unsigned char key, int x, int y) {
             //Write the entered text to the process file
             writeToProcessFile("process.csv", "Delete Zone", opinionTF10.text);
             opinionTF10.text = ""; // Clear the input string after processing
+            changeScreen(2);
         }
     }
 
@@ -566,6 +581,7 @@ void keyboard(unsigned char key, int x, int y) {
             // Write the entered text to the process file
             writeToProcessFile("process.csv", "Create Zoned Design", opinionTF11.text);
             opinionTF11.text = ""; // Clear the input string after processing
+            changeScreen(2);
         }
     }
 
@@ -582,38 +598,51 @@ void keyboard(unsigned char key, int x, int y) {
             // Write the entered text to the process file
             writeToProcessFile("process.csv", "Delete Zoned Design", opinionTF12.text);
             opinionTF12.text = ""; // Clear the input string after processing
+            changeScreen(2);
         }
     }
 
     if (currentScreen == 18) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
-            opinionTF13.text += key; // Append the character to the input string
+            if (opinionTF13.isActive) {
+                opinionTF13.text += key; // Append the character to the input string
+            }
+            else if (opinionTF14.isActive) {
+                opinionTF14.text += key; // Append the character to the input string
+            }
         }
-        else if (key == 8 && opinionTF13.text != "") { // Backspace key
-            opinionTF13.text.pop_back(); // Remove the last character from input string
-        }
-        else if (key == 13) { // Enter key
-            // Print the entered text to the terminal
-            std::cout << "Entered text: " << opinionTF13.text << std::endl;
-            // Write the entered text to the process file
-            writeToProcessFile("process.csv", "Add Space: size", opinionTF13.text);
-            opinionTF13.text = ""; // Clear the input string after processing
-        }
-    }
-
-    if (currentScreen == 18) {
-        if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
-            opinionTF14.text += key; // Append the character to the input string
-        }
-        else if (key == 8 && opinionTF14.text != "") { // Backspace key
-            opinionTF14.text.pop_back(); // Remove the last character from input string
+        else if (key == 8) { // Backspace key
+            if (opinionTF13.isActive && !opinionTF13.text.empty()) {
+                opinionTF13.text.pop_back(); // Remove the last character from input string
+            }
+            else if (opinionTF14.isActive && !opinionTF14.text.empty()) {
+                opinionTF14.text.pop_back(); // Remove the last character from input string
+            }
         }
         else if (key == 13) { // Enter key
-            // Print the entered text to the terminal
-            std::cout << "Entered text: " << opinionTF14.text << std::endl;
-            // Write the entered text to the process file
-            writeToProcessFile("process.csv", "Add Space: location", opinionTF14.text);
-            opinionTF14.text = ""; // Clear the input string after processing
+            if (!opinionTF13.text.empty()) {
+                // Print the entered text from opinionTF13 to the terminal
+                std::cout << "Entered text (opinionTF13): " << opinionTF13.text << std::endl;
+                // Write the entered text from opinionTF13 to the process file
+                writeToProcessFile("process.csv", "Add Space: size", opinionTF13.text);
+                // Clear the input string of opinionTF13 after processing
+                opinionTF13.text = "";
+            }
+            if (!opinionTF14.text.empty()) {
+                // Print the entered text from opinionTF14 to the terminal
+                std::cout << "Entered text (opinionTF14): " << opinionTF14.text << std::endl;
+                // Write the entered text from opinionTF14 to the process file
+                writeToProcessFile("process.csv", "Add Space: location", opinionTF14.text);
+                // Clear the input string of opinionTF14 after processing
+                opinionTF14.text = "";
+            }
+            // Change the screen after processing both text fields
+            changeScreen(5);
+        }
+        else if (key == '\t') { // Tab key
+            // Toggle active state between opinionTF13 and opinionTF14
+            opinionTF13.isActive = !opinionTF13.isActive;
+            opinionTF14.isActive = !opinionTF14.isActive;
         }
     }
 
@@ -630,72 +659,98 @@ void keyboard(unsigned char key, int x, int y) {
             // Write the entered text to the process file
             writeToProcessFile("process.csv", "Delete Space", opinionTF15.text);
             opinionTF15.text = ""; // Clear the input string after processing
+            changeScreen(5);
         }
     }
 
     if (currentScreen == 20) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
-            opinionTF16.text += key; // Append the character to the input string
+            if (opinionTF16.isActive) {
+                opinionTF16.text += key; // Append the character to the input string
+            }
+            else if (opinionTF17.isActive) {
+                opinionTF17.text += key; // Append the character to the input string
+            }
         }
-        else if (key == 8 && opinionTF16.text != "") { // Backspace key
-            opinionTF16.text.pop_back(); // Remove the last character from input string
-        }
-        else if (key == 13) { // Enter key
-            // Print the entered text to the terminal
-            std::cout << "Entered text: " << opinionTF16.text << std::endl;
-            // Write the entered text to the process file
-            writeToProcessFile("process.csv", "Move Space: space", opinionTF16.text);
-            opinionTF16.text = ""; // Clear the input string after processing
-        }
-    }
-
-    if (currentScreen == 20) {
-        if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
-            opinionTF17.text += key; // Append the character to the input string
-        }
-        else if (key == 8 && opinionTF17.text != "") { // Backspace key
-            opinionTF17.text.pop_back(); // Remove the last character from input string
+        else if (key == 8) { // Backspace key
+            if (opinionTF16.isActive && !opinionTF16.text.empty()) {
+                opinionTF16.text.pop_back(); // Remove the last character from input string
+            }
+            else if (opinionTF17.isActive && !opinionTF17.text.empty()) {
+                opinionTF17.text.pop_back(); // Remove the last character from input string
+            }
         }
         else if (key == 13) { // Enter key
-            // Print the entered text to the terminal
-            std::cout << "Entered text: " << opinionTF17.text << std::endl;
-            // Write the entered text to the process file
-            writeToProcessFile("process.csv", "Move Space: new location", opinionTF17.text);
-            opinionTF17.text = ""; // Clear the input string after processing
+            if (!opinionTF16.text.empty()) {
+                // Print the entered text from opinionTF16 to the terminal
+                std::cout << "Entered text (opinionTF16): " << opinionTF16.text << std::endl;
+                // Write the entered text from opinionTF16 to the process file
+                writeToProcessFile("process.csv", "Move Space: space", opinionTF16.text);
+                // Clear the input string of opinionTF16 after processing
+                opinionTF16.text = "";
+            }
+            if (!opinionTF17.text.empty()) {
+                // Print the entered text from opinionTF17 to the terminal
+                std::cout << "Entered text (opinionTF17): " << opinionTF17.text << std::endl;
+                // Write the entered text from opinionTF17 to the process file
+                writeToProcessFile("process.csv", "Move Space: new location", opinionTF17.text);
+                // Clear the input string of opinionTF17 after processing
+                opinionTF17.text = "";
+            }
+            // Change the screen after processing both text fields
+            changeScreen(5);
         }
-    }
-
-    if (currentScreen == 21) {
-        if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
-            opinionTF18.text += key; // Append the character to the input string
-        }
-        else if (key == 8 && opinionTF18.text != "") { // Backspace key
-            opinionTF18.text.pop_back(); // Remove the last character from input string
-        }
-        else if (key == 13) { // Enter key
-            // Print the entered text to the terminal
-            std::cout << "Entered text: " << opinionTF18.text << std::endl;
-            // Write the entered text to the process file
-            writeToProcessFile("process.csv", "Resize Space: space", opinionTF18.text);
-            opinionTF18.text = ""; // Clear the input string after processing
+        else if (key == '\t') { // Tab key
+            // Toggle active state between opinionTF16 and opinionTF17
+            opinionTF16.isActive = !opinionTF16.isActive;
+            opinionTF17.isActive = !opinionTF17.isActive;
         }
     }
 
     if (currentScreen == 21) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
-            opinionTF19.text += key; // Append the character to the input string
+            if (opinionTF18.isActive) {
+                opinionTF18.text += key; // Append the character to the input string
+            }
+            else if (opinionTF19.isActive) {
+                opinionTF19.text += key; // Append the character to the input string
+            }
         }
-        else if (key == 8 && opinionTF19.text != "") { // Backspace key
-            opinionTF19.text.pop_back(); // Remove the last character from input string
+        else if (key == 8) { // Backspace key
+            if (opinionTF18.isActive && !opinionTF18.text.empty()) {
+                opinionTF18.text.pop_back(); // Remove the last character from input string
+            }
+            else if (opinionTF19.isActive && !opinionTF19.text.empty()) {
+                opinionTF19.text.pop_back(); // Remove the last character from input string
+            }
         }
         else if (key == 13) { // Enter key
-            // Print the entered text to the terminal
-            std::cout << "Entered text: " << opinionTF19.text << std::endl;
-            // Write the entered text to the process file
-            writeToProcessFile("process.csv", "Resize Space: new size", opinionTF19.text);
-            opinionTF19.text = ""; // Clear the input string after processing
+            if (!opinionTF18.text.empty()) {
+                // Print the entered text from opinionTF18 to the terminal
+                std::cout << "Entered text (opinionTF18): " << opinionTF18.text << std::endl;
+                // Write the entered text from opinionTF18 to the process file
+                writeToProcessFile("process.csv", "Resize Space: space", opinionTF18.text);
+                // Clear the input string of opinionTF18 after processing
+                opinionTF18.text = "";
+            }
+            if (!opinionTF19.text.empty()) {
+                // Print the entered text from opinionTF19 to the terminal
+                std::cout << "Entered text (opinionTF19): " << opinionTF19.text << std::endl;
+                // Write the entered text from opinionTF19 to the process file
+                writeToProcessFile("process.csv", "Resize Space: new size", opinionTF19.text);
+                // Clear the input string of opinionTF19 after processing
+                opinionTF19.text = "";
+            }
+            // Change the screen after processing both text fields
+            changeScreen(5);
+        }
+        else if (key == '\t') { // Tab key
+            // Toggle active state between opinionTF18 and opinionTF19
+            opinionTF18.isActive = !opinionTF18.isActive;
+            opinionTF19.isActive = !opinionTF19.isActive;
         }
     }
+
     
     if (currentScreen == 22) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
@@ -710,6 +765,7 @@ void keyboard(unsigned char key, int x, int y) {
             // Write the entered text to the process file
             writeToProcessFile("process.csv", "Create Zone", opinionTF20.text);
             opinionTF20.text = ""; // Clear the input string after processing
+            changeScreen(6);
         }
     }
 
@@ -726,6 +782,7 @@ void keyboard(unsigned char key, int x, int y) {
             // Write the entered text to the process file
             writeToProcessFile("process.csv", "Delete Zone", opinionTF21.text);
             opinionTF21.text = ""; // Clear the input string after processing
+            changeScreen(6);
         }
     }
 
@@ -742,10 +799,12 @@ void keyboard(unsigned char key, int x, int y) {
             // Write the entered text to the process file
             writeToProcessFile("process.csv", "Create Zoned Design", opinionTF22.text);
             opinionTF22.text = ""; // Clear the input string after processing
+            changeScreen(6);
         }
     }
 
     if (currentScreen == 25) {
+        changeScreen(6);
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
             opinionTF23.text += key; // Append the character to the input string
         }
@@ -758,16 +817,9 @@ void keyboard(unsigned char key, int x, int y) {
             // Write the entered text to the process file
             writeToProcessFile("process.csv", "Delete Zoned Design", opinionTF23.text);
             opinionTF23.text = ""; // Clear the input string after processing
+            changeScreen(6);
         }
     }
-
-    //above is for text fields, below is for the confirm button to also work when 'enter' is pressed on the keyboard
-    if (key == 13) {  // ASCII code for Enter key
-        // Set the flag to indicate that Enter key was pressed
-        confirmButtonClickFlag = 1;
-    }
-    
-    
     
     // Redraw screen
     glutPostRedisplay();
@@ -785,8 +837,15 @@ void drawButton(const char *text, float x, float y, float width, float height, B
     glVertex2f(x - borderWidth, y + height + borderWidth);
     glEnd();
 
-    // Draw button rectangle with white background
-    glColor3f(1.0, 1.0, 1.0); // white color for button background
+
+    // Set button background color based on whether it's clicked or not
+    if (getSelectedButtonLabel() == text) {
+        // Change the background color when clicked
+        glColor3f(1.0, 0.5, 0.5); //light red color for button background
+    }
+    else {
+        glColor3f(1.0, 1.0, 1.0); // White color for button background
+    }
     glBegin(GL_QUADS);
     glVertex2f(x, y);
     glVertex2f(x + width, y);
@@ -807,6 +866,11 @@ void drawButton(const char *text, float x, float y, float width, float height, B
     buttons.push_back(button);
 }
 
+// Function to reset the selected button label
+void resetSelectedButtonLabel() {
+    selectedButtonLabel = "";
+}
+
 void drawButtonWithBackgroundColor(const char* text, float x, float y, float width, float height, ButtonCallback callback, int variable) {
     // Draw button with specified background color
     float borderWidth = 2.0;
@@ -819,7 +883,7 @@ void drawButtonWithBackgroundColor(const char* text, float x, float y, float wid
     glVertex2f(x - borderWidth, y + height + borderWidth);
     glEnd();
 
-    // Draw button rectangle with any color background, currently gray
+    // Draw button rectangle with any color background
     //glColor3f(0.8, 0.8, 0.8); //for light gray
     //glColor3f(0.5, 0.5, 0.5); //for dark gray
     glColor3f(1.0, 0.5, 0.5); //for light red
@@ -844,9 +908,6 @@ void drawButtonWithBackgroundColor(const char* text, float x, float y, float wid
     buttons.push_back(button);
 }
 
-// Add a variable to keep track of the active text field
-TextField* activeTextField = nullptr;
-
 void drawTextField(int x, int y, int width, int height, TextField& textfield) {
     float borderWidth = 2.0;
 
@@ -863,7 +924,14 @@ void drawTextField(int x, int y, int width, int height, TextField& textfield) {
     glEnd();
 
     // Draw text field background
-    glColor3f(1.0, 1.0, 1.0); // white background for text field
+    if (textfield.isActive) {
+        // Set color for active text field
+        glColor3f(0.8, 0.8, 0.8); // light gray background for active text field
+    }
+    else {
+        // Set color for inactive text field
+        glColor3f(1.0, 1.0, 1.0); // white background for inactive text field
+    }
     glBegin(GL_QUADS);
     glVertex2f(x, y);
     glVertex2f(x + width, y);
@@ -938,16 +1006,6 @@ void onMouseClick(int button, int state, int x, int y) {
                 break;
             }
         }
-
-        //if (x >= opinionTF.x && x <= opinionTF.x + opinionTF.width &&
-           // y >= opinionTF.y && y <= opinionTF.y + opinionTF.height) {
-            // Set the clicked text field as active
-            //opinionTF.isActive = true;
-       // }
-       // else {
-            // Deactivate the text field if clicked outside
-          //  opinionTF.isActive = false;
-        //}
     }
 }
 
@@ -1047,7 +1105,7 @@ void mainScreen() {
     drawButton("Assignment 3", 800, 510, 200, 50, buttonClicked, 1);
     drawButton("Assignment 4", 800, 440, 200, 50, buttonClicked, 1);
 
-    drawUndoRedoButtons();
+    //drawUndoRedoButtons();
 
     // Draw the "Next step" button in the bottom right corner
     drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 1);
@@ -1059,8 +1117,6 @@ void assignmentDescriptionScreen() {
 
     drawButton("<- | Previous step", 1380, 50, 200, 50, changeScreen, 0);
     drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 2);
-
-    drawUndoRedoButtons();
 }
 
 void screen3a() {
@@ -1079,9 +1135,6 @@ void screen3a() {
     glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
-
-    // Draw the undo and redo buttons with arrows in the top left corner
-    drawUndoRedoButtons();
 
     // Draw the bottom area where zones and zoned designs are displayed
     drawText("Zones: 0", 100, 300, 200);
@@ -1112,9 +1165,6 @@ void screen3b() {
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
 
-    // Draw the undo and redo buttons with arrows in the top left corner
-    drawUndoRedoButtons();
-
     // Draw the bottom area where zones and zoned designs are displayed
     drawText("Zoned designs: ...", 100, 150, 200);
 
@@ -1139,9 +1189,6 @@ void screen3c() {
     glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
-
-    // Draw the undo and redo buttons with arrows in the top left corner
-    drawUndoRedoButtons();
 
     // Draw the bottom area where zones and zoned designs are displayed
     drawText("Zoned designs: ...", 100, 150, 200);
@@ -1168,9 +1215,6 @@ void screen3d() {
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
 
-    // Draw the undo and redo buttons with arrows in the top left corner
-    drawUndoRedoButtons();
-
     // Draw control buttons (right side)
     drawButton("Add space", screenWidth - 310, 760, 200, 50, changeScreen, 18);
     drawButton("Delete space", screenWidth - 310, 700, 200, 50, changeScreen, 19);
@@ -1193,9 +1237,6 @@ void screen3e() {
     glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
-
-    // Draw the undo and redo buttons with arrows in the top left corner
-    drawUndoRedoButtons();
 
     // Draw the bottom area where zones and zoned designs are displayed
     drawText("Zones: 0", 100, 300, 200);
@@ -1377,8 +1418,6 @@ void screenCreateZone() {
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
 
-    drawUndoRedoButtons();
-
     drawText("Zones: 0", 100, 300, 200);
     drawText("Zoned designs: 0", 100, 150, 200);
 
@@ -1397,29 +1436,19 @@ void screenCreateZone() {
     //draw text and input for creating a zone
     drawText("Space(s) to include:", screenWidth, 420, 600);
 	drawTextField(screenWidth - 310, 350, 200, 50, opinionTF9);
-    drawButton("Confirm", screenWidth - 260, 300, 100, 30, changeScreen, 2); //go back to main zoning screen AND a zone should be created
-    drawText("Press 'confirm' or enter to submit", screenWidth - 100, 250, 500);
-
-    // Check if the Enter key was pressed
-    if (confirmButtonClickFlag) {
-        // Reset the flag
-        confirmButtonClickFlag = 0;
-
-        // Perform the action corresponding to the "Confirm" button
-        changeScreen(2);
-    }
+    drawText("Press enter to submit", screenWidth - 60, 300, 500);
 
     //draw lines around it
     glColor3f(0.0, 0.0, 0.0);
     glBegin(GL_LINES);
     glVertex2f(1470.0f, 450.0f);   
-    glVertex2f(1470.0f, 275.0f);
+    glVertex2f(1470.0f, 325.0f);
     glVertex2f(1470.0f, 450.0f);
     glVertex2f(1710.0f, 450.0f);
     glVertex2f(1710.0f, 450.0f);
-    glVertex2f(1710.0f, 275.0f);
-    glVertex2f(1710.0f, 275.0f);
-    glVertex2f(1470.0f, 275.0f);
+    glVertex2f(1710.0f, 325.0f);
+    glVertex2f(1710.0f, 325.0f);
+    glVertex2f(1470.0f, 325.0f);
     glEnd();
 }
 
@@ -1432,8 +1461,6 @@ void screenDeleteZone() {
     glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
-
-    drawUndoRedoButtons();
 
     drawText("Zones: 0", 100, 300, 200);
     drawText("Zoned designs: 0", 100, 150, 200);
@@ -1452,29 +1479,19 @@ void screenDeleteZone() {
     //draw text and input for deleting a zone
     drawText("Zone to delete:", screenWidth, 420, 600);
     drawTextField(screenWidth - 310, 350, 200, 50, opinionTF10);
-    drawButton("Confirm", screenWidth - 260, 300, 100, 30, changeScreen, 2); //go back to main zoning screen AND a zone should be deleted
-    drawText("Press 'confirm' or enter to submit", screenWidth - 100, 250, 500);
-
-    // Check if the Enter key was pressed
-    if (confirmButtonClickFlag) {
-        // Reset the flag
-        confirmButtonClickFlag = 0;
-
-        // Perform the action corresponding to the "Confirm" button
-        changeScreen(2);
-    }
+    drawText("Press enter to submit", screenWidth - 60, 300, 500);
 
     //draw lines around it
     glColor3f(0.0, 0.0, 0.0);
     glBegin(GL_LINES);
     glVertex2f(1470.0f, 450.0f);
-    glVertex2f(1470.0f, 275.0f);
+    glVertex2f(1470.0f, 325.0f);
     glVertex2f(1470.0f, 450.0f);
     glVertex2f(1710.0f, 450.0f);
     glVertex2f(1710.0f, 450.0f);
-    glVertex2f(1710.0f, 275.0f);
-    glVertex2f(1710.0f, 275.0f);
-    glVertex2f(1470.0f, 275.0f);
+    glVertex2f(1710.0f, 325.0f);
+    glVertex2f(1710.0f, 325.0f);
+    glVertex2f(1470.0f, 325.0f);
     glEnd();
 }
 
@@ -1487,8 +1504,6 @@ void screenCreateZonedDesign() {
     glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
-
-    drawUndoRedoButtons();
 
     drawText("Zones: 0", 100, 300, 200);
     drawText("Zoned designs: 0", 100, 150, 200);
@@ -1507,29 +1522,19 @@ void screenCreateZonedDesign() {
     //draw text and input for creating a zoned design
     drawText("Zone(s) to include:", screenWidth, 420, 600);
     drawTextField(screenWidth - 310, 350, 200, 50, opinionTF11);
-    drawButton("Confirm", screenWidth - 260, 300, 100, 30, changeScreen, 2); //go back to main zoning screen AND a zoned design should be created
-    drawText("Press 'confirm' or enter to submit", screenWidth - 100, 250, 500);
-
-    // Check if the Enter key was pressed
-    if (confirmButtonClickFlag) {
-        // Reset the flag
-        confirmButtonClickFlag = 0;
-
-        // Perform the action corresponding to the "Confirm" button
-        changeScreen(2);
-    }
+    drawText("Press enter to submit", screenWidth - 60, 300, 500);
 
     //draw lines around it
     glColor3f(0.0, 0.0, 0.0);
     glBegin(GL_LINES);
     glVertex2f(1470.0f, 450.0f);
-    glVertex2f(1470.0f, 275.0f);
+    glVertex2f(1470.0f, 325.0f);
     glVertex2f(1470.0f, 450.0f);
     glVertex2f(1710.0f, 450.0f);
     glVertex2f(1710.0f, 450.0f);
-    glVertex2f(1710.0f, 275.0f);
-    glVertex2f(1710.0f, 275.0f);
-    glVertex2f(1470.0f, 275.0f);
+    glVertex2f(1710.0f, 325.0f);
+    glVertex2f(1710.0f, 325.0f);
+    glVertex2f(1470.0f, 325.0f);
     glEnd();
 }
 
@@ -1542,8 +1547,6 @@ void screenDeleteZonedDesign() {
     glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
-
-    drawUndoRedoButtons();
 
     drawText("Zones: 0", 100, 300, 200);
     drawText("Zoned designs: 0", 100, 150, 200);
@@ -1562,29 +1565,19 @@ void screenDeleteZonedDesign() {
     //draw text and input for deleting a zoned design
     drawText("Zoned design to delete:", screenWidth, 420, 600);
     drawTextField(screenWidth - 310, 350, 200, 50, opinionTF12);
-    drawButton("Confirm", screenWidth - 260, 300, 100, 30, changeScreen, 2); //go back to main zoning screen AND a zoned design should be deleted
-    drawText("Press 'confirm' or enter to submit", screenWidth - 100, 250, 500);
-
-    // Check if the Enter key was pressed
-    if (confirmButtonClickFlag) {
-        // Reset the flag
-        confirmButtonClickFlag = 0;
-
-        // Perform the action corresponding to the "Confirm" button
-        changeScreen(2);
-    }
+    drawText("Press enter to submit", screenWidth - 60, 300, 500);
 
     //draw lines around it
     glColor3f(0.0, 0.0, 0.0);
     glBegin(GL_LINES);
     glVertex2f(1470.0f, 450.0f);
-    glVertex2f(1470.0f, 275.0f);
+    glVertex2f(1470.0f, 325.0f);
     glVertex2f(1470.0f, 450.0f);
     glVertex2f(1710.0f, 450.0f);
     glVertex2f(1710.0f, 450.0f);
-    glVertex2f(1710.0f, 275.0f);
-    glVertex2f(1710.0f, 275.0f);
-    glVertex2f(1470.0f, 275.0f);
+    glVertex2f(1710.0f, 325.0f);
+    glVertex2f(1710.0f, 325.0f);
+    glVertex2f(1470.0f, 325.0f);
     glEnd();
 }
 
@@ -1597,8 +1590,6 @@ void screenAddSpace() {
     glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
-
-    drawUndoRedoButtons();
 
     drawButtonWithBackgroundColor("Add space", screenWidth - 310, 760, 200, 50, buttonClicked, 1);
     drawButton("Delete space", screenWidth - 310, 700, 200, 50, changeScreen, 19);
@@ -1614,29 +1605,19 @@ void screenAddSpace() {
     drawText("Location (x,y,z):", 1680, 420, 150);
     drawTextField(screenWidth - 355, 350, 150, 50, opinionTF13);
     drawTextField(screenWidth - 195, 350, 150, 50, opinionTF14);
-    drawButton("Confirm", screenWidth - 260, 300, 100, 30, changeScreen, 5); //go back to main BSD apting screen AND a space should be added
-    drawText("Press 'confirm' or enter to submit", screenWidth - 100, 250, 500);
-
-    // Check if the Enter key was pressed
-    if (confirmButtonClickFlag) {
-        // Reset the flag
-        confirmButtonClickFlag = 0;
-
-        // Perform the action corresponding to the "Confirm" button
-        changeScreen(5);
-    }
+    drawText("Press enter to submit", screenWidth - 60, 300, 500);
 
     //draw lines around it
     glColor3f(0.0, 0.0, 0.0);
     glBegin(GL_LINES);
     glVertex2f(1420.0f, 450.0f);
-    glVertex2f(1420.0f, 275.0f);
+    glVertex2f(1420.0f, 325.0f);
     glVertex2f(1420.0f, 450.0f);
     glVertex2f(1780.0f, 450.0f);
     glVertex2f(1780.0f, 450.0f);
-    glVertex2f(1780.0f, 275.0f);
-    glVertex2f(1780.0f, 275.0f);
-    glVertex2f(1420.0f, 275.0f);
+    glVertex2f(1780.0f, 325.0f);
+    glVertex2f(1780.0f, 325.0f);
+    glVertex2f(1420.0f, 325.0f);
     glEnd();
 }
 
@@ -1650,8 +1631,6 @@ void screenDeleteSpace() {
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
 
-    drawUndoRedoButtons();
-
     drawButton("Add space", screenWidth - 310, 760, 200, 50, changeScreen, 18);
     drawButtonWithBackgroundColor("Delete space", screenWidth - 310, 700, 200, 50, buttonClicked, 1);
     drawButton("Move space", screenWidth - 310, 640, 200, 50, changeScreen, 20);
@@ -1664,29 +1643,19 @@ void screenDeleteSpace() {
     //draw text and input for deleting a space
     drawText("Space(s) to delete:", screenWidth, 420, 600);
     drawTextField(screenWidth - 310, 350, 200, 50, opinionTF15);
-    drawButton("Confirm", screenWidth - 260, 300, 100, 30, changeScreen, 5); //go back to main BSD apting screen AND a space should be deleted
-    drawText("Press 'confirm' or enter to submit", screenWidth - 100, 250, 500);
-
-    // Check if the Enter key was pressed
-    if (confirmButtonClickFlag) {
-        // Reset the flag
-        confirmButtonClickFlag = 0;
-
-        // Perform the action corresponding to the "Confirm" button
-        changeScreen(5);
-    }
+    drawText("Press enter to submit", screenWidth - 60, 300, 500);
 
     //draw lines around it
     glColor3f(0.0, 0.0, 0.0);
     glBegin(GL_LINES);
     glVertex2f(1470.0f, 450.0f);
-    glVertex2f(1470.0f, 275.0f);
+    glVertex2f(1470.0f, 325.0f);
     glVertex2f(1470.0f, 450.0f);
     glVertex2f(1710.0f, 450.0f);
     glVertex2f(1710.0f, 450.0f);
-    glVertex2f(1710.0f, 275.0f);
-    glVertex2f(1710.0f, 275.0f);
-    glVertex2f(1470.0f, 275.0f);
+    glVertex2f(1710.0f, 325.0f);
+    glVertex2f(1710.0f, 325.0f);
+    glVertex2f(1470.0f, 325.0f);
     glEnd();
 }
 
@@ -1699,8 +1668,6 @@ void screenMoveSpace() {
     glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
-
-    drawUndoRedoButtons();
 
     drawButton("Add space", screenWidth - 310, 760, 200, 50, changeScreen, 18);
     drawButton("Delete space", screenWidth - 310, 700, 200, 50, changeScreen, 19);
@@ -1716,29 +1683,19 @@ void screenMoveSpace() {
     drawText("New location (x,y,z):", 1680, 420, 150);
     drawTextField(screenWidth - 355, 350, 150, 50, opinionTF16);
     drawTextField(screenWidth - 195, 350, 150, 50, opinionTF17);
-    drawButton("Confirm", screenWidth - 260, 300, 100, 30, changeScreen, 5); //go back to main BSD apting screen AND a space should be moved
-    drawText("Press 'confirm' or enter to submit", screenWidth - 100, 250, 500);
-
-    // Check if the Enter key was pressed
-    if (confirmButtonClickFlag) {
-        // Reset the flag
-        confirmButtonClickFlag = 0;
-
-        // Perform the action corresponding to the "Confirm" button
-        changeScreen(5);
-    }
+    drawText("Press enter to submit", screenWidth - 60, 300, 500);
 
     //draw lines around it
     glColor3f(0.0, 0.0, 0.0);
     glBegin(GL_LINES);
     glVertex2f(1420.0f, 450.0f);
-    glVertex2f(1420.0f, 275.0f);
+    glVertex2f(1420.0f, 325.0f);
     glVertex2f(1420.0f, 450.0f);
     glVertex2f(1780.0f, 450.0f);
     glVertex2f(1780.0f, 450.0f);
-    glVertex2f(1780.0f, 275.0f);
-    glVertex2f(1780.0f, 275.0f);
-    glVertex2f(1420.0f, 275.0f);
+    glVertex2f(1780.0f, 325.0f);
+    glVertex2f(1780.0f, 325.0f);
+    glVertex2f(1420.0f, 325.0f);
     glEnd();
 }
 
@@ -1751,8 +1708,6 @@ void screenResizeSpace() {
     glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
-
-    drawUndoRedoButtons();
 
     drawButton("Add space", screenWidth - 310, 760, 200, 50, changeScreen, 18);
     drawButton("Delete space", screenWidth - 310, 700, 200, 50, changeScreen, 19);
@@ -1768,29 +1723,19 @@ void screenResizeSpace() {
     drawText("New size (x,y,z):", 1680, 420, 150);
     drawTextField(screenWidth - 355, 350, 150, 50, opinionTF18);
     drawTextField(screenWidth - 195, 350, 150, 50, opinionTF19);
-    drawButton("Confirm", screenWidth - 260, 300, 100, 30, changeScreen, 5); //go back to main BSD apting screen AND a space should be resized
-    drawText("Press 'confirm' or enter to submit", screenWidth - 100, 250, 500);
-
-    // Check if the Enter key was pressed
-    if (confirmButtonClickFlag) {
-        // Reset the flag
-        confirmButtonClickFlag = 0;
-
-        // Perform the action corresponding to the "Confirm" button
-        changeScreen(5);
-    }
+    drawText("Press enter to submit", screenWidth - 60, 300, 500);
 
     //draw lines around it
     glColor3f(0.0, 0.0, 0.0);
     glBegin(GL_LINES);
     glVertex2f(1420.0f, 450.0f);
-    glVertex2f(1420.0f, 275.0f);
+    glVertex2f(1420.0f, 325.0f);
     glVertex2f(1420.0f, 450.0f);
     glVertex2f(1780.0f, 450.0f);
     glVertex2f(1780.0f, 450.0f);
-    glVertex2f(1780.0f, 275.0f);
-    glVertex2f(1780.0f, 275.0f);
-    glVertex2f(1420.0f, 275.0f);
+    glVertex2f(1780.0f, 325.0f);
+    glVertex2f(1780.0f, 325.0f);
+    glVertex2f(1420.0f, 325.0f);
     glEnd();
 }
 
@@ -1803,8 +1748,6 @@ void screenCreateZone2() {
     glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
-
-    drawUndoRedoButtons();
 
     drawText("Zones: 0", 100, 300, 200);
     drawText("Zoned designs: 0", 100, 150, 200);
@@ -1823,29 +1766,19 @@ void screenCreateZone2() {
     //draw text and input for creating a zone
     drawText("Space(s) to include:", screenWidth, 420, 600);
     drawTextField(screenWidth - 310, 350, 200, 50, opinionTF20);
-    drawButton("Confirm", screenWidth - 260, 300, 100, 30, changeScreen, 6); //go back to zoning screen 2 AND a zone should be created
-    drawText("Press 'confirm' or enter to submit", screenWidth - 100, 250, 500);
-
-    // Check if the Enter key was pressed
-    if (confirmButtonClickFlag) {
-        // Reset the flag
-        confirmButtonClickFlag = 0;
-
-        // Perform the action corresponding to the "Confirm" button
-        changeScreen(6);
-    }
+    drawText("Press enter to submit", screenWidth - 60, 300, 500);
 
     //draw lines around it
     glColor3f(0.0, 0.0, 0.0);
     glBegin(GL_LINES);
     glVertex2f(1470.0f, 450.0f);
-    glVertex2f(1470.0f, 275.0f);
+    glVertex2f(1470.0f, 325.0f);
     glVertex2f(1470.0f, 450.0f);
     glVertex2f(1710.0f, 450.0f);
     glVertex2f(1710.0f, 450.0f);
-    glVertex2f(1710.0f, 275.0f);
-    glVertex2f(1710.0f, 275.0f);
-    glVertex2f(1470.0f, 275.0f);
+    glVertex2f(1710.0f, 325.0f);
+    glVertex2f(1710.0f, 325.0f);
+    glVertex2f(1470.0f, 325.0f);
     glEnd();
 }
 
@@ -1858,8 +1791,6 @@ void screenDeleteZone2() {
     glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
-
-    drawUndoRedoButtons();
 
     drawText("Zones: 0", 100, 300, 200);
     drawText("Zoned designs: 0", 100, 150, 200);
@@ -1878,29 +1809,19 @@ void screenDeleteZone2() {
     //draw text and input for deleting a zone
     drawText("Zone to delete:", screenWidth, 420, 600);
     drawTextField(screenWidth - 310, 350, 200, 50, opinionTF21);
-    drawButton("Confirm", screenWidth - 260, 300, 100, 30, changeScreen, 6); //go back to zoning screen 2  AND a zone should be deleted
-    drawText("Press 'confirm' or enter to submit", screenWidth - 100, 250, 500);
-
-    // Check if the Enter key was pressed
-    if (confirmButtonClickFlag) {
-        // Reset the flag
-        confirmButtonClickFlag = 0;
-
-        // Perform the action corresponding to the "Confirm" button
-        changeScreen(6);
-    }
+    drawText("Press enter to submit", screenWidth - 60, 300, 500);
 
     //draw lines around it
     glColor3f(0.0, 0.0, 0.0);
     glBegin(GL_LINES);
     glVertex2f(1470.0f, 450.0f);
-    glVertex2f(1470.0f, 275.0f);
+    glVertex2f(1470.0f, 325.0f);
     glVertex2f(1470.0f, 450.0f);
     glVertex2f(1710.0f, 450.0f);
     glVertex2f(1710.0f, 450.0f);
-    glVertex2f(1710.0f, 275.0f);
-    glVertex2f(1710.0f, 275.0f);
-    glVertex2f(1470.0f, 275.0f);
+    glVertex2f(1710.0f, 325.0f);
+    glVertex2f(1710.0f, 325.0f);
+    glVertex2f(1470.0f, 325.0f);
     glEnd();
 }
 
@@ -1913,8 +1834,6 @@ void screenCreateZonedDesign2() {
     glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
-
-    drawUndoRedoButtons();
 
     drawText("Zones: 0", 100, 300, 200);
     drawText("Zoned designs: 0", 100, 150, 200);
@@ -1933,29 +1852,19 @@ void screenCreateZonedDesign2() {
     //draw text and input for creating a zoned design
     drawText("Zone(s) to include:", screenWidth, 420, 600);
     drawTextField(screenWidth - 310, 350, 200, 50, opinionTF22);
-    drawButton("Confirm", screenWidth - 260, 300, 100, 30, changeScreen, 6); //go back to zoning screen 2 AND a zoned design should be created
-    drawText("Press 'confirm' or enter to submit", screenWidth - 100, 250, 500);
-
-    // Check if the Enter key was pressed
-    if (confirmButtonClickFlag) {
-        // Reset the flag
-        confirmButtonClickFlag = 0;
-
-        // Perform the action corresponding to the "Confirm" button
-        changeScreen(6);
-    }
+    drawText("Press enter to submit", screenWidth - 60, 300, 500);
 
     //draw lines around it
     glColor3f(0.0, 0.0, 0.0);
     glBegin(GL_LINES);
     glVertex2f(1470.0f, 450.0f);
-    glVertex2f(1470.0f, 275.0f);
+    glVertex2f(1470.0f, 325.0f);
     glVertex2f(1470.0f, 450.0f);
     glVertex2f(1710.0f, 450.0f);
     glVertex2f(1710.0f, 450.0f);
-    glVertex2f(1710.0f, 275.0f);
-    glVertex2f(1710.0f, 275.0f);
-    glVertex2f(1470.0f, 275.0f);
+    glVertex2f(1710.0f, 325.0f);
+    glVertex2f(1710.0f, 325.0f);
+    glVertex2f(1470.0f, 325.0f);
     glEnd();
 }
 
@@ -1968,8 +1877,6 @@ void screenDeleteZonedDesign2() {
     glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
-
-    drawUndoRedoButtons();
 
     drawText("Zones: 0", 100, 300, 200);
     drawText("Zoned designs: 0", 100, 150, 200);
@@ -1988,32 +1895,21 @@ void screenDeleteZonedDesign2() {
     //draw text and input for deleting a zoned design
     drawText("Zoned design to delete:", screenWidth, 420, 600);
     drawTextField(screenWidth - 310, 350, 200, 50, opinionTF23);
-    drawButton("Confirm", screenWidth - 260, 300, 100, 30, changeScreen, 6); //go back to zoning screen 2 AND a zoned design should be deleted
-    drawText("Press 'confirm' or enter to submit", screenWidth - 100, 250, 500);
-
-    // Check if the Enter key was pressed
-    if (confirmButtonClickFlag) {
-        // Reset the flag
-        confirmButtonClickFlag = 0;
-
-        // Perform the action corresponding to the "Confirm" button
-        changeScreen(6);
-    }
+    drawText("Press enter to submit", screenWidth - 60, 300, 500);
 
     //draw lines around it
     glColor3f(0.0, 0.0, 0.0);
     glBegin(GL_LINES);
     glVertex2f(1470.0f, 450.0f);
-    glVertex2f(1470.0f, 275.0f);
+    glVertex2f(1470.0f, 325.0f);
     glVertex2f(1470.0f, 450.0f);
     glVertex2f(1710.0f, 450.0f);
     glVertex2f(1710.0f, 450.0f);
-    glVertex2f(1710.0f, 275.0f);
-    glVertex2f(1710.0f, 275.0f);
-    glVertex2f(1470.0f, 275.0f);
+    glVertex2f(1710.0f, 325.0f);
+    glVertex2f(1710.0f, 325.0f);
+    glVertex2f(1470.0f, 325.0f);
     glEnd();
 }
-
 
 int main(int argc, char** argv) {
     // Initialize GLUT
@@ -2027,6 +1923,9 @@ int main(int argc, char** argv) {
     glutKeyboardFunc(keyboard);
     glutReshapeFunc(reshape);
     glutMouseFunc(onMouseClick);
+
+    //Set up code
+    initializeScreen();
 
     // Main loop
     glutMainLoop();

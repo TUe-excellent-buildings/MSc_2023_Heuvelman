@@ -64,6 +64,7 @@ TextField opinionTF8;
 TextField opinionTF9;
 TextField opinionTF10;
 TextField opinionTF11;
+TextField opinionTF12;
 
 // Global variables for current screen and screen dimensions
 int currentScreen = 0;
@@ -91,6 +92,9 @@ void screenAddTrussDiagonally();
 void screenReplaceTrussByBeam();
 void screenDeleteDiagonalTruss();
 void screenReplaceBeamByTruss();
+void screenCheckNext();
+void screenCheckNext1();
+void screenCheckNext2();
 void drawText(const char *text, float x, float y);
 void drawButton(const char *text, float x, float y, float width, float height, ButtonCallback callback, int variable);
 void drawButtonWithBackgroundColor(const char* text, float x, float y, float width, float height, ButtonCallback callback, int variable, float r, float g, float b);
@@ -178,8 +182,8 @@ std::string getSelectedButtonLabel() {
 }
 
 // Show the "Submitted" message or not
-bool showSubmittedMessage = false;
 bool showSubmittedMessage2 = false;
+bool showSubmittedMessage3 = false;
 
 void initializeScreen() {
     // Your initialization code for the screen
@@ -192,8 +196,8 @@ void initializeScreen() {
 void changeScreen(int screen) {
     currentScreen = screen;
     std::cout << "Changing to screen: " << screen << std::endl;
-    showSubmittedMessage = false;
     showSubmittedMessage2 = false;
+    showSubmittedMessage3 = false;
     selectedButtonLabel = "";
     initializeScreen();
     glutPostRedisplay();
@@ -231,7 +235,8 @@ void drawText(const char* text, float centerX, float centerY, float textWidth) {
 
 void display() {
     // Clear the window with white background
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    //glClearColor(1.0f, 1.0f, 1.0f, 1.0f); //white
+    glClearColor(0.95f, 0.95f, 0.95f, 1.0f); //very light gray
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_DEPTH_TEST);
 
@@ -260,17 +265,19 @@ void display() {
         case 11: screenReplaceTrussByBeam(); break;
         case 12: screenDeleteDiagonalTruss(); break;
         case 13: screenReplaceBeamByTruss(); break;
+        case 14: screenCheckNext1(); break;
+        case 15: screenCheckNext2(); break;
         // Ensure you have a default case, even if it does nothing,
         // to handle any unexpected values of currentScreen
         default: break;
     }
 
     // Check if we need to render the "Submitted" message
-    if (showSubmittedMessage) {
-        drawText("Submitted", screenWidth, 420, 500);
-    }
     if (showSubmittedMessage2) {
-        drawText("Submitted", 600, 200, 600);
+        drawText("Submitted", 600, 240, 600);
+    }
+    if (showSubmittedMessage3) {
+        drawText("Submitted", 600, 385, 600);
     }
 
     // Swap buffers
@@ -308,8 +315,8 @@ void reshape(int width, int height) {
 }
 
 void keyboard(unsigned char key, int x, int y) {
-    showSubmittedMessage = false;
     showSubmittedMessage2 = false;
+    showSubmittedMessage3 = false;
 
     // Change screens based on key press
     if (key == 'q') currentScreen = 0;
@@ -444,6 +451,25 @@ void keyboard(unsigned char key, int x, int y) {
         }
     }
 
+    if (currentScreen == 9) {
+        if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
+            opinionTF12.text += key; // Append the character to the input string
+            showSubmittedMessage3 = false;
+        }
+        else if (key == 8 && opinionTF12.text != "") { // Backspace key
+            opinionTF12.text.pop_back(); // Remove the last character from input string
+            showSubmittedMessage3 = false;
+        }
+        else if (key == 13) { // Enter key
+            // Print the entered text to the terminal
+            std::cout << "Entered text: " << opinionTF12.text << std::endl;
+            // Write the entered text to the process file
+            writeToOutputFile("output2.csv", "e-mail adress:", getSelectedButtonLabel(), opinionTF12.text);
+            //opinionTF12.text = ""; // Clear the input string after processing
+            showSubmittedMessage3 = true;
+        }
+    }
+
     if (currentScreen == 10) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
             if (opinionTF7.isActive) {
@@ -499,7 +525,7 @@ void keyboard(unsigned char key, int x, int y) {
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF9.text << std::endl;
             // Write the entered text to the process file
-            writeToProcessFile("process2.csv", "Replace truss by beam", opinionTF9.text);
+            writeToProcessFile("process2.csv", "Replace rod by beam", opinionTF9.text);
             opinionTF9.text = ""; // Clear the input string after processing
             changeScreen(2);
         }
@@ -516,7 +542,7 @@ void keyboard(unsigned char key, int x, int y) {
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF10.text << std::endl;
             // Write the entered text to the process file
-            writeToProcessFile("process2.csv", "Delete diagonal truss", opinionTF10.text);
+            writeToProcessFile("process2.csv", "Delete diagonal rod", opinionTF10.text);
             opinionTF10.text = ""; // Clear the input string after processing
             changeScreen(2);
         }
@@ -533,7 +559,7 @@ void keyboard(unsigned char key, int x, int y) {
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF11.text << std::endl;
             // Write the entered text to the process file
-            writeToProcessFile("process2.csv", "Replace beam by truss", opinionTF11.text);
+            writeToProcessFile("process2.csv", "Replace beam by rod", opinionTF11.text);
             opinionTF11.text = ""; // Clear the input string after processing
             changeScreen(2);
         }
@@ -557,10 +583,11 @@ void drawButton(const char *text, float x, float y, float width, float height, B
     // Set button background color based on whether it's clicked or not
     if (getSelectedButtonLabel() == text) {
         // Change the background color when clicked
-        glColor3f(1.0, 0.5, 0.5); //light red color for button background
+        glColor3f(0.1, 0.75, 0.9); //light blue color for button background
     }
     else {
-        glColor3f(1.0, 1.0, 1.0); // White color for button background
+        //glColor3f(1.0, 1.0, 1.0); // White color for button background
+        glColor3f(0.961, 0.961, 0.863); //beige color for button background
     }
     glBegin(GL_QUADS);
     glVertex2f(x, y);
@@ -602,8 +629,10 @@ void drawButtonWithBackgroundColor(const char* text, float x, float y, float wid
     // Draw button rectangle with any color background
     //glColor3f(0.8, 0.8, 0.8); //for light gray
     //glColor3f(0.5, 0.5, 0.5); //for dark gray
-    glColor3f(1.0, 0.5, 0.5); //for light red
+    //glColor3f(1.0, 0.5, 0.5); //for light red
     //glColor3f(1.0, 0.7, 0.4); //for light orange
+    //glColor3f(0.678, 0.847, 0.902); //for light blue
+    glColor3f(0.1, 0.75, 0.9); //for light blue brighter
     glBegin(GL_QUADS);
     glVertex2f(x, y);
     glVertex2f(x + width, y);
@@ -642,7 +671,9 @@ void drawTextField(int x, int y, int width, int height, TextField& textfield) {
     // Draw text field background
     if (textfield.isActive) {
         // Set color for active text field
-        glColor3f(0.8, 0.8, 0.8); // light gray background for active text field
+        //glColor3f(0.8, 0.8, 0.8); // light gray background for active text field
+        //glColor3f(1.0, 1.0, 0.91); // light beige background for active text field
+        glColor3f(0.75f, 0.9f, 0.75f); // light green background for active text field
     }
     else {
         // Set color for inactive text field
@@ -813,26 +844,43 @@ void drawBuilding() {
 }
 
 void mainScreen() {
-    drawText("Hello and welcome to this MSc project by Janneke Heuvelman. We are glad to have you here and hope you will have a nice experience. In case of any problems, be sure to contact Janneke via email: j.h.heuvelman@student.tue.nl. Please select the Assignment number:",
-    900, 800, 400);
+    glColor3f(0.0, 0.0, 0.0);
+    drawText("Welcome to this experiment for a SED graduation project. We are glad to have you here and hope you will have a nice experience.", 930, 820, 400);
+    drawText("In which assignment will you participate?", 930, 740, 400);
 
     drawButton("Assignment 1", 800, 650, 200, 50, changeScreen, 1);
     drawButton("Assignment 2", 800, 580, 200, 50, buttonClicked, 1);
     drawButton("Assignment 3", 800, 510, 200, 50, buttonClicked, 1);
     drawButton("Assignment 4", 800, 440, 200, 50, buttonClicked, 1);
 
-    //drawUndoRedoButtons();
-
     // Draw the "Next step" button in the bottom right corner
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 1);
+    //drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 1);
 }
 
 void assignmentDescriptionScreen() {
-    drawText("You will in a moment go through a design task. You are asked to perform this task in the way you are used to go about a commission in your daily practice. It is important that you say aloud everything that you think or do in designing. ​So, in every step, explain what you do and why you do it. Try to keep speaking constantly and not be silent for longer than 20 seconds. ​Good luck!​",
-    900, 600, 400);
+    drawText("Selected Assignment: 1​", 900, 740, 400);
+    drawText("Expected duration: 20 minutes​", 900, 710, 400);
+    drawText("Read the following instructions carefully:​", 900, 650, 400);
+    drawText("You will in a moment go through a design task. You are asked to perform this task in the way you are used to go about a commission in your daily practice. It is important that you say aloud everything that you think or do in designing. ​So, in every step, explain what you do and why you do it. Try to keep speaking constantly and not be silent for longer than 20 seconds. ​Please speak English. Good luck!​",
+        900, 600, 400);
+    //underline ENGLISH
+    //glLineWidth(2.0);
+    //glColor3f(0.0, 0.0, 0.0);
+    //glBegin(GL_LINES);
+    //glVertex2f(820.0f, 470.0f);    // Start point of the line at the top
+    //glVertex2f(890.0f, 470.0f); // End point of the line at the bottom
+    //glEnd();
 
     drawButton("<- | Previous step", 1380, 50, 200, 50, changeScreen, 0);
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 2);
+    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 15);
+}
+
+void LineDivisionScreen() {
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
+    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
+    glEnd();
 }
 
 void screen3() {
@@ -846,31 +894,42 @@ void screen3() {
     // BSO::Visualisation::visualise(MS);
     // BSO::Visualisation::end_visualisation();
 
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
+    LineDivisionScreen();
 
     // Draw the counter area
     drawText("Number of diagonals: 0", 1200, screenHeight - 100, 200);
     drawText("Number of beams: 0", 1200, screenHeight - 120, 200);
 
     // Draw control buttons (right side)
-    drawText("Add elements", screenWidth - 170, 820, 200);
-    drawButton("Add truss diagonally", screenWidth - 310, 760, 200, 50, changeScreen, 10);
-    drawButton("Replace truss by beam", screenWidth - 310, 700, 200, 50, changeScreen, 11);
-    drawText("Remove elements", screenWidth - 180, 660, 200);
-    drawButton("Delete diagonal truss", screenWidth - 310, 600, 200, 50, changeScreen, 12);
-    drawButton("Replace beam by truss", screenWidth - 310, 540, 200, 50, changeScreen, 13);
+    drawText("Add elements", screenWidth - 170, 720, 200);
+    drawButton("Add rod diagonally", screenWidth - 310, 660, 200, 50, changeScreen, 10);
+    drawButton("Replace rod by beam", screenWidth - 310, 600, 200, 50, changeScreen, 11);
+    drawText("Remove elements", screenWidth - 180, 560, 200);
+    drawButton("Delete diagonal rod", screenWidth - 310, 500, 200, 50, changeScreen, 12);
+    drawButton("Replace beam by rod", screenWidth - 310, 440, 200, 50, changeScreen, 13);
 
     drawButton("Hide member numbers", 1100, 50, 200, 50, buttonClicked, 1);
 
-    // Draw the message at the bottom of the structure illustration
-    drawText("Stabilize the structural design with minimal structural adjustments.", 1550, 150, 250);
+    // Draw the message at the top of the structure illustration
+    drawText("Stabilize the structural design with minimal structural adjustments. Say aloud everything you think and do; thus, explain your reasoning.", 1550, screenHeight - 35, 280);
+
+    //Message to summarize most important information and to refer to the full information in the instructions
+    drawText("The structure consists of rods connected by hinges. Displacements are constrained at ground level. A rod is always connected to the structure with a hinged connection, and a beam with a fixed connection. Please refer to the information sheet for the whole explanation.", 1550, screenHeight - 130, 280);
+    //underline STABILIZE
+    glLineWidth(1.4);
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(1413.0, 964.0);
+    glVertex2f(1488.0, 964.0);
+    glEnd();
+    //underline INSTRUCTIONS
+    glBegin(GL_LINES);
+    glVertex2f(1572.0, 779.0);
+    glVertex2f(1720.0, 779.0);
+    glEnd();
 
     // Draw the "Next step" button in the bottom right corner
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 3);
+    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 14);
 }
 
 void screen4a() {
@@ -887,16 +946,14 @@ void screen4a() {
 
     drawText("Please explain your answer:", 600, 500, 600);
     drawTextField(300, 270, 500, 200, opinionTF);
-    drawText("Press enter to submit", 600, 235, 600);
+    drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
-    // Draw the message at the bottom of the structure illustration
-    drawText("Questionnaire.", 1550, 150, 250);
+    // Draw the message at the top of the structure illustration
+    drawText("Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250);
+    //step vs steps to go as a time indication for the user
+    drawText("Question 1/6", screenWidth - 50, screenHeight - 25, 180);
 
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
+    LineDivisionScreen();
 
     drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 4);
 }
@@ -914,15 +971,14 @@ void screen4b() {
 
     drawText("Please explain your answer:", 600, 500, 600);
     drawTextField(300, 270, 500, 200, opinionTF2);
-    drawText("Press enter to submit", 600, 235, 600);
+    drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
-    drawText("Questionnaire.", 1550, 150, 250);
+    // Draw the message at the top of the structure illustration
+    drawText("Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250);
+    //step vs steps to go as a time indication for the user
+    drawText("Question 2/6", screenWidth - 50, screenHeight - 25, 180);
 
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
+    LineDivisionScreen();
 
     drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 5);
 }
@@ -940,15 +996,14 @@ void screen4c() {
 
     drawText("Please explain your answer:", 600, 500, 600);
     drawTextField(300, 270, 500, 200, opinionTF3);
-    drawText("Press enter to submit", 600, 235, 600);
+    drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
-    drawText("Questionnaire.", 1550, 150, 250);
+    // Draw the message at the top of the structure illustration
+    drawText("Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250);
+    //step vs steps to go as a time indication for the user
+    drawText("Question 3/6", screenWidth - 50, screenHeight - 25, 180);
 
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
+    LineDivisionScreen();
 
     drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 6);
 }
@@ -961,15 +1016,14 @@ void screen4d() {
 
     drawText("Please explain your answer:", 600, 500, 600);
     drawTextField(300, 270, 500, 200, opinionTF4);
-    drawText("Press enter to submit", 600, 235, 600);
+    drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
-    drawText("Questionnaire.", 1550, 150, 250);
+    // Draw the message at the top of the structure illustration
+    drawText("Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250);
+    //step vs steps to go as a time indication for the user
+    drawText("Question 4/6", screenWidth - 50, screenHeight - 25, 180);
 
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
+    LineDivisionScreen();
 
     drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 7);
 }
@@ -982,15 +1036,14 @@ void screen4e() {
 
     drawText("Please explain your answer:", 600, 500, 600);
     drawTextField(300, 270, 500, 200, opinionTF5);
-    drawText("Press enter to submit", 600, 235, 600);
+    drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
-    drawText("Questionnaire.", 1550, 150, 250);
+    // Draw the message at the top of the structure illustration
+    drawText("Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250);
+    //step vs steps to go as a time indication for the user
+    drawText("Question 5/6", screenWidth - 50, screenHeight - 25, 180);
 
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
+    LineDivisionScreen();
 
     drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 8);
 }
@@ -998,231 +1051,139 @@ void screen4e() {
 void screen4f() {
     drawText("6. What criteria did you keep in mind while performing this assignment?", 600, 800, 600);
     drawText("(For example, structural, aesthetical, functional, and stability requirements.)", 600, 770, 600);
-    drawTextField(300, 530, 500, 200, opinionTF6);
-    drawText("Press enter to submit", 600, 235, 600);
+    drawTextField(300, 270, 500, 200, opinionTF6);
+    drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
-    drawText("Questionnaire.", 1550, 150, 250);
+    // Draw the message at the top of the structure illustration
+    drawText("Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250);
+    //step vs steps to go as a time indication for the user
+    drawText("Question 6/6", screenWidth - 50, screenHeight - 25, 180);
 
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
+    LineDivisionScreen();
 
     drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 9);
 }
 
 void screen5() {
     drawText("Thank you for your participation, this is the end of the assignment.", 600, 800, 600);
+    drawText("Please leave your email below if you want us to send you the results from this research and include you in the acknowledgments:", 600, 520, 600);
+    drawTextField(300, 420, 500, 50, opinionTF12);
+    drawText("Press enter to submit", 600, 550, 600);
 
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
-
+    LineDivisionScreen();
     drawButton("-> | Next", 1590, 50, 200, 50, buttonClicked, 1);
 }
 
-void screenAddTrussDiagonally() {
-    //same as previous screen
-    drawBuilding();
-    // BSO::Spatial_Design::MS_Building MS("MS_Input.txt");
-
-    // BSO::Visualisation::init_visualisation_without();
-    // BSO::Visualisation::visualise(MS);
-    // BSO::Visualisation::end_visualisation();
-
+void boxAroundPopUp() {
     glColor3f(0.0, 0.0, 0.0);
     glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
+    glVertex2f(1420.0f, 350.0f);
+    glVertex2f(1420.0f, 225.0f);
+    glVertex2f(1420.0f, 350.0f);
+    glVertex2f(1780.0f, 350.0f);
+    glVertex2f(1780.0f, 350.0f);
+    glVertex2f(1780.0f, 225.0f);
+    glVertex2f(1780.0f, 225.0f);
+    glVertex2f(1420.0f, 225.0f);
     glEnd();
+}
 
-    drawText("Number of diagonals: 0", 1200, screenHeight - 100, 200);
-    drawText("Number of beams: 0", 1200, screenHeight - 120, 200);
+void screenAddTrussDiagonally() {
+    screen3();
 
-    drawText("Add elements", screenWidth - 170, 820, 200);
-    drawButtonWithBackgroundColor("Add truss diagonally", screenWidth - 310, 760, 200, 50, buttonClicked, 1);
-    drawButton("Replace truss by beam", screenWidth - 310, 700, 200, 50, changeScreen, 11);
-    drawText("Remove elements", screenWidth - 180, 660, 200);
-    drawButton("Delete diagonal truss", screenWidth - 310, 600, 200, 50, changeScreen, 12);
-    drawButton("Replace beam by truss", screenWidth - 310, 540, 200, 50, changeScreen, 13);
+    //repeat button with a background color
+    drawButtonWithBackgroundColor("Add rod diagonally", screenWidth - 310, 660, 200, 50, buttonClicked, 1);
 
-    drawButton("Hide member numbers", 1100, 50, 200, 50, buttonClicked, 1);
-
-    drawText("Stabilize the structural design while trying to achieve high stiffness with minimal adjustments.", 1550, 150, 250);
-
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 3);
-
-    //draw text and input adding a truss diagonally
-    drawText("Enter two opposite members to place the diagonal between:", 1575, 450, 275);
-    drawTextField(screenWidth - 355, 350, 150, 50, opinionTF7);
-    drawTextField(screenWidth - 195, 350, 150, 50, opinionTF8);
-    drawText("Press enter to submit", screenWidth - 60, 300, 500);
+    //draw text and input adding a rod diagonally
+    drawText("Enter two opposite members to place the diagonal between:", 1575, 330, 275);
+    drawTextField(screenWidth - 355, 250, 150, 50, opinionTF7);
+    drawTextField(screenWidth - 195, 250, 150, 50, opinionTF8);
+    drawText("Use the 'Tab' key to swith input fields", screenWidth - 110, 390, 500);
+    drawText("Press enter to submit", screenWidth - 60, 370, 500);
 
     //draw lines around it
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1420.0f, 500.0f);
-    glVertex2f(1420.0f, 275.0f);
-    glVertex2f(1420.0f, 500.0f);
-    glVertex2f(1780.0f, 500.0f);
-    glVertex2f(1780.0f, 500.0f);
-    glVertex2f(1780.0f, 275.0f);
-    glVertex2f(1780.0f, 275.0f);
-    glVertex2f(1420.0f, 275.0f);
-    glEnd();
+    boxAroundPopUp();
 }
 
 void screenReplaceTrussByBeam() {
-    //same as previous screen
-    drawBuilding();
-    // BSO::Spatial_Design::MS_Building MS("MS_Input.txt");
+    screen3();
 
-    // BSO::Visualisation::init_visualisation_without();
-    // BSO::Visualisation::visualise(MS);
-    // BSO::Visualisation::end_visualisation();
-
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
-
-    drawText("Number of diagonals: 0", 1200, screenHeight - 100, 200);
-    drawText("Number of beams: 0", 1200, screenHeight - 120, 200);
-
-    drawText("Add elements", screenWidth - 170, 820, 200);
-    drawButton("Add truss diagonally", screenWidth - 310, 760, 200, 50, changeScreen, 10);
-    drawButtonWithBackgroundColor("Replace truss by beam", screenWidth - 310, 700, 200, 50, buttonClicked, 1);
-    drawText("Remove elements", screenWidth - 180, 660, 200);
-    drawButton("Delete diagonal truss", screenWidth - 310, 600, 200, 50, changeScreen, 12);
-    drawButton("Replace beam by truss", screenWidth - 310, 540, 200, 50, changeScreen, 13);
-
-    drawButton("Hide member numbers", 1100, 50, 200, 50, buttonClicked, 1);
-
-    drawText("Stabilize the structural design while trying to achieve high stiffness with minimal adjustments.", 1550, 150, 250);
-
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 3);
+    //repeat button with a background color
+    drawButtonWithBackgroundColor("Replace rod by beam", screenWidth - 310, 600, 200, 50, buttonClicked, 1);
 
     //draw text and input adding a beam
-    drawText("Member to replace:", 1600, 420, 350);
-    drawTextField(screenWidth - 355, 350, 150, 50, opinionTF9);
-    drawText("Press enter to submit", screenWidth - 60, 300, 500);
+    drawText("Member to replace:", 1600, 320, 350);
+    drawTextField(screenWidth - 355, 250, 150, 50, opinionTF9);
+    drawText("Press enter to submit", screenWidth - 60, 370, 500);
 
     //draw lines around it
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1420.0f, 450.0f);
-    glVertex2f(1420.0f, 275.0f);
-    glVertex2f(1420.0f, 450.0f);
-    glVertex2f(1780.0f, 450.0f);
-    glVertex2f(1780.0f, 450.0f);
-    glVertex2f(1780.0f, 275.0f);
-    glVertex2f(1780.0f, 275.0f);
-    glVertex2f(1420.0f, 275.0f);
-    glEnd();
+    boxAroundPopUp();
 }
 
 void screenDeleteDiagonalTruss() {
-    //same as previous screen
-    drawBuilding();
-    // BSO::Spatial_Design::MS_Building MS("MS_Input.txt");
+    screen3();
 
-    // BSO::Visualisation::init_visualisation_without();
-    // BSO::Visualisation::visualise(MS);
-    // BSO::Visualisation::end_visualisation();
+    //repeat button with a background color
+    drawButtonWithBackgroundColor("Delete diagonal rod", screenWidth - 310, 500, 200, 50, buttonClicked, 1);
 
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
-
-    drawText("Number of diagonals: 0", 1200, screenHeight - 100, 200);
-    drawText("Number of beams: 0", 1200, screenHeight - 120, 200);
-
-    drawText("Add elements", screenWidth - 170, 820, 200);
-    drawButton("Add truss diagonally", screenWidth - 310, 760, 200, 50, changeScreen, 10);
-    drawButton("Replace truss by beam", screenWidth - 310, 700, 200, 50, changeScreen, 11);
-    drawText("Remove elements", screenWidth - 180, 660, 200);
-    drawButtonWithBackgroundColor("Delete diagonal truss", screenWidth - 310, 600, 200, 50, buttonClicked, 1);
-    drawButton("Replace beam by truss", screenWidth - 310, 540, 200, 50, changeScreen, 13);
-
-    drawButton("Hide member numbers", 1100, 50, 200, 50, buttonClicked, 1);
-
-    drawText("Stabilize the structural design while trying to achieve high stiffness with minimal adjustments.", 1550, 150, 250);
-
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 3);
-
-    //draw text and input deleting a diagonal truss element
-    drawText("Member to delete:", 1600, 420, 350);
-    drawTextField(screenWidth - 355, 350, 150, 50, opinionTF10);
-    drawText("Press enter to submit", screenWidth - 60, 300, 500);
+    //draw text and input deleting a diagonal rod element
+    drawText("Member to delete:", 1600, 320, 350);
+    drawTextField(screenWidth - 355, 250, 150, 50, opinionTF10);
+    drawText("Press enter to submit", screenWidth - 60, 370, 500);
 
     //draw lines around it
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1420.0f, 450.0f);
-    glVertex2f(1420.0f, 275.0f);
-    glVertex2f(1420.0f, 450.0f);
-    glVertex2f(1780.0f, 450.0f);
-    glVertex2f(1780.0f, 450.0f);
-    glVertex2f(1780.0f, 275.0f);
-    glVertex2f(1780.0f, 275.0f);
-    glVertex2f(1420.0f, 275.0f);
-    glEnd();
+    boxAroundPopUp();
 }
 
 void screenReplaceBeamByTruss() {
-    //same as previous screen
-    drawBuilding();
-    // BSO::Spatial_Design::MS_Building MS("MS_Input.txt");
+    screen3();
 
-    // BSO::Visualisation::init_visualisation_without();
-    // BSO::Visualisation::visualise(MS);
-    // BSO::Visualisation::end_visualisation();
-
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
-
-    drawText("Number of diagonals: 0", 1200, screenHeight - 100, 200);
-    drawText("Number of beams: 0", 1200, screenHeight - 120, 200);
-
-    drawText("Add elements", screenWidth - 170, 820, 200);
-    drawButton("Add truss diagonally", screenWidth - 310, 760, 200, 50, changeScreen, 10);
-    drawButton("Replace truss by beam", screenWidth - 310, 700, 200, 50, changeScreen, 11);
-    drawText("Remove elements", screenWidth - 180, 660, 200);
-    drawButton("Delete diagonal truss", screenWidth - 310, 600, 200, 50, changeScreen, 12);
-    drawButtonWithBackgroundColor("Replace beam by truss", screenWidth - 310, 540, 200, 50, buttonClicked, 1);
-
-    drawButton("Hide member numbers", 1100, 50, 200, 50, buttonClicked, 1);
-
-    drawText("Stabilize the structural design while trying to achieve high stiffness with minimal adjustments.", 1550, 150, 250);
-
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 3);
+    //repeat button with a background color
+    drawButtonWithBackgroundColor("Replace beam by rod", screenWidth - 310, 440, 200, 50, buttonClicked, 1);
 
     //draw text and input adding a beam
-    drawText("Member to replace:", 1600, 420, 350);
-    drawTextField(screenWidth - 355, 350, 150, 50, opinionTF11);
-    drawText("Press enter to submit", screenWidth - 60, 300, 500);
+    drawText("Member to replace:", 1600, 320, 350);
+    drawTextField(screenWidth - 355, 250, 150, 50, opinionTF11);
+    drawText("Press enter to submit", screenWidth - 60, 370, 500);
 
     //draw lines around it
+    boxAroundPopUp();
+}
+
+void screenCheckNext() {
+    glColor3f(1.0f, 1.0f, 1.0f); // Set color to white
+    glRectf(750.0f, 500.0f, 1050.0f, 650.0f); // Draw rectangle covering the entire screen
+
+    //draw box of lines
     glColor3f(0.0, 0.0, 0.0);
     glBegin(GL_LINES);
-    glVertex2f(1420.0f, 450.0f);
-    glVertex2f(1420.0f, 275.0f);
-    glVertex2f(1420.0f, 450.0f);
-    glVertex2f(1780.0f, 450.0f);
-    glVertex2f(1780.0f, 450.0f);
-    glVertex2f(1780.0f, 275.0f);
-    glVertex2f(1780.0f, 275.0f);
-    glVertex2f(1420.0f, 275.0f);
+    glVertex2f(750.0f, 650.0f);
+    glVertex2f(750.0f, 500.0f);
+    glVertex2f(750.0f, 650.0f);
+    glVertex2f(1050.0f, 650.0f);
+    glVertex2f(1050.0f, 650.0f);
+    glVertex2f(1050.0f, 500.0f);
+    glVertex2f(1050.0f, 500.0f);
+    glVertex2f(750.0f, 500.0f);
     glEnd();
+
+    //draw text within the box
+    glColor3f(0.0, 0.0, 0.0);
+    drawText("Are you sure you want to continue? Once you continue to the next step, you cannot go back to this step.", 880, 620, 200);
+}
+
+void screenCheckNext1() {
+    screen3();
+    screenCheckNext();
+    drawButton("Yes", 790, 510, 100, 30, changeScreen, 3);
+    drawButton("No", 910, 510, 100, 30, changeScreen, 2);
+}
+
+void screenCheckNext2() {
+    assignmentDescriptionScreen();
+	screenCheckNext();
+	drawButton("Yes", 790, 510, 100, 30, changeScreen, 2);
+	drawButton("No", 910, 510, 100, 30, changeScreen, 1);
 }
 
 int main(int argc, char** argv) {

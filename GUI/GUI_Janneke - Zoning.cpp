@@ -76,6 +76,7 @@ TextField opinionTF20;
 TextField opinionTF21;
 TextField opinionTF22;
 TextField opinionTF23;
+TextField opinionTF24;
 
 // Global variables for current screen and screen dimensions
 int currentScreen = 0;
@@ -115,11 +116,17 @@ void screenCreateZone2();
 void screenDeleteZone2();
 void screenCreateZonedDesign2();
 void screenDeleteZonedDesign2();
+void screenCheckNext();
+void screenCheckNext1();
+void screenCheckNext2();
+void screenCheckNext3();
+void screenCheckNext4();
+void screenCheckNext5();
+void screenCheckNext6();
 void drawText(const char *text, float x, float y);
 void drawButton(const char *text, float x, float y, float width, float height, ButtonCallback callback, int variable);
 void drawButtonWithBackgroundColor(const char* text, float x, float y, float width, float height, ButtonCallback callback, int variable, float r, float g, float b);
 void drawArrow(float x, float y, bool leftArrow);
-void drawUndoRedoButtons();
 void drawTextField(int x, int y, int width, int height, TextField& textfield);
 void onMouseClick(int button, int state, int x, int y);
 void drawBuilding();
@@ -204,6 +211,7 @@ std::string getSelectedButtonLabel() {
 // Show the "Submitted" message or not
 bool showSubmittedMessage = false;
 bool showSubmittedMessage2 = false;
+bool showSubmittedMessage3 = false;
 
 void initializeScreen() {
     // Your initialization code for the screen
@@ -222,6 +230,7 @@ void changeScreen(int screen) {
     std::cout << "Changed to screen: " << currentScreen << std::endl;
     showSubmittedMessage = false;
     showSubmittedMessage2 = false;
+    showSubmittedMessage3 = false;
     selectedButtonLabel = "";
     initializeScreen();
     glutPostRedisplay();
@@ -259,7 +268,8 @@ void drawText(const char* text, float centerX, float centerY, float textWidth) {
 
 void display() {
     // Clear the window with white background
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    //glClearColor(1.0f, 1.0f, 1.0f, 1.0f); //white
+    glClearColor(0.95f, 0.95f, 0.95f, 1.0f); //very light gray
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_DEPTH_TEST);
 
@@ -300,6 +310,12 @@ void display() {
         case 23: screenDeleteZone2(); break;
         case 24: screenCreateZonedDesign2(); break;
         case 25: screenDeleteZonedDesign2(); break;
+        case 26: screenCheckNext1(); break;
+        case 27: screenCheckNext2(); break;
+        case 28: screenCheckNext3(); break;
+        case 29: screenCheckNext4(); break;
+        case 30: screenCheckNext5(); break;
+		case 31: screenCheckNext6(); break;
         // Ensure you have a default case, even if it does nothing,
         // to handle any unexpected values of currentScreen
         default: break;
@@ -307,12 +323,15 @@ void display() {
 
     // Check if we need to render the "Submitted" message
     if (showSubmittedMessage) {
-        drawText("Submitted", screenWidth, 420, 500);
+        drawText("Submitted", screenWidth, 470, 500);
     }
     if (showSubmittedMessage2) {
-        drawText("Submitted", 600, 200, 600);
+        drawText("Submitted", 600, 240, 600);
     }
-    
+    if (showSubmittedMessage3) {
+        drawText("Submitted", 600, 385, 600);
+    }
+
     // Swap buffers
     glutSwapBuffers();
 
@@ -350,6 +369,7 @@ void reshape(int width, int height) {
 void keyboard(unsigned char key, int x, int y) {
     showSubmittedMessage = false;
     showSubmittedMessage2 = false;
+    showSubmittedMessage3 = false;
 
     // Change screens based on key press
     if (key == 'q') currentScreen = 0;
@@ -395,7 +415,7 @@ void keyboard(unsigned char key, int x, int y) {
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF.text << std::endl;
             // Write the entered text to the output file
-            writeToOutputFile("output.csv", "Step 2: Pick the design you would like to continue with.", "", opinionTF.text);
+            writeToOutputFile("output.csv", "Step 2: Pick one zoned design you would like to continue with and explain why.", "", opinionTF.text);
             //opinionTF.text = ""; // Clear the input string after processing
             showSubmittedMessage = true;
         }
@@ -414,7 +434,7 @@ void keyboard(unsigned char key, int x, int y) {
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF2.text << std::endl;
             // Write the entered text to the output file
-            writeToOutputFile("output.csv", "Step 3: This time pick the one of which you think its structural design has the highest stiffness.", "", opinionTF.text);
+            writeToOutputFile("output.csv", "Step 3: This time pick the one of which you think its structural design has the highest stiffness. Explain your reasoning.", "", opinionTF.text);
             //opinionTF2.text = ""; // Clear the input string after processing
             showSubmittedMessage = true;
         }
@@ -432,7 +452,7 @@ void keyboard(unsigned char key, int x, int y) {
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF3.text << std::endl;
-            // Write the entered text to the output file. the 1 needs to be replaced by the actual button clicked
+            // Write the entered text to the output file
             writeToOutputFile("output.csv", "1. How much did you enjoy performing this assignment?", getSelectedButtonLabel(), opinionTF3.text);
             //opinionTF3.text = ""; // Clear the input string after processing
             showSubmittedMessage2 = true;
@@ -531,6 +551,25 @@ void keyboard(unsigned char key, int x, int y) {
             writeToOutputFile("output.csv", "6. What criteria did you keep in mind while performing this assignment?", "", opinionTF8.text);
             //opinionTF8.text = ""; // Clear the input string after processing
             showSubmittedMessage2 = true;
+        }
+    }
+
+    if (currentScreen == 13) {
+        if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
+            opinionTF24.text += key; // Append the character to the input string
+            showSubmittedMessage3 = false;
+        }
+        else if (key == 8 && opinionTF24.text != "") { // Backspace key
+            opinionTF24.text.pop_back(); // Remove the last character from input string
+            showSubmittedMessage3 = false;
+        }
+        else if (key == 13) { // Enter key
+            // Print the entered text to the terminal
+            std::cout << "Entered text: " << opinionTF24.text << std::endl;
+            // Write the entered text to the process file
+            writeToOutputFile("output.csv", "e-mail adress:", getSelectedButtonLabel(), opinionTF24.text);
+            //opinionTF24.text = ""; // Clear the input string after processing
+            showSubmittedMessage3 = true;
         }
     }
 
@@ -804,7 +843,6 @@ void keyboard(unsigned char key, int x, int y) {
     }
 
     if (currentScreen == 25) {
-        changeScreen(6);
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
             opinionTF23.text += key; // Append the character to the input string
         }
@@ -820,7 +858,7 @@ void keyboard(unsigned char key, int x, int y) {
             changeScreen(6);
         }
     }
-    
+
     // Redraw screen
     glutPostRedisplay();
 }
@@ -837,14 +875,14 @@ void drawButton(const char *text, float x, float y, float width, float height, B
     glVertex2f(x - borderWidth, y + height + borderWidth);
     glEnd();
 
-
     // Set button background color based on whether it's clicked or not
     if (getSelectedButtonLabel() == text) {
         // Change the background color when clicked
-        glColor3f(1.0, 0.5, 0.5); //light red color for button background
+        glColor3f(0.1, 0.75, 0.9); //light blue color for button background
     }
     else {
-        glColor3f(1.0, 1.0, 1.0); // White color for button background
+        //glColor3f(1.0, 1.0, 1.0); // White color for button background
+        glColor3f(0.961, 0.961, 0.863); //beige color for button background
     }
     glBegin(GL_QUADS);
     glVertex2f(x, y);
@@ -886,8 +924,10 @@ void drawButtonWithBackgroundColor(const char* text, float x, float y, float wid
     // Draw button rectangle with any color background
     //glColor3f(0.8, 0.8, 0.8); //for light gray
     //glColor3f(0.5, 0.5, 0.5); //for dark gray
-    glColor3f(1.0, 0.5, 0.5); //for light red
+    //glColor3f(1.0, 0.5, 0.5); //for light red
     //glColor3f(1.0, 0.7, 0.4); //for light orange
+    //glColor3f(0.678, 0.847, 0.902); //for light blue
+    glColor3f(0.1, 0.75, 0.9); //for light blue brighter
     glBegin(GL_QUADS);
     glVertex2f(x, y);
     glVertex2f(x + width, y);
@@ -926,7 +966,9 @@ void drawTextField(int x, int y, int width, int height, TextField& textfield) {
     // Draw text field background
     if (textfield.isActive) {
         // Set color for active text field
-        glColor3f(0.8, 0.8, 0.8); // light gray background for active text field
+        //glColor3f(0.8, 0.8, 0.8); // light gray background for active text field
+        //glColor3f(1.0, 1.0, 0.91); // light beige background for active text field
+        glColor3f(0.75f, 0.9f, 0.75f); // light green background for active text field
     }
     else {
         // Set color for inactive text field
@@ -1024,25 +1066,6 @@ void drawArrow(float x, float y, bool leftArrow) {
     glEnd();
 }
 
-// Function to draw undo and redo buttons
-void drawUndoRedoButtons() {
-    // Undo Button
-    glColor3f(0.7, 0.7, 0.7); // Button color
-    drawButton("", 10, screenHeight - 60, 50, 50, buttonClicked, 1);
-    glColor3f(0, 0, 0); // Arrow color
-    drawArrow(10, screenHeight - 60, false); // Left arrow for undo
-
-    // Redo Button
-    glColor3f(0.7, 0.7, 0.7); // Button color
-    drawButton("", 70, screenHeight - 60, 50, 50, buttonClicked, 1);
-    glColor3f(0, 0, 0); // Arrow color
-    drawArrow(70, screenHeight - 60, true); // Right arrow for redo
-
-    // Reset Button
-    glColor3f(0.7, 0.7, 0.7); // Button color
-    drawButton("Reset", 10, screenHeight - 120, 110, 50, buttonClicked, 1);
-}
-
 void drawBuilding() {
     glColor3f(0.0, 0.0, 0.0); // Blue color for the building structure
     glBegin(GL_LINES);
@@ -1097,26 +1120,85 @@ void drawBuilding() {
 }
 
 void mainScreen() {
-    drawText("Hello and welcome to this MSc project by Janneke Heuvelman. We are glad to have you here and hope you will have a nice experience. In case of any problems, be sure to contact Janneke via email: j.h.heuvelman@student.tue.nl. Please select the Assignment number:",
-    900, 800, 400);
+    glColor3f(0.0, 0.0, 0.0);
+    drawText("Welcome to this experiment for a SED graduation project. We are glad to have you here and hope you will have a nice experience.", 930, 820, 400);
+    drawText("In which assignment will you participate?", 930, 740, 400);
 
     drawButton("Assignment 1", 800, 650, 200, 50, buttonClicked, 1);
     drawButton("Assignment 2", 800, 580, 200, 50, changeScreen, 1);
     drawButton("Assignment 3", 800, 510, 200, 50, buttonClicked, 1);
     drawButton("Assignment 4", 800, 440, 200, 50, buttonClicked, 1);
 
-    //drawUndoRedoButtons();
-
     // Draw the "Next step" button in the bottom right corner
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 1);
+    //drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 1);
 }
 
 void assignmentDescriptionScreen() {
-    drawText("You will in a moment go through a design task. You are asked to perform this task in the way you are used to go about a commission in your daily practice. It is important that you say aloud everything that you think or do in designing. ​So, in every step, explain what you do and why you do it. Try to keep speaking constantly and not be silent for longer than 20 seconds. ​Good luck!​",
+    drawText("Selected Assignment: 2​", 900, 740, 400);
+    drawText("Expected duration: 40 minutes​", 900, 710, 400);
+    drawText("Read the following instructions carefully:​", 900, 650, 400);
+    drawText("You will in a moment go through a design task. You are asked to perform this task in the way you are used to go about a commission in your daily practice. It is important that you say aloud everything that you think or do in designing. ​So, in every step, explain what you do and why you do it. Try to keep speaking constantly and not be silent for longer than 20 seconds. ​Please speak English. Good luck!​",
     900, 600, 400);
+    //underline ENGLISH
+    //glLineWidth(2.0);
+    //glColor3f(0.0, 0.0, 0.0);
+    //glBegin(GL_LINES);
+    //glVertex2f(820.0f, 470.0f);    // Start point of the line at the top
+    //glVertex2f(890.0f, 470.0f); // End point of the line at the bottom
+    //glEnd();
 
     drawButton("<- | Previous step", 1380, 50, 200, 50, changeScreen, 0);
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 2);
+    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 31);
+}
+
+void LineDivisionScreen() {
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
+    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
+    glEnd();
+}
+
+void ReadInstructions() {
+    //Message to summarize most important information and to refer to the full information in the instructions
+    drawText("Please refer to the information sheet for an explanation about the concept of zoning.  ", 1550, screenHeight - 130, 250);
+    //underline INSTRUCTIONS
+    glLineWidth(1.4);
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(1582.0, 868.0);
+    glVertex2f(1678.0, 868.0);
+    glVertex2f(1432.0, 850.0);
+    glVertex2f(1485.0, 850.0);
+    glEnd();
+}
+
+void ReadInstructions2() {
+    //Message to summarize most important information and to refer to the full information in the instructions
+    drawText("Please refer to the information sheet for more information about zoning and SD.  ", 1550, screenHeight - 200, 250);
+    //underline INSTRUCTIONS
+    glLineWidth(1.4);
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(1582.0, 798.0);
+    glVertex2f(1678.0, 798.0);
+    glVertex2f(1432.0, 780.0);
+    glVertex2f(1485.0, 780.0);
+    glEnd();
+}
+
+void ReadInstructions3() {
+    //Message to summarize most important information and to refer to the full information in the instructions
+    drawText("Please refer to the information sheet for more information about zoning and SD.  ", 1550, screenHeight - 155, 250);
+    //underline INSTRUCTIONS
+    glLineWidth(1.4);
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(1582.0, 843.0);
+    glVertex2f(1678.0, 843.0);
+    glVertex2f(1432.0, 825.0);
+    glVertex2f(1485.0, 825.0);
+    glEnd();
 }
 
 void screen3a() {
@@ -1130,40 +1212,44 @@ void screen3a() {
     // BSO::Visualisation::visualise(MS);
     // BSO::Visualisation::end_visualisation();
 
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
+    LineDivisionScreen();
 
     // Draw the bottom area where zones and zoned designs are displayed
     drawText("Zones: 0", 100, 300, 200);
     drawText("Zoned designs: 0", 100, 150, 200);
 
     // Draw control buttons (right side)
-    drawText("Zones", screenWidth - 150, 820, 200);
-    drawButton("Create zone", screenWidth - 310, 760, 200, 50, changeScreen, 14);
-    drawButton("Delete zone", screenWidth - 310, 700, 200, 50, changeScreen, 15);
-    drawText("Zoned designs", screenWidth - 180, 660, 200);
-    drawButton("Create zoned design", screenWidth - 310, 600, 200, 50, changeScreen, 16);
-    drawButton("Delete zoned design", screenWidth - 310, 540, 200, 50, changeScreen, 17);
+    drawText("Zones", screenWidth - 150, 720, 200);
+    drawButton("Create zone", screenWidth - 310, 660, 200, 50, changeScreen, 14);
+    drawButton("Delete zone", screenWidth - 310, 600, 200, 50, changeScreen, 15);
+    drawText("Zoned designs", screenWidth - 180, 560, 200);
+    drawButton("Create zoned design", screenWidth - 310, 500, 200, 50, changeScreen, 16);
+    drawButton("Delete zoned design", screenWidth - 310, 440, 200, 50, changeScreen, 17);
 
-    // Draw the message at the bottom of the structure illustration
-    drawText("Step 1: Find all zoned designs.", 1550, 150, 250);
+    // Draw the message at the top of the structure illustration
+    drawText("Step 1: Try to find all zoned designs for the given BSD. Say aloud everything you think and do.", 1550, screenHeight - 50, 250);
+    //underline ALL
+    glLineWidth(2.0);
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(1584.0f, 948.0f);
+    glVertex2f(1606.0f, 948.0f);
+    glEnd();
+
+    //step vs steps to go as a time indication for the user
+    drawText("Step 1/6", screenWidth, screenHeight - 25, 180);
+
+    ReadInstructions();
 
     // Draw the "Next step" button in the bottom right corner
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 3);
+    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 26);
 }
 
 void screen3b() {
     // Draw structural design illustration placeholder (left side)
     drawBuilding();
 
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
+    LineDivisionScreen();
 
     // Draw the bottom area where zones and zoned designs are displayed
     drawText("Zoned designs: ...", 100, 150, 200);
@@ -1171,24 +1257,25 @@ void screen3b() {
     //Draw text and a textfield(textbox)
     drawText("Zoned design:", screenWidth - 180, 660, 200);
     drawTextField(1490, 500, 200, 150, opinionTF);
-    drawText("Press enter to submit", screenWidth - 50, 460, 500);
+    drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 1570, 750, 275);
 
     // Draw the message at the bottom of the structure illustration
-    drawText("Step 2: Pick one zoned design you would like to continue with.", 1550, 150, 250);
+    drawText("Step 2: Pick one zoned design you would like to continue. Say aloud what you think.", 1550, screenHeight - 50, 250);
+
+    //step vs steps to go as a time indication for the user
+    drawText("Step 2/6", screenWidth, screenHeight - 25, 180);
+
+    ReadInstructions();
 
     // Draw the "Next step" button in the bottom right corner
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 4);
+    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 27);
 }
 
 void screen3c() {
     // Draw structural design illustration placeholder (left side)
     drawBuilding();
 
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
+    LineDivisionScreen();
 
     // Draw the bottom area where zones and zoned designs are displayed
     drawText("Zoned designs: ...", 100, 150, 200);
@@ -1196,67 +1283,83 @@ void screen3c() {
     //Draw text and a textfield(textbox)
     drawText("Zoned design:", screenWidth - 180, 660, 200);
     drawTextField(1490, 500, 200, 150, opinionTF2);
-    drawText("Press enter to submit", screenWidth - 50, 460, 500);
+    drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 1570, 750, 275);
 
     // Draw the message at the bottom of the structure illustration
-    drawText("Step 3: This time, pick one based on the expected structural performace of the zoned designs.", 1550, 150, 250);
+    drawText("Step 3: This time, pick one based on the expected structural performace of the zoned designs. Say aloud what your reasoning is.", 1550, screenHeight - 50, 250);
+
+    //step vs steps to go as a time indication for the user
+    drawText("Step 3/6", screenWidth, screenHeight - 25, 180);
+
+    ReadInstructions3();
 
     // Draw the "Next step" button in the bottom right corner
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 5);
+    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 28);
 }
 
 void screen3d() {
     // Draw structural design illustration placeholder (left side)
     drawBuilding();
 
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
+    LineDivisionScreen();
+    
+    // Draw counter area
+    drawText("Modifications: 0/3", 1300, screenHeight - 100, 200);
 
     // Draw control buttons (right side)
-    drawButton("Add space", screenWidth - 310, 760, 200, 50, changeScreen, 18);
-    drawButton("Delete space", screenWidth - 310, 700, 200, 50, changeScreen, 19);
-    drawButton("Move space", screenWidth - 310, 640, 200, 50, changeScreen, 20);
-    drawButton("Resize space", screenWidth - 310, 580, 200, 50, changeScreen, 21);
+    drawButton("Add space", screenWidth - 310, 610, 200, 50, changeScreen, 18);
+    drawButton("Delete space", screenWidth - 310, 550, 200, 50, changeScreen, 19);
+    drawButton("Move space", screenWidth - 310, 490, 200, 50, changeScreen, 20);
+    drawButton("Resize space", screenWidth - 310, 430, 200, 50, changeScreen, 21);
 
     // Draw the message at the bottom of the structure illustration
-    drawText("Step 4: Implement three modifications to adapt the initial BSD, creating any new BSD you desire. Keep the function of the building in mind, as well as the resulting zoned and structural designs.", 1550, 200, 250);
+    drawText("Step 4: Implement three modifications to adapt the initial BSD, creating a new BSD you desire. Keep the function of the building in mind, as well as the resulting zoned and structural designs. Say aloud everything you think and do.", 1550, screenHeight - 50, 250);
+
+    //step vs steps to go as a time indication for the user
+    drawText("Step 4/6", screenWidth, screenHeight - 25, 180);
+
+    ReadInstructions2();
 
     // Draw the "Next step" button in the bottom right corner
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 6);
+    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 29);
 }
 
 void screen3e() {
     // Draw structural design illustration placeholder (left side)
     drawBuilding();
 
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
+    LineDivisionScreen();
 
     // Draw the bottom area where zones and zoned designs are displayed
     drawText("Zones: 0", 100, 300, 200);
     drawText("Zoned designs: 0", 100, 150, 200);
 
     // Draw control buttons (right side)
-    drawText("Zones", screenWidth - 150, 820, 200);
-    drawButton("Create zone", screenWidth - 310, 760, 200, 50, changeScreen, 22);
-    drawButton("Delete zone", screenWidth - 310, 700, 200, 50, changeScreen, 23);
-    drawText("Zoned designs", screenWidth - 180, 660, 200);
-    drawButton("Create zoned design", screenWidth - 310, 600, 200, 50, changeScreen, 24);
-    drawButton("Delete zoned design", screenWidth - 310, 540, 200, 50, changeScreen, 25);
+    drawText("Zones", screenWidth - 150, 720, 200);
+    drawButton("Create zone", screenWidth - 310, 660, 200, 50, changeScreen, 22);
+    drawButton("Delete zone", screenWidth - 310, 600, 200, 50, changeScreen, 23);
+    drawText("Zoned designs", screenWidth - 180, 560, 200);
+    drawButton("Create zoned design", screenWidth - 310, 500, 200, 50, changeScreen, 24);
+    drawButton("Delete zoned design", screenWidth - 310, 440, 200, 50, changeScreen, 25);
 
-    // Draw the message at the bottom of the structure illustration
-    drawText("Step 5: Find all zoned designs.", 1550, 150, 250);
+    // Draw the message at the top of the structure illustration
+    drawText("Step 5: Try to find all zoned designs for the new BSD. Say aloud everything you think and do.", 1550, screenHeight - 50, 250);
+    //underline ALL
+    glLineWidth(2.0);
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(1584.0f, 948.0f);    // Start point of the line at the top
+    glVertex2f(1606.0f, 948.0f); // End point of the line at the bottom
+    glEnd();
+
+    ReadInstructions();
+
+    //step vs steps to go as a time indication for the user
+    drawText("Step 5/6", screenWidth, screenHeight - 25, 180);
 
     // Draw the "Next step" button in the bottom right corner
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 7);
+    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 30);
 }
-
 void screen4a() {
     //draw buttons 1 to 5
     drawText("1. How much did you enjoy performing this assignment?", 600, 800, 600);
@@ -1271,16 +1374,14 @@ void screen4a() {
 
     drawText("Please explain your answer:", 600, 500, 600);
     drawTextField(300, 270, 500, 200, opinionTF3);
-    drawText("Press enter to submit", 600, 235, 600);
+    drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
     // Draw the message at the bottom of the structure illustration
-    drawText("Step 6: Questionnaire.", 1550, 150, 250);
+    drawText("Step 6: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250);
+    //step vs steps to go as a time indication for the user
+    drawText("Step 6/6, Question 1/6", screenWidth - 115, screenHeight - 25, 180);
 
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
+    LineDivisionScreen();
 
     drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 8);
 }
@@ -1298,15 +1399,12 @@ void screen4b() {
 
     drawText("Please explain your answer:", 600, 500, 600);
     drawTextField(300, 270, 500, 200, opinionTF4);
-    drawText("Press enter to submit", 600, 235, 600);
+    drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
-    drawText("Step 6: Questionnaire.", 1550, 150, 250);
-
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
+    drawText("Step 6: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250);
+    //step vs steps to go as a time indication for the user
+    drawText("Step 6/6, Question 2/6", screenWidth - 115, screenHeight - 25, 180);
+    LineDivisionScreen();
 
     drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 9);
 }
@@ -1324,15 +1422,12 @@ void screen4c() {
 
     drawText("Please explain your answer:", 600, 500, 600);
     drawTextField(300, 270, 500, 200, opinionTF5);
-    drawText("Press enter to submit", 600, 235, 600);
+    drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
-    drawText("Step 6: Questionnaire.", 1550, 150, 250);
-
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
+    drawText("Step 6: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250);
+    //step vs steps to go as a time indication for the user
+    drawText("Step 6/6, Question 3/6", screenWidth - 115, screenHeight - 25, 180);
+    LineDivisionScreen();
 
     drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 10);
 }
@@ -1345,15 +1440,12 @@ void screen4d() {
 
     drawText("Please explain your answer:", 600, 500, 600);
     drawTextField(300, 270, 500, 200, opinionTF6);
-    drawText("Press enter to submit", 600, 235, 600);
+    drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
-    drawText("Step 6: Questionnaire.", 1550, 150, 250);
-
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
+    drawText("Step 6: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250);
+    //step vs steps to go as a time indication for the user
+    drawText("Step 6/6, Question 4/6", screenWidth - 115, screenHeight - 25, 180);
+    LineDivisionScreen();
 
     drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 11);
 }
@@ -1366,15 +1458,12 @@ void screen4e() {
 
     drawText("Please explain your answer:", 600, 500, 600);
     drawTextField(300, 270, 500, 200, opinionTF7);
-    drawText("Press enter to submit", 600, 235, 600);
+    drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
-    drawText("Step 6: Questionnaire.", 1550, 150, 250);
-
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
+    drawText("Step 6: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250);
+    //step vs steps to go as a time indication for the user
+    drawText("Step 6/6, Question 5/6", screenWidth - 115, screenHeight - 25, 180);
+    LineDivisionScreen();
 
     drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 12);
 }
@@ -1383,532 +1472,305 @@ void screen4f() {
     drawText("6. What criteria did you keep in mind while performing this assignment?", 600, 800, 600);
     drawText("(For example, structural, aesthetical, functional, and zoning requirements.)", 600, 770, 600);
     drawTextField(300, 270, 500, 200, opinionTF8);
-    drawText("Press enter to submit", 600, 235, 600);
+    drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
-    drawText("Step 6: Questionnaire.", 1550, 150, 250);
-
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
+    drawText("Step 6: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250);
+    //step vs steps to go as a time indication for the user
+    drawText("Step 6/6, Question 6/6", screenWidth - 115, screenHeight - 25, 180);
+    LineDivisionScreen();
 
     drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 13);
 }
 
 void screen5() {
     drawText("Thank you for your participation, this is the end of the assignment.", 600, 800, 600);
+    drawText("Please leave your email below if you want us to send you the results from this research and include you in the acknowledgments:", 600, 520, 600);
+    drawTextField(300, 420, 500, 50, opinionTF24);
+    drawText("Press enter to submit", 600, 550, 600);
 
+    LineDivisionScreen();
+    drawButton("-> | End", 1590, 50, 200, 50, buttonClicked, 1);
+}
+
+void boxAroundPopUp() {
     glColor3f(0.0, 0.0, 0.0);
     glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
+    glVertex2f(1470.0f, 350.0f);
+    glVertex2f(1470.0f, 225.0f);
+    glVertex2f(1470.0f, 350.0f);
+    glVertex2f(1710.0f, 350.0f);
+    glVertex2f(1710.0f, 350.0f);
+    glVertex2f(1710.0f, 225.0f);
+    glVertex2f(1710.0f, 225.0f);
+    glVertex2f(1470.0f, 225.0f);
     glEnd();
+}
 
-    drawButton("-> | Next", 1590, 50, 200, 50, buttonClicked, 1);
+void boxAroundPopUp2() {
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(1420.0f, 350.0f);
+    glVertex2f(1420.0f, 225.0f);
+    glVertex2f(1420.0f, 350.0f);
+    glVertex2f(1780.0f, 350.0f);
+    glVertex2f(1780.0f, 350.0f);
+    glVertex2f(1780.0f, 225.0f);
+    glVertex2f(1780.0f, 225.0f);
+    glVertex2f(1420.0f, 225.0f);
+    glEnd();
 }
 
 void screenCreateZone() {
-    //same as previous screen
-    drawBuilding();
-    
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
+    screen3a();
 
-    drawText("Zones: 0", 100, 300, 200);
-    drawText("Zoned designs: 0", 100, 150, 200);
+    //repeat button with a background color
+    drawButtonWithBackgroundColor("Create zone", screenWidth - 310, 660, 200, 50, buttonClicked, 1);
 
-    drawText("Zones", screenWidth - 150, 820, 200);
-    //drawButton("Create zone", screenWidth - 310, 760, 200, 50, buttonClicked, 1);
-    drawButtonWithBackgroundColor("Create zone", screenWidth - 310, 760, 200, 50, buttonClicked, 1); // Highlighted button
-    drawButton("Delete zone", screenWidth - 310, 700, 200, 50, changeScreen, 15);
-    drawText("Zoned designs", screenWidth - 180, 660, 200);
-    drawButton("Create zoned design", screenWidth - 310, 600, 200, 50, changeScreen, 16);
-    drawButton("Delete zoned design", screenWidth - 310, 540, 200, 50, changeScreen, 17);
-
-    drawText("Step 1: Find all zoned designs.", 1550, 150, 250);
-
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 3);
-    
     //draw text and input for creating a zone
-    drawText("Space(s) to include:", screenWidth, 420, 600);
-	drawTextField(screenWidth - 310, 350, 200, 50, opinionTF9);
-    drawText("Press enter to submit", screenWidth - 60, 300, 500);
+    drawText("Space(s) to include:", screenWidth, 320, 600);
+	drawTextField(screenWidth - 310, 250, 200, 50, opinionTF9);
+    drawText("Press enter to submit.", screenWidth - 60, 370, 500);
 
     //draw lines around it
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1470.0f, 450.0f);   
-    glVertex2f(1470.0f, 325.0f);
-    glVertex2f(1470.0f, 450.0f);
-    glVertex2f(1710.0f, 450.0f);
-    glVertex2f(1710.0f, 450.0f);
-    glVertex2f(1710.0f, 325.0f);
-    glVertex2f(1710.0f, 325.0f);
-    glVertex2f(1470.0f, 325.0f);
-    glEnd();
+    boxAroundPopUp();
 }
 
 void screenDeleteZone() {
-    //same as previous screen
-    drawBuilding();
+    screen3a();
 
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
-
-    drawText("Zones: 0", 100, 300, 200);
-    drawText("Zoned designs: 0", 100, 150, 200);
-
-    drawText("Zones", screenWidth - 150, 820, 200);
-    drawButton("Create zone", screenWidth - 310, 760, 200, 50, changeScreen, 14);
-    drawButtonWithBackgroundColor("Delete zone", screenWidth - 310, 700, 200, 50, buttonClicked, 1);
-    drawText("Zoned designs", screenWidth - 180, 660, 200);
-    drawButton("Create zoned design", screenWidth - 310, 600, 200, 50, changeScreen, 16);
-    drawButton("Delete zoned design", screenWidth - 310, 540, 200, 50, changeScreen, 17);
-
-    drawText("Step 1: Find all zoned designs.", 1550, 150, 250);
-
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 3);
+    //repeat button with a background color
+    drawButtonWithBackgroundColor("Delete zone", screenWidth - 310, 600, 200, 50, buttonClicked, 1);
 
     //draw text and input for deleting a zone
-    drawText("Zone to delete:", screenWidth, 420, 600);
-    drawTextField(screenWidth - 310, 350, 200, 50, opinionTF10);
-    drawText("Press enter to submit", screenWidth - 60, 300, 500);
+    drawText("Zone to delete:", screenWidth, 320, 600);
+    drawTextField(screenWidth - 310, 250, 200, 50, opinionTF10);
+    drawText("Press enter to submit.", screenWidth - 60, 370, 500);
 
     //draw lines around it
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1470.0f, 450.0f);
-    glVertex2f(1470.0f, 325.0f);
-    glVertex2f(1470.0f, 450.0f);
-    glVertex2f(1710.0f, 450.0f);
-    glVertex2f(1710.0f, 450.0f);
-    glVertex2f(1710.0f, 325.0f);
-    glVertex2f(1710.0f, 325.0f);
-    glVertex2f(1470.0f, 325.0f);
-    glEnd();
+    boxAroundPopUp();
 }
 
 void screenCreateZonedDesign() {
-    //same as previous screen
-    drawBuilding();
+    screen3a();
 
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
-
-    drawText("Zones: 0", 100, 300, 200);
-    drawText("Zoned designs: 0", 100, 150, 200);
-
-    drawText("Zones", screenWidth - 150, 820, 200);
-    drawButton("Create zone", screenWidth - 310, 760, 200, 50, changeScreen, 14);
-    drawButton("Delete zone", screenWidth - 310, 700, 200, 50, changeScreen, 15);
-    drawText("Zoned designs", screenWidth - 180, 660, 200);
-    drawButtonWithBackgroundColor("Create zoned design", screenWidth - 310, 600, 200, 50, buttonClicked, 1);
-    drawButton("Delete zoned design", screenWidth - 310, 540, 200, 50, changeScreen, 17);
-
-    drawText("Step 1: Find all zoned designs.", 1550, 150, 250);
-
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 3);
+    //repeat button with a background color
+    drawButtonWithBackgroundColor("Create zoned design", screenWidth - 310, 500, 200, 50, buttonClicked, 1);
 
     //draw text and input for creating a zoned design
-    drawText("Zone(s) to include:", screenWidth, 420, 600);
-    drawTextField(screenWidth - 310, 350, 200, 50, opinionTF11);
-    drawText("Press enter to submit", screenWidth - 60, 300, 500);
+    drawText("Zone(s) to include:", screenWidth, 320, 600);
+    drawTextField(screenWidth - 310, 250, 200, 50, opinionTF11);
+    drawText("Press enter to submit", screenWidth - 60, 370, 500);
 
     //draw lines around it
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1470.0f, 450.0f);
-    glVertex2f(1470.0f, 325.0f);
-    glVertex2f(1470.0f, 450.0f);
-    glVertex2f(1710.0f, 450.0f);
-    glVertex2f(1710.0f, 450.0f);
-    glVertex2f(1710.0f, 325.0f);
-    glVertex2f(1710.0f, 325.0f);
-    glVertex2f(1470.0f, 325.0f);
-    glEnd();
+    boxAroundPopUp();
 }
 
 void screenDeleteZonedDesign() {
-    //same as previous screen
-    drawBuilding();
+    screen3a();
 
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
-
-    drawText("Zones: 0", 100, 300, 200);
-    drawText("Zoned designs: 0", 100, 150, 200);
-
-    drawText("Zones", screenWidth - 150, 820, 200);
-    drawButton("Create zone", screenWidth - 310, 760, 200, 50, changeScreen, 14);
-    drawButton("Delete zone", screenWidth - 310, 700, 200, 50, changeScreen, 15);
-    drawText("Zoned designs", screenWidth - 180, 660, 200);
-    drawButton("Create zoned design", screenWidth - 310, 600, 200, 50, changeScreen, 16);
-    drawButtonWithBackgroundColor("Delete zoned design", screenWidth - 310, 540, 200, 50, buttonClicked, 1);
-
-    drawText("Step 1: Find all zoned designs.", 1550, 150, 250);
-
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 3);
+    //repeat button with a background color
+    drawButtonWithBackgroundColor("Delete zoned design", screenWidth - 310, 440, 200, 50, buttonClicked, 1);
 
     //draw text and input for deleting a zoned design
-    drawText("Zoned design to delete:", screenWidth, 420, 600);
-    drawTextField(screenWidth - 310, 350, 200, 50, opinionTF12);
-    drawText("Press enter to submit", screenWidth - 60, 300, 500);
+    drawText("Zoned design to delete:", screenWidth, 320, 600);
+    drawTextField(screenWidth - 310, 250, 200, 50, opinionTF12);
+    drawText("Press enter to submit", screenWidth - 60, 370, 500);
 
     //draw lines around it
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1470.0f, 450.0f);
-    glVertex2f(1470.0f, 325.0f);
-    glVertex2f(1470.0f, 450.0f);
-    glVertex2f(1710.0f, 450.0f);
-    glVertex2f(1710.0f, 450.0f);
-    glVertex2f(1710.0f, 325.0f);
-    glVertex2f(1710.0f, 325.0f);
-    glVertex2f(1470.0f, 325.0f);
-    glEnd();
+    boxAroundPopUp();
 }
 
 void screenAddSpace() {
-    //same as previous screen
-    drawBuilding();
+    screen3d();
 
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
-
-    drawButtonWithBackgroundColor("Add space", screenWidth - 310, 760, 200, 50, buttonClicked, 1);
-    drawButton("Delete space", screenWidth - 310, 700, 200, 50, changeScreen, 19);
-    drawButton("Move space", screenWidth - 310, 640, 200, 50, changeScreen, 20);
-    drawButton("Resize space", screenWidth - 310, 580, 200, 50, changeScreen, 21);
-
-    drawText("Step 4: You may adapt the BSD you started with to create any new BSD you desire. Keep the function of the building in mind, as well as the resulting zoned designs and their stiffnesses.", 1550, 200, 250);
-
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 6);
+    //repeat button with a background color
+    drawButtonWithBackgroundColor("Add space", screenWidth - 310, 610, 200, 50, buttonClicked, 1);
 
     //draw text and input for adding a space
-    drawText("Size (x,y,z):", 1515, 420, 150);
-    drawText("Location (x,y,z):", 1680, 420, 150);
-    drawTextField(screenWidth - 355, 350, 150, 50, opinionTF13);
-    drawTextField(screenWidth - 195, 350, 150, 50, opinionTF14);
-    drawText("Press enter to submit", screenWidth - 60, 300, 500);
+    drawText("Size (x,y,z):", 1515, 320, 150);
+    drawText("Location (x,y,z):", 1680, 320, 150);
+    drawTextField(screenWidth - 355, 250, 150, 50, opinionTF13);
+    drawTextField(screenWidth - 195, 250, 150, 50, opinionTF14);
+    drawText("Use the 'Tab' key to swith input fields", screenWidth - 110, 390, 500);
+    drawText("Press enter to submit", screenWidth - 60, 370, 500);
 
     //draw lines around it
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1420.0f, 450.0f);
-    glVertex2f(1420.0f, 325.0f);
-    glVertex2f(1420.0f, 450.0f);
-    glVertex2f(1780.0f, 450.0f);
-    glVertex2f(1780.0f, 450.0f);
-    glVertex2f(1780.0f, 325.0f);
-    glVertex2f(1780.0f, 325.0f);
-    glVertex2f(1420.0f, 325.0f);
-    glEnd();
+    boxAroundPopUp2();
 }
 
 void screenDeleteSpace() {
-    //same as previous screen
-    drawBuilding();
+    screen3d();
 
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
-
-    drawButton("Add space", screenWidth - 310, 760, 200, 50, changeScreen, 18);
-    drawButtonWithBackgroundColor("Delete space", screenWidth - 310, 700, 200, 50, buttonClicked, 1);
-    drawButton("Move space", screenWidth - 310, 640, 200, 50, changeScreen, 20);
-    drawButton("Resize space", screenWidth - 310, 580, 200, 50, changeScreen, 21);
-
-    drawText("Step 4: You may adapt the BSD you started with to create any new BSD you desire. Keep the function of the building in mind, as well as the resulting zoned designs and their stiffnesses.", 1550, 200, 250);
-
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 6);
+    //repeat button with a background color
+    drawButtonWithBackgroundColor("Delete space", screenWidth - 310, 550, 200, 50, buttonClicked, 1);
 
     //draw text and input for deleting a space
-    drawText("Space(s) to delete:", screenWidth, 420, 600);
-    drawTextField(screenWidth - 310, 350, 200, 50, opinionTF15);
-    drawText("Press enter to submit", screenWidth - 60, 300, 500);
+    drawText("Space(s) to delete:", screenWidth, 320, 600);
+    drawTextField(screenWidth - 310, 250, 200, 50, opinionTF15);
+    drawText("Press enter to submit", screenWidth - 60, 370, 500);
 
     //draw lines around it
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1470.0f, 450.0f);
-    glVertex2f(1470.0f, 325.0f);
-    glVertex2f(1470.0f, 450.0f);
-    glVertex2f(1710.0f, 450.0f);
-    glVertex2f(1710.0f, 450.0f);
-    glVertex2f(1710.0f, 325.0f);
-    glVertex2f(1710.0f, 325.0f);
-    glVertex2f(1470.0f, 325.0f);
-    glEnd();
+    boxAroundPopUp2();
 }
 
 void screenMoveSpace() {
-    //same as previous screen
-    drawBuilding();
+    screen3d();
 
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
-
-    drawButton("Add space", screenWidth - 310, 760, 200, 50, changeScreen, 18);
-    drawButton("Delete space", screenWidth - 310, 700, 200, 50, changeScreen, 19);
-    drawButtonWithBackgroundColor("Move space", screenWidth - 310, 640, 200, 50, buttonClicked, 1);
-    drawButton("Resize space", screenWidth - 310, 580, 200, 50, changeScreen, 21);
-
-    drawText("Step 4: You may adapt the BSD you started with to create any new BSD you desire. Keep the function of the building in mind, as well as the resulting zoned designs and their stiffnesses.", 1550, 200, 250);
-
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 6);
+    //repeat button with a background color
+    drawButtonWithBackgroundColor("Move space", screenWidth - 310, 490, 200, 50, buttonClicked, 1);
 
     //draw text and input for moving a space
-    drawText("Space:", 1515, 420, 150);
-    drawText("New location (x,y,z):", 1680, 420, 150);
-    drawTextField(screenWidth - 355, 350, 150, 50, opinionTF16);
-    drawTextField(screenWidth - 195, 350, 150, 50, opinionTF17);
-    drawText("Press enter to submit", screenWidth - 60, 300, 500);
+    drawText("Space:", 1515, 320, 150);
+    drawText("New location (x,y,z):", 1680, 320, 150);
+    drawTextField(screenWidth - 355, 250, 150, 50, opinionTF16);
+    drawTextField(screenWidth - 195, 250, 150, 50, opinionTF17);
+    drawText("Use the 'Tab' key to swith input fields", screenWidth - 110, 390, 500);
+    drawText("Press enter to submit", screenWidth - 60, 370, 500);
 
     //draw lines around it
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1420.0f, 450.0f);
-    glVertex2f(1420.0f, 325.0f);
-    glVertex2f(1420.0f, 450.0f);
-    glVertex2f(1780.0f, 450.0f);
-    glVertex2f(1780.0f, 450.0f);
-    glVertex2f(1780.0f, 325.0f);
-    glVertex2f(1780.0f, 325.0f);
-    glVertex2f(1420.0f, 325.0f);
-    glEnd();
+    boxAroundPopUp2();
 }
 
 void screenResizeSpace() {
-    //same as previous screen
-    drawBuilding();
+    screen3d();
 
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
-
-    drawButton("Add space", screenWidth - 310, 760, 200, 50, changeScreen, 18);
-    drawButton("Delete space", screenWidth - 310, 700, 200, 50, changeScreen, 19);
-    drawButton("Move space", screenWidth - 310, 640, 200, 50, changeScreen, 20);
-    drawButtonWithBackgroundColor("Resize space", screenWidth - 310, 580, 200, 50, buttonClicked, 1);
-
-    drawText("Step 4: You may adapt the BSD you started with to create any new BSD you desire. Keep the function of the building in mind, as well as the resulting zoned designs and their stiffnesses.", 1550, 200, 250);
-
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 6);
+    //repeat button with a background color
+    drawButtonWithBackgroundColor("Resize space", screenWidth - 310, 430, 200, 50, buttonClicked, 1);
 
     //draw text and input for resizing a space
-    drawText("Space:", 1515, 420, 150);
-    drawText("New size (x,y,z):", 1680, 420, 150);
-    drawTextField(screenWidth - 355, 350, 150, 50, opinionTF18);
-    drawTextField(screenWidth - 195, 350, 150, 50, opinionTF19);
-    drawText("Press enter to submit", screenWidth - 60, 300, 500);
+    drawText("Space:", 1515, 320, 150);
+    drawText("New size (x,y,z):", 1680, 320, 150);
+    drawTextField(screenWidth - 355, 250, 150, 50, opinionTF18);
+    drawTextField(screenWidth - 195, 250, 150, 50, opinionTF19);
+    drawText("Use the 'Tab' key to swith input fields", screenWidth - 110, 390, 500);
+    drawText("Press enter to submit", screenWidth - 60, 370, 500);
 
     //draw lines around it
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1420.0f, 450.0f);
-    glVertex2f(1420.0f, 325.0f);
-    glVertex2f(1420.0f, 450.0f);
-    glVertex2f(1780.0f, 450.0f);
-    glVertex2f(1780.0f, 450.0f);
-    glVertex2f(1780.0f, 325.0f);
-    glVertex2f(1780.0f, 325.0f);
-    glVertex2f(1420.0f, 325.0f);
-    glEnd();
+    boxAroundPopUp2();
 }
 
 void screenCreateZone2() {
-    //same as previous screen
-    drawBuilding();
+    screen3e();
 
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
-
-    drawText("Zones: 0", 100, 300, 200);
-    drawText("Zoned designs: 0", 100, 150, 200);
-
-    drawText("Zones", screenWidth - 150, 820, 200);
-    drawButtonWithBackgroundColor("Create zone", screenWidth - 310, 760, 200, 50, buttonClicked, 1);
-    drawButton("Delete zone", screenWidth - 310, 700, 200, 50, changeScreen, 23);
-    drawText("Zoned designs", screenWidth - 180, 660, 200);
-    drawButton("Create zoned design", screenWidth - 310, 600, 200, 50, changeScreen, 24);
-    drawButton("Delete zoned design", screenWidth - 310, 540, 200, 50, changeScreen, 25);
-
-    drawText("Step 5: Find all zoned designs.", 1550, 150, 250);
-
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 7);
+    //repeat button with a background color
+    drawButtonWithBackgroundColor("Create zone", screenWidth - 310, 660, 200, 50, buttonClicked, 1);
 
     //draw text and input for creating a zone
-    drawText("Space(s) to include:", screenWidth, 420, 600);
-    drawTextField(screenWidth - 310, 350, 200, 50, opinionTF20);
-    drawText("Press enter to submit", screenWidth - 60, 300, 500);
+    drawText("Space(s) to include:", screenWidth, 320, 600);
+    drawTextField(screenWidth - 310, 250, 200, 50, opinionTF20);
+    drawText("Press enter to submit", screenWidth - 60, 370, 500);
 
     //draw lines around it
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1470.0f, 450.0f);
-    glVertex2f(1470.0f, 325.0f);
-    glVertex2f(1470.0f, 450.0f);
-    glVertex2f(1710.0f, 450.0f);
-    glVertex2f(1710.0f, 450.0f);
-    glVertex2f(1710.0f, 325.0f);
-    glVertex2f(1710.0f, 325.0f);
-    glVertex2f(1470.0f, 325.0f);
-    glEnd();
+    boxAroundPopUp();
 }
 
 void screenDeleteZone2() {
-    //same as previous screen
-    drawBuilding();
+    screen3e();
 
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
-
-    drawText("Zones: 0", 100, 300, 200);
-    drawText("Zoned designs: 0", 100, 150, 200);
-
-    drawText("Zones", screenWidth - 150, 820, 200);
-    drawButton("Create zone", screenWidth - 310, 760, 200, 50, changeScreen, 22);
-    drawButtonWithBackgroundColor("Delete zone", screenWidth - 310, 700, 200, 50, buttonClicked, 1);
-    drawText("Zoned designs", screenWidth - 180, 660, 200);
-    drawButton("Create zoned design", screenWidth - 310, 600, 200, 50, changeScreen, 24);
-    drawButton("Delete zoned design", screenWidth - 310, 540, 200, 50, changeScreen, 25);
-
-    drawText("Step 5: Find all zoned designs.", 1550, 150, 250);
-
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 7);
+    //repeat button with a background color
+    drawButtonWithBackgroundColor("Delete zone", screenWidth - 310, 600, 200, 50, buttonClicked, 1);
 
     //draw text and input for deleting a zone
-    drawText("Zone to delete:", screenWidth, 420, 600);
-    drawTextField(screenWidth - 310, 350, 200, 50, opinionTF21);
-    drawText("Press enter to submit", screenWidth - 60, 300, 500);
+    drawText("Zone to delete:", screenWidth, 320, 600);
+    drawTextField(screenWidth - 310, 250, 200, 50, opinionTF21);
+    drawText("Press enter to submit", screenWidth - 60, 370, 500);
 
     //draw lines around it
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1470.0f, 450.0f);
-    glVertex2f(1470.0f, 325.0f);
-    glVertex2f(1470.0f, 450.0f);
-    glVertex2f(1710.0f, 450.0f);
-    glVertex2f(1710.0f, 450.0f);
-    glVertex2f(1710.0f, 325.0f);
-    glVertex2f(1710.0f, 325.0f);
-    glVertex2f(1470.0f, 325.0f);
-    glEnd();
+    boxAroundPopUp();
 }
 
 void screenCreateZonedDesign2() {
-    //same as previous screen
-    drawBuilding();
+    screen3e();
 
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
-
-    drawText("Zones: 0", 100, 300, 200);
-    drawText("Zoned designs: 0", 100, 150, 200);
-
-    drawText("Zones", screenWidth - 150, 820, 200);
-    drawButton("Create zone", screenWidth - 310, 760, 200, 50, changeScreen, 22);
-    drawButton("Delete zone", screenWidth - 310, 700, 200, 50, changeScreen, 23);
-    drawText("Zoned designs", screenWidth - 180, 660, 200);
-    drawButtonWithBackgroundColor("Create zoned design", screenWidth - 310, 600, 200, 50, buttonClicked, 1);
-    drawButton("Delete zoned design", screenWidth - 310, 540, 200, 50, changeScreen, 25);
-
-    drawText("Step 5: Find all zoned designs.", 1550, 150, 250);
-
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 7);
+    //repeat button with a background color
+    drawButtonWithBackgroundColor("Create zoned design", screenWidth - 310, 500, 200, 50, buttonClicked, 1);
 
     //draw text and input for creating a zoned design
-    drawText("Zone(s) to include:", screenWidth, 420, 600);
-    drawTextField(screenWidth - 310, 350, 200, 50, opinionTF22);
-    drawText("Press enter to submit", screenWidth - 60, 300, 500);
+    drawText("Zone(s) to include:", screenWidth, 320, 600);
+    drawTextField(screenWidth - 310, 250, 200, 50, opinionTF22);
+    drawText("Press enter to submit", screenWidth - 60, 370, 500);
 
     //draw lines around it
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1470.0f, 450.0f);
-    glVertex2f(1470.0f, 325.0f);
-    glVertex2f(1470.0f, 450.0f);
-    glVertex2f(1710.0f, 450.0f);
-    glVertex2f(1710.0f, 450.0f);
-    glVertex2f(1710.0f, 325.0f);
-    glVertex2f(1710.0f, 325.0f);
-    glVertex2f(1470.0f, 325.0f);
-    glEnd();
+    boxAroundPopUp();
 }
 
 void screenDeleteZonedDesign2() {
-    //same as previous screen
-    drawBuilding();
+    screen3e();
 
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    glEnd();
-
-    drawText("Zones: 0", 100, 300, 200);
-    drawText("Zoned designs: 0", 100, 150, 200);
-
-    drawText("Zones", screenWidth - 150, 820, 200);
-    drawButton("Create zone", screenWidth - 310, 760, 200, 50, changeScreen, 22);
-    drawButton("Delete zone", screenWidth - 310, 700, 200, 50, changeScreen, 23);
-    drawText("Zoned designs", screenWidth - 180, 660, 200);
-    drawButton("Create zoned design", screenWidth - 310, 600, 200, 50, changeScreen, 24);
-    drawButtonWithBackgroundColor("Delete zoned design", screenWidth - 310, 540, 200, 50, buttonClicked, 1);
-
-    drawText("Step 5: Find all zoned designs.", 1550, 150, 250);
-
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 7);
+    //repeat button with a background color
+    drawButtonWithBackgroundColor("Delete zoned design", screenWidth - 310, 440, 200, 50, buttonClicked, 1);
 
     //draw text and input for deleting a zoned design
-    drawText("Zoned design to delete:", screenWidth, 420, 600);
-    drawTextField(screenWidth - 310, 350, 200, 50, opinionTF23);
-    drawText("Press enter to submit", screenWidth - 60, 300, 500);
+    drawText("Zoned design to delete:", screenWidth, 320, 600);
+    drawTextField(screenWidth - 310, 250, 200, 50, opinionTF23);
+    drawText("Press enter to submit", screenWidth - 60, 370, 500);
 
     //draw lines around it
+    boxAroundPopUp();
+}
+
+void screenCheckNext() {
+    glColor3f(1.0f, 1.0f, 1.0f); // Set color to white
+    glRectf(750.0f, 500.0f, 1050.0f, 650.0f); // Draw rectangle covering the entire screen
+
+    //draw box of lines
     glColor3f(0.0, 0.0, 0.0);
     glBegin(GL_LINES);
-    glVertex2f(1470.0f, 450.0f);
-    glVertex2f(1470.0f, 325.0f);
-    glVertex2f(1470.0f, 450.0f);
-    glVertex2f(1710.0f, 450.0f);
-    glVertex2f(1710.0f, 450.0f);
-    glVertex2f(1710.0f, 325.0f);
-    glVertex2f(1710.0f, 325.0f);
-    glVertex2f(1470.0f, 325.0f);
+    glVertex2f(750.0f, 650.0f);
+    glVertex2f(750.0f, 500.0f);
+    glVertex2f(750.0f, 650.0f);
+    glVertex2f(1050.0f, 650.0f);
+    glVertex2f(1050.0f, 650.0f);
+    glVertex2f(1050.0f, 500.0f);
+    glVertex2f(1050.0f, 500.0f);
+    glVertex2f(750.0f, 500.0f);
     glEnd();
+
+    //draw text within the box
+    glColor3f(0.0, 0.0, 0.0);
+    drawText("Are you sure you want to continue? Once you continue to the next step, you cannot go back to this step.", 880, 620, 200);
+}
+
+void screenCheckNext1() {
+    screen3a();
+    screenCheckNext();
+    drawButton("Yes", 790, 510, 100, 30, changeScreen, 3);
+    drawButton("No", 910, 510, 100, 30, changeScreen, 2);
+}
+
+void screenCheckNext2() {
+    screen3b();
+    screenCheckNext();
+    drawButton("Yes", 790, 510, 100, 30, changeScreen, 4);
+    drawButton("No", 910, 510, 100, 30, changeScreen, 3);
+}
+
+void screenCheckNext3() {
+    screen3c();
+	screenCheckNext();
+	drawButton("Yes", 790, 510, 100, 30, changeScreen, 5);
+	drawButton("No", 910, 510, 100, 30, changeScreen, 4);
+}
+
+void screenCheckNext4() {
+    screen3d();
+	screenCheckNext();
+	drawButton("Yes", 790, 510, 100, 30, changeScreen, 6);
+	drawButton("No", 910, 510, 100, 30, changeScreen, 5);
+}
+
+void screenCheckNext5() {
+    screen3e();
+	screenCheckNext();
+	drawButton("Yes", 790, 510, 100, 30, changeScreen, 7);
+	drawButton("No", 910, 510, 100, 30, changeScreen, 6);
+}
+
+void screenCheckNext6() {
+    assignmentDescriptionScreen();
+    screenCheckNext();
+    drawButton("Yes", 790, 510, 100, 30, changeScreen, 2);
+    drawButton("No", 910, 510, 100, 30, changeScreen, 1);
 }
 
 int main(int argc, char** argv) {

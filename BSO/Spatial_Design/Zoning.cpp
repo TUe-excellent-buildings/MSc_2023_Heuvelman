@@ -7,7 +7,7 @@ namespace BSO { namespace Spatial_Design { namespace Zoning {
 Zoned_Design::Zoned_Design(MS_Conformal* CF)
 {
 	m_CF = CF;
-	zoning_settings = Grammar::read_zoning_settings("Settings/Zoning_Settings.txt"); // read the zoning settings file
+	zoning_settings = Grammar::read_zoning_settings("/home/kknopp/Documents/MSc_2023_Heuvelman/GUI/JH_Stabilization_Assignment_GUI_new/Settings/Zoning_Settings.txt"); // read the zoning settings file
 	max_span = zoning_settings.max_span;
 	min_span = zoning_settings.min_span;
 	whole_space_zones = zoning_settings.whole_space_zones;

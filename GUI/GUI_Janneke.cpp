@@ -2,9 +2,28 @@
 #include <cmath>
 #include <vector>
 #include <iostream>
+#include <BSO/Structural_Design/SD_Analysis.hpp>
 #include <BSO/Spatial_Design/Movable_Sizable.hpp>
+#include <BSO/Spatial_Design/Conformation.hpp>
+#include <BSO/Performance_Indexing.hpp>
+
+#include <BSO/Structural_Design/Stabilization/Stabilize.hpp>
+
 #include <BSO/Visualisation/Visualisation.hpp>
 
+#include <Grammar_stabilize.hpp>
+
+
+// BSO definitions
+BSO::Spatial_Design::MS_Building MS("JH_Stabilization_Assignment_GUI_new/MS_Input.txt");
+BSO::Spatial_Design::MS_Conformal CF(MS, &(BSO::Grammar::grammar_stabilize));
+BSO::Structural_Design::SD_Analysis SD(CF);
+
+// Global variables for visualisation
+bool visualisationActive = false; // Flag to control when to activate visualisation
+BSO::Visualisation::viewportmanager vpmanager_local;
+BSO::Visualisation::orbitalcamera   cam_local;
+int prevx, prevy;
 
 typedef void (*ButtonCallback)(int);
 
@@ -98,7 +117,31 @@ void drawArrow(float x, float y, bool leftArrow);
 void drawUndoRedoButtons();
 void drawTextField(int x, int y, int width, int height, TextField& textfield);
 void onMouseClick(int button, int state, int x, int y);
-void drawBuilding();
+void setup2D();
+void setup3D();
+
+void visualise(BSO::Spatial_Design::MS_Building& ms_building)
+{
+    vpmanager_local.addviewport(new BSO::Visualisation::viewport(new BSO::Visualisation::MS_Model(ms_building)));
+}
+
+void visualise(BSO::Spatial_Design::MS_Conformal& cf_building, std::string type)
+{
+    vpmanager_local.addviewport(new BSO::Visualisation::viewport(new BSO::Visualisation::Conformal_Model(cf_building, type)));
+}
+
+void visualise(BSO::Structural_Design::SD_Analysis_Vars* SD_building, int vis_switch)
+{
+    vpmanager_local.addviewport(new BSO::Visualisation::viewport(new BSO::Visualisation::Stabilization_Model(SD_building, vis_switch)));
+}
+
+
+void checkGLError(const char* action) {
+    GLenum err;
+    while ((err = glGetError()) != GL_NO_ERROR) {
+        std::cout << "OpenGL error after " << action << ": " << gluErrorString(err) << std::endl;
+    }
+}
 
 void buttonClicked(int variable) {
     std::cout << "Button clicked: " << variable << std::endl;
@@ -106,26 +149,70 @@ void buttonClicked(int variable) {
 
 void changeScreen(int screen) {
     currentScreen = screen;
+    std::cout << "Screen changed to: Screen " << screen << std::endl;
+    
+    if(screen == 2 || screen >=  10) {
+        // visualise(MS);
+        visualise(&SD, 1);
+        // visualise(CF, "rectangles");
+        // visualise(SD_Building, 1);
+        visualisationActive = true;
+    } else {
+        vpmanager_local.clearviewports();
+    }
+    glutPostRedisplay();
+    buttons.clear();
+}
+
+
+void motion(int x, int y)
+{
+    double dx = prevx-x,
+            dy = prevy-y;
+
+    cam_local.setrotation(cam_local.getrotation() + (dx*0.5));
+    cam_local.setelevation(cam_local.getelevation() + (dy*0.5));
+
+    prevx = x;
+    prevy = y;
+
+    vpmanager_local.mousemove_event(x, y);
+
     glutPostRedisplay();
 }
 
+void passive_motion(int x, int y)
+{
+    vpmanager_local.mousemove_event(x, y);
+}
 
 void display() {
     // Clear the window with white background
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glDisable(GL_DEPTH_TEST);
 
     // Set up 2D projection matrix
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(0.0, screenWidth, 0.0, screenHeight);
+    setup2D();
+    // visualise(MS);
 
     // Set up modelview matrix
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    // Render the current screen
+    if (visualisationActive) {
+        // Set viewport for the left half of the screen
+        setup3D();
+        
+        // Render the visualisation
+        vpmanager_local.render(cam_local);
+        checkGLError("render");
+
+        // Reset the viewport to full window size for the rest of your GUI, if necessary
+        setup2D();
+        checkGLError("setup2D");
+    }
+
+     // Render the current screen
     switch (currentScreen) {
         case 0: mainScreen(); break;
         case 1: assignmentDescriptionScreen(); break;
@@ -154,6 +241,48 @@ void display() {
     while((err = glGetError()) != GL_NO_ERROR) {
         std::cerr << "OpenGL error: " << gluErrorString(err) << std::endl;
     }
+}
+
+void setup2D() {
+    glViewport(0, 0, screenWidth, screenHeight);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0.0, screenWidth, 0.0, screenHeight);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    
+    // Disable lighting for 2D
+    glDisable(GL_LIGHTING);
+    glDisable(GL_LIGHT0);
+}
+
+void setup3D() {
+    GLint viewportWidth = screenWidth / 1.7;
+    GLint viewportHeight = screenHeight;
+
+    vpmanager_local.resize(viewportWidth, viewportHeight);
+
+    // Set the viewport to cover the left part of the screen
+    glViewport(0, 0, viewportWidth, viewportHeight);
+
+    // Setup the projection matrix for 3D rendering
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    
+    // Adjust the perspective projection to match the new aspect ratio
+    GLfloat aspectRatio = (GLfloat)viewportWidth / (GLfloat)viewportHeight;
+    gluPerspective(45.0, aspectRatio, 0.1f, 1000.0f);
+
+    // Switch back to modelview matrix mode
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    // Enable depth testing, required for 3D rendering
+    glEnable(GL_DEPTH_TEST);
+
+    // Enable lighting if your visualization uses it
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
 }
 
 void reshape(int width, int height) {
@@ -560,67 +689,16 @@ void drawUndoRedoButtons() {
     drawButton("Reset", 10, screenHeight - 120, 110, 50, buttonClicked, 1);
 }
 
-void drawBuilding() {
-    glColor3f(0.0, 0.0, 0.0); // Blue color for the building structure
-    glBegin(GL_LINES);
 
-    // Base of the building
-    glVertex2f(100.0f, 300.0f);
-    glVertex2f(600.0f, 300.0f);
-
-    glVertex2f(600.0f, 300.0f);
-    glVertex2f(600.0f, 800.0f);
-
-    glVertex2f(600.0f, 800.0f);
-    glVertex2f(100.0f, 800.0f);
-
-    glVertex2f(100.0f, 800.0f);
-    glVertex2f(100.0f, 300.0f);
-
-    // Top of the building
-    glVertex2f(100.0f, 200.0f);
-    glVertex2f(600.0f, 200.0f);
-
-    glVertex2f(600.0f, 200.0f);
-    glVertex2f(600.0f, 700.0f);
-
-    glVertex2f(600.0f, 700.0f);
-    glVertex2f(100.0f, 700.0f);
-
-    glVertex2f(100.0f, 700.0f);
-    glVertex2f(100.0f, 200.0f);
-
-    // Vertical lines
-    glVertex2f(100.0f, 200.0f);
-    glVertex2f(100.0f, 300.0f);
-
-    glVertex2f(600.0f, 200.0f);
-    glVertex2f(600.0f, 300.0f);
-
-    glVertex2f(600.0f, 700.0f);
-    glVertex2f(600.0f, 800.0f);
-
-    glVertex2f(100.0f, 700.0f);
-    glVertex2f(100.0f, 800.0f);
-
-    // Interior lines - for simplicity, just a couple are drawn here
-    glVertex2f(350.0f, 200.0f);
-    glVertex2f(350.0f, 700.0f);
-
-    glVertex2f(350.0f, 250.0f);
-    glVertex2f(600.0f, 250.0f);
-
-    glEnd();
-}
-
+// ID 0: Main screen
 void mainScreen() {
     drawText("Hello and welcome to this MSc project by Janneke Heuvelman. We are glad to have you here and hope you will have a nice experience. In case of any problems, be sure to contact Janneke via email: j.h.heuvelman@student.tue.nl. Please select the Assignment number:",
     900, 800, 400);
 
     drawButton("Assignment 1", 800, 650, 200, 50, changeScreen, 1);
-    drawButton("Assignment 2", 800, 580, 200, 50, buttonClicked, 1);
-    drawButton("Assignment 3", 800, 510, 200, 50, buttonClicked, 1);
-    drawButton("Assignment 4", 800, 440, 200, 50, buttonClicked, 1);
+    drawButton("Assignment 2", 800, 580, 200, 50, changeScreen, 1);
+    drawButton("Assignment 3", 800, 510, 200, 50, changeScreen, 1);
+    drawButton("Assignment 4", 800, 440, 200, 50, changeScreen, 1);
 
     drawUndoRedoButtons();
 
@@ -628,6 +706,7 @@ void mainScreen() {
     drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 1);
 }
 
+// ID 1: Assignment description screen
 void assignmentDescriptionScreen() {
     drawText("You will in a moment go through a design task. You are asked to perform this task in the way you are used to go about a commission in your daily practice. It is important that you say aloud everything that you think or do in designing. ​So, in every step, explain what you do and why you do it. Try to keep speaking constantly and not be silent for longer than 20 seconds. ​Good luck!​",
     900, 600, 400);
@@ -638,16 +717,12 @@ void assignmentDescriptionScreen() {
     drawUndoRedoButtons();
 }
 
+// ID 2: Screen 3
 void screen3() {
-    // Screen layout and colors should be adjusted as necessary.
-
     // Draw structural design illustration placeholder (left side)
-    drawBuilding();
-    // BSO::Spatial_Design::MS_Building MS("MS_Input.txt");
+    // visualise(MS);
 
-    // BSO::Visualisation::init_visualisation_without();
-    // BSO::Visualisation::visualise(MS);
-    // BSO::Visualisation::end_visualisation();
+    
 
     glColor3f(0.0, 0.0, 0.0);
     glBegin(GL_LINES);
@@ -655,8 +730,6 @@ void screen3() {
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
     glEnd();
 
-    // Draw the undo and redo buttons with arrows in the top left corner
-    drawUndoRedoButtons();
 
     // Draw the counter area
     drawText("Number of diagonals: 0", 1200, screenHeight - 100, 200);
@@ -679,6 +752,7 @@ void screen3() {
     drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 3);
 }
 
+// ID 3: Screen 4a
 void screen4a() {
     drawText("1. How much did you enjoy performing this assignment?", 600, 800, 600);
     drawButton("1", 300, 725, 50, 30, buttonClicked, 1);
@@ -705,6 +779,7 @@ void screen4a() {
     drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 8);
 }
 
+// ID 4: Screen 4b
 void screen4b() {
     drawText("2. How would you rate the level of ease in performing this assignment?", 600, 800, 600);
     drawButton("1", 300, 725, 50, 30, buttonClicked, 1);
@@ -730,6 +805,7 @@ void screen4b() {
     drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 9);
 }
 
+// ID 5: Screen 4c
 void screen4c() {
     drawText("3. How well do you think you performed the assignment?", 600, 800, 600);
     drawButton("1", 300, 725, 50, 30, buttonClicked, 1);
@@ -755,6 +831,7 @@ void screen4c() {
     drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 10);
 }
 
+// ID 6: Screen 4d
 void screen4d() {
     drawText("4. Do you think it would have gone better with the assistance of an AI tool that you could ask for eight member placement suggestions?", 600, 800, 600);
     drawButton("Yes", 300, 725, 75, 30, buttonClicked, 1);
@@ -775,6 +852,7 @@ void screen4d() {
     drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 11);
 }
 
+// ID 7: Screen 4e
 void screen4e() {
     drawText("5. Do you think the AI tool itself can perform stabilization better than you?", 600, 800, 600);
     drawButton("Yes", 300, 725, 75, 30, buttonClicked, 1);
@@ -795,6 +873,7 @@ void screen4e() {
     drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 12);
 }
 
+// ID 8: Screen 4f
 void screen4f() {
     drawText("6. What criteria did you keep in mind while performing this assignment?", 600, 800, 600);
     drawText("(For example, structural, aesthetical, functional, and stability requirements.)", 600, 770, 600);
@@ -811,6 +890,7 @@ void screen4f() {
     drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 13);
 }
 
+// ID 9: Screen 4g
 void screen5() {
     drawText("Thank you for your participation, this is the end of the assignment.", 600, 800, 600);
 
@@ -823,9 +903,9 @@ void screen5() {
     drawButton("-> | Next", 1590, 50, 200, 50, buttonClicked, 1);
 }
 
+// ID 10: Screen 4h
 void screenAddTrussDiagonally() {
     //same as previous screen
-    drawBuilding();
     // BSO::Spatial_Design::MS_Building MS("MS_Input.txt");
 
     // BSO::Visualisation::init_visualisation_without();
@@ -885,9 +965,9 @@ void screenAddTrussDiagonally() {
     glEnd();
 }
 
+// ID 11: Screen 4i
 void screenReplaceTrussByBeam() {
     //same as previous screen
-    drawBuilding();
     // BSO::Spatial_Design::MS_Building MS("MS_Input.txt");
 
     // BSO::Visualisation::init_visualisation_without();
@@ -946,9 +1026,9 @@ void screenReplaceTrussByBeam() {
     glEnd();
 }
 
+// ID 12: screenDeleteDiagonalTruss 
 void screenDeleteDiagonalTruss() {
     //same as previous screen
-    drawBuilding();
     // BSO::Spatial_Design::MS_Building MS("MS_Input.txt");
 
     // BSO::Visualisation::init_visualisation_without();
@@ -1007,9 +1087,9 @@ void screenDeleteDiagonalTruss() {
     glEnd();
 }
 
+// ID 13: screenReplaceBeamByTruss
 void screenReplaceBeamByTruss() {
     //same as previous screen
-    drawBuilding();
     // BSO::Spatial_Design::MS_Building MS("MS_Input.txt");
 
     // BSO::Visualisation::init_visualisation_without();
@@ -1080,6 +1160,23 @@ int main(int argc, char** argv) {
     glutKeyboardFunc(keyboard);
     glutReshapeFunc(reshape);
     glutMouseFunc(onMouseClick);
+    glutMotionFunc(motion);
+    glutPassiveMotionFunc(passive_motion);
+
+    //init gl
+    glShadeModel(GL_SMOOTH);
+    // glEnable(GL_LIGHTING);
+    // glEnable(GL_LIGHT0);
+
+    CF.make_conformal();
+    
+    // Make SD model
+    // BSO::Structural_Design::SD_Analysis SD_Building(CF);
+    // BSO::Structural_Design::Stabilization<BSO::Structural_Design::SD_Analysis> Stabilized_Design(SD_Building);
+
+    //Stabilized_Design.stabilize();
+
+
 
     // Main loop
     glutMainLoop();

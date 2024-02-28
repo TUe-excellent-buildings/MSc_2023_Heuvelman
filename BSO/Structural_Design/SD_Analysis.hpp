@@ -22,7 +22,7 @@
 
 namespace BSO { namespace Structural_Design {
 
-    class SD_Analysis : SD_Analysis_Vars
+    class SD_Analysis : public SD_Analysis_Vars
     {
     private:
         bool m_fea_init; // switch to see if the finite element analysis has been initialised already

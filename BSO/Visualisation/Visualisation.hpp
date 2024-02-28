@@ -201,11 +201,11 @@ namespace BSO { namespace Visualisation
         char *argv[1] = {(char*)"Something"};
 
         //init glut
-        glutInit(&argc, argv);
+        // glutInit(&argc, argv);
         //glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
-        glutInitWindowSize(600, 300);
-        glutInitWindowPosition(100, 100);
-        glutCreateWindow("Test");
+        //glutInitWindowSize(600, 300);
+        //glutInitWindowPosition(100, 100);
+        //glutCreateWindow("Test");
         //maximize window (not fullscreen)
         int scrw = glutGet(GLUT_SCREEN_WIDTH)/1.5,
             scrh = glutGet(GLUT_SCREEN_HEIGHT)/1.5;
@@ -214,7 +214,7 @@ namespace BSO { namespace Visualisation
 
         glutReshapeFunc(reshape);
         glutDisplayFunc(display);
-        glutKeyboardFunc(keyboard);
+        //glutKeyboardFunc(keyboard);
         glutMouseFunc(mouse);
         glutMotionFunc(motion);
         glutPassiveMotionFunc(passive_motion);

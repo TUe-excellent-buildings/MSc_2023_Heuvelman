@@ -4,6 +4,7 @@
 #include <iostream>
 #include <chrono>
 #include <ctime>
+#include <cstdlib> // for exit()
 #include <BSO/Spatial_Design/Movable_Sizable.hpp>
 #include <BSO/Visualisation/Visualisation.hpp>
 
@@ -204,6 +205,15 @@ void changeScreen(int screen) {
     buttons.clear();
 }
 
+bool windowOpen = true; // Variable to track whether the window is open or closed
+
+void closeWindowCallback(int) {
+    // Close the window
+    glutLeaveMainLoop();
+    windowOpen = false;
+    exit(EXIT_SUCCESS);
+}
+
 void drawText(const char* text, float centerX, float centerY, float textWidth) {
     float lineHeight = 18; // Approximate line height, adjust as needed
     float effectiveTextWidth = textWidth - 2 * MARGIN_PERCENT; // Effective width after considering margins
@@ -234,6 +244,11 @@ void drawText(const char* text, float centerX, float centerY, float textWidth) {
 }
 
 void display() {
+    //regarding closing the window in the end
+    if (!windowOpen) {
+        return; // Don't render anything if the window is closed
+    }
+    
     // Clear the window with white background
     //glClearColor(1.0f, 1.0f, 1.0f, 1.0f); //white
     glClearColor(0.95f, 0.95f, 0.95f, 1.0f); //very light gray
@@ -1071,7 +1086,7 @@ void screen5() {
     drawText("Press enter to submit", 600, 550, 600);
 
     LineDivisionScreen();
-    drawButton("-> | Next", 1590, 50, 200, 50, buttonClicked, 1);
+    drawButton("-> | End", 1590, 50, 200, 50, closeWindowCallback, 0);
 }
 
 void boxAroundPopUp() {
@@ -1191,7 +1206,7 @@ int main(int argc, char** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(screenWidth, screenHeight);
-    glutCreateWindow("Menu Interface");
+    glutCreateWindow("Stabilization assignment; MSc graduation project");
 
     // Set callback functions
     glutDisplayFunc(display);
@@ -1204,5 +1219,8 @@ int main(int argc, char** argv) {
 
     // Main loop
     glutMainLoop();
-    return 0;
+    //return 0;
+    
+    // At this point, the window is closed, so you can exit the application
+    exit(EXIT_SUCCESS);
 }

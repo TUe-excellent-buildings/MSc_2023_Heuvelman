@@ -237,6 +237,15 @@ void changeScreen(int screen) {
     buttons.clear();
 }
 
+bool windowOpen = true; // Variable to track whether the window is open or closed
+
+void closeWindowCallback(int) {
+    // Close the window
+    glutLeaveMainLoop();
+    windowOpen = false;
+    exit(EXIT_SUCCESS);
+}
+
 void drawText(const char* text, float centerX, float centerY, float textWidth) {
     float lineHeight = 18; // Approximate line height, adjust as needed
     float effectiveTextWidth = textWidth - 2 * MARGIN_PERCENT; // Effective width after considering margins
@@ -863,32 +872,107 @@ void keyboard(unsigned char key, int x, int y) {
     glutPostRedisplay();
 }
 
+void drawRoundedCorner(float centerX, float centerY, float radius, int segments, float lineWidth) {
+    // Adjust the number of line segments for a smoother appearance
+    int adjustedSegments = segments * 2;
 
-void drawButton(const char *text, float x, float y, float width, float height, ButtonCallback callback, int variable) {
+    // Calculate the angle increment for each segment
+    float angleIncrement = (2 * M_PI) / adjustedSegments;
+
+    // Draw each segment as a thick line
+    glBegin(GL_QUAD_STRIP);
+    for (int i = 0; i <= adjustedSegments; ++i) {
+        float angle = i * angleIncrement;
+        float x = centerX + (radius - lineWidth / 2) * cos(angle); // Adjusted radius
+        float y = centerY + (radius - lineWidth / 2) * sin(angle); // Adjusted radius
+
+        // Calculate tangent vector
+        float tangentX = -sin(angle);
+        float tangentY = cos(angle);
+
+        // Calculate perpendicular vector
+        float dx = -tangentY; // Perpendicular to tangent
+        float dy = tangentX;
+
+        // Normalize the perpendicular vector (optional)
+        //float length = sqrt(dx * dx + dy * dy);
+        //dx /= length;
+        //dy /= length;
+
+        // Draw points for the thick line
+        glVertex2f(x + dx * lineWidth / 2, y + dy * lineWidth / 2);
+        glVertex2f(x - dx * lineWidth / 2, y - dy * lineWidth / 2);
+    }
+    glEnd();
+}
+
+
+void drawButton(const char* text, float x, float y, float width, float height, ButtonCallback callback, int variable) {
+    float cornerRadius = 10.0; // Adjust this value to change the roundness of corners
     float borderWidth = 2.0;
+    float lineWidth = 2.0;
+    int cornerSegments = 50; // Number of line segments used to approximate the rounded corners
 
-    glColor3f(0.0, 0.0, 0.0); // Black color for border
+    // Define a shift amount for the rounded corners
+    //float cornerShiftX = 1.0; // Adjust this value as needed
+    //float cornerShiftY = 1.0; // Adjust this value as needed
+
+    // Draw top-left rounded corner
+    drawRoundedCorner(x + cornerRadius - lineWidth / 2, y + height - cornerRadius + lineWidth / 2, cornerRadius, cornerSegments, lineWidth);
+
+    // Draw top-right rounded corner
+    drawRoundedCorner(x + width - cornerRadius + lineWidth / 2, y + height - cornerRadius + lineWidth / 2, cornerRadius, cornerSegments, lineWidth);
+
+    // Draw bottom-left rounded corner
+    drawRoundedCorner(x + cornerRadius - lineWidth / 2, y + cornerRadius - lineWidth / 2, cornerRadius, cornerSegments, lineWidth);
+
+    // Draw bottom-right rounded corner
+    drawRoundedCorner(x + width - cornerRadius + lineWidth / 2, y + cornerRadius - lineWidth / 2, cornerRadius, cornerSegments, lineWidth);
+
+    // Draw top border
     glBegin(GL_QUADS);
-    glVertex2f(x - borderWidth, y - borderWidth);
-    glVertex2f(x + width + borderWidth, y - borderWidth);
-    glVertex2f(x + width + borderWidth, y + height + borderWidth);
-    glVertex2f(x - borderWidth, y + height + borderWidth);
+    glVertex2f(x + cornerRadius, y);
+    glVertex2f(x + width - cornerRadius, y);
+    glVertex2f(x + width - cornerRadius, y + borderWidth);
+    glVertex2f(x + cornerRadius, y + borderWidth);
     glEnd();
 
-    // Set button background color based on whether it's clicked or not
+    // Draw bottom border
+    glBegin(GL_QUADS);
+    glVertex2f(x + cornerRadius, y + height - borderWidth);
+    glVertex2f(x + width - cornerRadius, y + height - borderWidth);
+    glVertex2f(x + width - cornerRadius, y + height);
+    glVertex2f(x + cornerRadius, y + height);
+    glEnd();
+
+    // Draw left border
+    glBegin(GL_QUADS);
+    glVertex2f(x, y + cornerRadius);
+    glVertex2f(x + borderWidth, y + cornerRadius);
+    glVertex2f(x + borderWidth, y + height - cornerRadius);
+    glVertex2f(x, y + height - cornerRadius);
+    glEnd();
+
+    // Draw right border
+    glBegin(GL_QUADS);
+    glVertex2f(x + width - borderWidth, y + cornerRadius);
+    glVertex2f(x + width, y + cornerRadius);
+    glVertex2f(x + width, y + height - cornerRadius);
+    glVertex2f(x + width - borderWidth, y + height - cornerRadius);
+    glEnd();
+
+    // Draw filled rectangle for the button
     if (getSelectedButtonLabel() == text) {
-        // Change the background color when clicked
-        glColor3f(0.1, 0.75, 0.9); //light blue color for button background
+        glColor3f(0.1, 0.75, 0.9); // Light blue color for button background when clicked
     }
     else {
-        //glColor3f(1.0, 1.0, 1.0); // White color for button background
-        glColor3f(0.961, 0.961, 0.863); //beige color for button background
+        glColor3f(0.961, 0.961, 0.863); // Beige color for button background
     }
     glBegin(GL_QUADS);
-    glVertex2f(x, y);
-    glVertex2f(x + width, y);
-    glVertex2f(x + width, y + height);
-    glVertex2f(x, y + height);
+    glVertex2f(x + borderWidth, y + borderWidth);
+    glVertex2f(x + width - borderWidth, y + borderWidth);
+    glVertex2f(x + width - borderWidth, y + height - borderWidth);
+    glVertex2f(x + borderWidth, y + height - borderWidth);
     glEnd();
 
     // Centered text within the button with margin
@@ -900,9 +984,11 @@ void drawButton(const char *text, float x, float y, float width, float height, B
     glColor3f(0.0, 0.0, 0.0);
     drawText(text, centerX, centerY, textWidth);
 
-    Button button = {x, y, width, height, callback, text, variable};
+    Button button = { x, y, width, height, callback, text, variable };
     buttons.push_back(button);
 }
+
+
 
 // Function to reset the selected button label
 void resetSelectedButtonLabel() {
@@ -1489,7 +1575,7 @@ void screen5() {
     drawText("Press enter to submit", 600, 550, 600);
 
     LineDivisionScreen();
-    drawButton("-> | End", 1590, 50, 200, 50, buttonClicked, 1);
+    drawButton("-> | End", 1590, 50, 200, 50, closeWindowCallback, 0);
 }
 
 void boxAroundPopUp() {
@@ -1778,7 +1864,7 @@ int main(int argc, char** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(screenWidth, screenHeight);
-    glutCreateWindow("Menu Interface");
+    glutCreateWindow("Zoning assignment; MSc graduation project");
 
     // Set callback functions
     glutDisplayFunc(display);

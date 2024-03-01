@@ -7,6 +7,39 @@
 #include <cstdlib> // for exit()
 #include <BSO/Spatial_Design/Movable_Sizable.hpp>
 #include <BSO/Visualisation/Visualisation.hpp>
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
+#ifndef GL_CLAMP_TO_EDGE
+#define GL_CLAMP_TO_EDGE 0x812F
+#endif
+
+GLuint textureID;
+
+void loadTexture(const char* filename) {
+    int width, height, channels;
+    unsigned char* image = stbi_load(filename, &width, &height, &channels, STBI_rgb_alpha);
+    if (!image) {
+        printf("Error loading image: %s\n", stbi_failure_reason());
+        return;
+    }
+
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    // Set texture parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    // Upload image data to OpenGL
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+
+    // Free image data
+    stbi_image_free(image);
+}
+
 
 
 typedef void (*ButtonCallback)(int);
@@ -263,6 +296,16 @@ void display() {
     // Set up modelview matrix
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glBegin(GL_QUADS);
+    glTexCoord2f(0, 0); glVertex2f(100, 100); // Adjust vertex positions as needed
+    glTexCoord2f(1, 0); glVertex2f(500, 100);
+    glTexCoord2f(1, 1); glVertex2f(500, 500);
+    glTexCoord2f(0, 1); glVertex2f(100, 500);
+    glEnd();
+    glDisable(GL_TEXTURE_2D);
 
     // Render the current screen
     switch (currentScreen) {
@@ -1213,6 +1256,8 @@ int main(int argc, char** argv) {
     glutKeyboardFunc(keyboard);
     glutReshapeFunc(reshape);
     glutMouseFunc(onMouseClick);
+
+    loadTexture("BSD2.png");
 
     //Set up code
     initializeScreen();

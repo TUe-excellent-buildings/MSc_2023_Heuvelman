@@ -146,7 +146,7 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 		z_size = m_GR->get_grid_size('z');
         m_points = m_SD->get_points();
 	    Stabilize::relate_points_geometry();
-		stabilize_settings = Grammar::read_stabilize_settings("/home/kknopp/Documents/MSc_2023_Heuvelman/GUI/JH_Stabilization_Assignment_GUI_new/Settings/Stabilize_Settings.txt"); // read the stabilize settings file
+		stabilize_settings = Grammar::read_stabilize_settings("JH_Stabilization_Assignment_GUI_new/Settings/Stabilize_Settings.txt"); // read the stabilize settings file
 		remove_superfluous_trusses = stabilize_settings.delete_superfluous_trusses;
 		singular = stabilize_settings.singular;
     } // ctor

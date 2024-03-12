@@ -30,9 +30,11 @@
 #include <SD_Line_Rules.hpp>
 #endif // SD_ANALYSIS_HPP
 
-#ifdef STABILIZE_HPP
+#ifdef STABILIZE_HPP
+
 #include <BSO/Structural_Design/Stabilization/Stabilize.hpp>
-#endif // STABILIZE_HPP
+#endif // STABILIZE_HPP
+
 
 
 
@@ -51,8 +53,10 @@ namespace BSO { namespace Grammar {
     #endif // SD_ANALYSIS_HPP
 
 	#ifdef STABILIZE_HPP
-	void SD_grammar_stabilize(Structural_Design::SD_Analysis_Vars* SD, Spatial_Design::MS_Conformal* CF);
-	#endif // STABILIZE_HPP
+	void SD_grammar_stabilize(Structural_Design::SD_Analysis_Vars* SD, Spatial_Design::MS_Conformal* CF);
+
+	#endif // STABILIZE_HPP
+
 
     Grammar_Settings grammar_settings; // will hold all the settings for assignment of BP and SD properties to the conformal model
 
@@ -60,7 +64,7 @@ namespace BSO { namespace Grammar {
     void grammar_zoning(Spatial_Design::MS_Conformal* MS) // assign geometric types to the building geometry in a conformal building model
     {
 
-        grammar_settings = read_grammar_settings("Settings/Grammar_Settings.txt");
+        grammar_settings = read_grammar_settings("JH_Stabilization_Assignment_GUI_new/Settings/Grammar_Settings.txt");
 
         #ifdef SD_ANALYSIS_HPP
         MS->add_grammars(&SD_grammar_zoning);
@@ -250,7 +254,8 @@ namespace BSO { namespace Grammar {
 
 		#ifdef STABILIZE_HPP
 		SD_grammar_stabilize(SD, CF);
-		#endif // STABILIZE_HPP
+		#endif // STABILIZE_HPP
+
 
     } // SD_grammar_zoning()
     #endif // SD_SIMULATION_HPP
@@ -338,7 +343,8 @@ namespace BSO { namespace Grammar {
 		}
 	} // SD_grammar_stabilize()
 
-	#endif // STABILIZE_HPP
+	#endif // STABILIZE_HPP
+
 
 } // Grammar
 } // namespace BSO

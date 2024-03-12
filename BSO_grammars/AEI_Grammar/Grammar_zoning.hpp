@@ -52,7 +52,7 @@ namespace BSO { namespace Grammar {
     void grammar_zoning(Spatial_Design::MS_Conformal* MS) // assign geometric types to the building geometry in a conformal building model
     {
 
-        grammar_settings = read_grammar_settings("Settings/Grammar_Settings.txt");
+        grammar_settings = read_grammar_settings("JH_Stabilization_Assignment_GUI_new/Settings/Grammar_Settings.txt");
 
         #ifdef SD_ANALYSIS_HPP
         MS->add_grammars(&SD_grammar_zoning);
@@ -126,7 +126,7 @@ namespace BSO { namespace Grammar {
         using namespace Structural_Design;
         // read file with structural design settings
 
-        BSO::Structural_Design::read_SD_settings("Settings/SD_Settings.txt", SD);
+        BSO::Structural_Design::read_SD_settings("JH_Stabilization_Assignment_GUI_new/Settings/SD_Settings.txt", SD);
 
         // add all the points that make a rectangle in the conformal model to the structural model
         for (unsigned int i = 0; i < CF->get_rectangle_count(); i++)

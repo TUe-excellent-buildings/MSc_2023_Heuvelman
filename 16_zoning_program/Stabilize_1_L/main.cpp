@@ -20,7 +20,7 @@ void out(T t, bool e, bool i){
 #include <BSO/Structural_Design/Stabilization/Stabilize.hpp>
 #include <BSO/Visualisation/Visualisation.hpp>
 #include <BSO/Performance_Indexing.hpp>
-#include <AEI Grammar/Grammar_stabilize.hpp>
+#include <AEI_Grammar/Grammar_stabilize.hpp>
 
 int main(int argc, char* argv[])
 {

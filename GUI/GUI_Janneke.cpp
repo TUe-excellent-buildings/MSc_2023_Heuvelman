@@ -252,7 +252,7 @@ void changeScreen(int screen) {
     initializeScreen();
 
     
-    if(screen == 2 || screen >=  10) {
+    if(screen == 2 || (screen >=  10 && screen <= 13)) {
         if(MS == nullptr || CF == nullptr || SD_Building == nullptr) {
             setup_pointers();
         }
@@ -470,23 +470,7 @@ void reshape(int width, int height) {
 void keyboard(unsigned char key, int x, int y) {
     showSubmittedMessage2 = false;
     showSubmittedMessage3 = false;
-
-    // Change screens based on key press
-    if (key == 'q') currentScreen = 0;
-    if (key == 'w') currentScreen = 1;
-    if (key == 'e') currentScreen = 2;
-    if (key == 'r') currentScreen = 3;
-    if (key == 't') currentScreen = 4;
-    if (key == 'y') currentScreen = 5;
-    if (key == 'u') currentScreen = 6;
-    if (key == 'i') currentScreen = 7;
-    if (key == 'o') currentScreen = 8;
-    if (key == 'p') currentScreen = 9;
-    if (key == 'a') currentScreen = 10;
-    if (key == 's') currentScreen = 11;
-    if (key == 'd') currentScreen = 12;
-    if (key == 'f') currentScreen = 13;
-
+    
     GLenum err;
     while ((err = glGetError()) != GL_NO_ERROR) {
         std::cerr << "OpenGL error: " << gluErrorString(err) << std::endl;
@@ -1307,30 +1291,11 @@ void screenCheckNext2() {
 }
 
 int main(int argc, char** argv) {
-    // BSO::Spatial_Design::MS_Building MS("JH_Stabilization_Assignment_GUI_new/MS_Input.txt");
-    // BSO::Spatial_Design::MS_Conformal CF(MS, &(BSO::Grammar::grammar_stabilize));
-    // CF.make_conformal();
-
-    // std::cout << "Commencing Visualisation" << std::endl;
-    // BSO::Visualisation::init_visualisation(argc, argv);
-    // BSO::Visualisation::visualise(MS);
-    // BSO::Visualisation::visualise(CF,"rectangles");
-
-    // std::cout << "Commencing SD-Analysis " << std::endl;
-    // BSO::Structural_Design::SD_Analysis SD_Building(CF);
-
-    // BSO::Visualisation::end_visualisation();
-
     // Initialize GLUT
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(screenWidth, screenHeight);
     glutCreateWindow("Stabilization assignment; MSc graduation project");
-
-    // BSO::Spatial_Design::MS_Building MS("");
-    // BSO::Spatial_Design::MS_Conformal CF(MS, &(BSO::Grammar::grammar_stabilize));
-    // CF.make_conformal();
-    // BSO::Structural_Design::SD_Analysis SD(CF);
 
     // Set callback functions
     glutDisplayFunc(display);
@@ -1342,18 +1307,6 @@ int main(int argc, char** argv) {
 
     //init gl
     glShadeModel(GL_SMOOTH);
-    // glEnable(GL_LIGHTING);
-    // glEnable(GL_LIGHT0);
-
-    // CF.make_conformal();
-    
-    // Make SD model
-    // BSO::Structural_Design::SD_Analysis SD_Building(CF);
-    // BSO::Structural_Design::Stabilization<BSO::Structural_Design::SD_Analysis> Stabilized_Design(SD_Building);
-
-    //Stabilized_Design.stabilize();
-
-
 
     //Set up code
     initializeScreen();

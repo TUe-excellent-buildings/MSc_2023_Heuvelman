@@ -918,16 +918,16 @@ void drawButton(const char* text, float x, float y, float width, float height, B
     //float cornerShiftY = 1.0; // Adjust this value as needed
 
     // Draw top-left rounded corner
-    drawRoundedCorner(x + cornerRadius - lineWidth / 2, y + height - cornerRadius + lineWidth / 2, cornerRadius, cornerSegments, lineWidth);
+    drawRoundedCorner(x + cornerRadius - lineWidth / 2, y + height - cornerRadius + lineWidth / 2, cornerRadius -0.4, cornerSegments, lineWidth);
 
     // Draw top-right rounded corner
-    drawRoundedCorner(x + width - cornerRadius + lineWidth / 2, y + height - cornerRadius + lineWidth / 2, cornerRadius, cornerSegments, lineWidth);
+    drawRoundedCorner(x + width - cornerRadius + lineWidth / 2, y + height - cornerRadius + lineWidth / 2, cornerRadius -0.4, cornerSegments, lineWidth);
 
     // Draw bottom-left rounded corner
-    drawRoundedCorner(x + cornerRadius - lineWidth / 2, y + cornerRadius - lineWidth / 2, cornerRadius, cornerSegments, lineWidth);
+    drawRoundedCorner(x + cornerRadius - lineWidth / 2, y + cornerRadius - lineWidth / 2, cornerRadius -0.4, cornerSegments, lineWidth);
 
     // Draw bottom-right rounded corner
-    drawRoundedCorner(x + width - cornerRadius + lineWidth / 2, y + cornerRadius - lineWidth / 2, cornerRadius, cornerSegments, lineWidth);
+    drawRoundedCorner(x + width - cornerRadius + lineWidth / 2, y + cornerRadius - lineWidth / 2, cornerRadius -0.4, cornerSegments, lineWidth);
 
     // Draw top border
     glBegin(GL_QUADS);

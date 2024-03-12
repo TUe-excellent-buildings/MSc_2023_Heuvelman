@@ -3,12 +3,12 @@
 # Method:
 # (Unzoned / Partially_Zoned / Fully_Zoned)
 # Also check Zoning_Settings.txt
-A,						Partially_Zoned
+A,						hey
 
 
 # Singular value:
 #
-B,						1
+B,						150.3
 
 
 # Point iteration unzoned:

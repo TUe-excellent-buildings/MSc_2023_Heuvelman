@@ -184,19 +184,31 @@ namespace BSO { namespace Structural_Design {
 
     SD_Analysis::SD_Analysis(Spatial_Design::MS_Conformal& CF)
     {
+        std::cout<< "Initialising SD_Analysis..." << std::endl;
         m_fea_init = false;
         m_FEA = new FEA;
         m_spatial_design = &CF;
+        std::cout<< "Done" << std::endl;
 
         // set element cluster to 8 regular intervals 0, 0.125, ...
         unsigned int n_clusters = 8;
+        std::cout<< "Resizing element clusters..." << std::endl;
         m_element_clusters.resize(n_clusters);
+        std::cout<< "Setting element clusters..." << std::endl;
         for (unsigned int i = 0; i < n_clusters; i++)
         { // set boundary values of each cluster 'i' at regular intervals of 1/8
             m_element_clusters[i] = (i+1)*(1.0/n_clusters);
         }
+        std::cout<< "Done" << std::endl;
 
-        CF.request_SD_grammar()(&CF, this); // adds points, components, loads and constraints based on the grammar and the conformal design
+        std::cout<< "Requesting SD grammar..." << std::endl;
+        if(CF.request_SD_grammar() == nullptr)
+        {
+            std::cerr << "Error, SD grammar not found. Exiting now..." << std::endl;
+            exit(1);
+        }
+        CF.request_SD_grammar()(&CF, this); // Assuming this returns a function pointer or functor
+        std::cout<< "Meshing..." << std::endl;
         mesh(m_mesh_division);
     } // ctor
 
@@ -376,10 +388,14 @@ namespace BSO { namespace Structural_Design {
         if (!m_fea_init)
         { // if the FEA has not been initialised yet
             m_FEA->generate_system();
+            std::cout << "System generated" << std::endl;
             m_fea_init = true;
         }
+        std::cout << "Solving..." << std::endl;
 
+        std::cout<< m_FEA->get_element_count() << std::endl;
         m_FEA->solve();
+        std::cout << "Done solving" << std::endl;
     }
 
     void SD_Analysis::cluster_element_densities(unsigned int n)

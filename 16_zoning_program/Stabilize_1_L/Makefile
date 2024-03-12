@@ -6,9 +6,9 @@ NAME 	 = zoning_stabilize_grammar
 # -> source files to compile
 ALLFILES = main.cpp
 # -> location of the releases version of the toolbox
-CUR_LIB  = /home/sjonnie/3_projects/16_zoning_program/dennis_toolbox
+CUR_LIB  = /home/kknopp/Documents/MSc_2023_Heuvelman
 # -> location of the development branch of the toolbox
-DEV_LIB  = /home/sjonnie/4_dev_toolbox
+DEV_LIB  = /home/kknopp/Documents/MSc_2023_Heuvelman
 # -> location of the eigen libraries
 EIGEN    = /usr/include/eigen
 # -> location of the boost libraries
@@ -26,9 +26,9 @@ R_FLAGS  = -O3 -march=native
 # -> debug flags
 D_FLAGS  = -g -Og -Wall
 # -> location of the grammars
-GRAMMARS = /BSO\ grammars
+GRAMMARS = /home/kknopp/Documents/MSc_2023_Heuvelman/BSO_grammars
 # -> location of the toolbox
-TOOLBOX  = /BSO\ Toolbox
+TOOLBOX  = /home/kknopp/Documents/MSc_2023_Heuvelman
 # -> program name for release version
 CUR_NAME = $NAME
 # -> program name for development version
@@ -44,7 +44,7 @@ cls:
 	@clear
 	@clear
 all:
-	$(CC) $(ALLFILES) -o $(NAME) -I$(CUR_LIB)$(GRAMMARS) -I$(CUR_LIB)$(TOOLBOX) -I$(EIGEN) -I$(BOOST) $(ALLFLAGS) $(R_FLAGS)
+	$(CC) $(ALLFILES) -o $(NAME) -I$(GRAMMARS) -I$(TOOLBOX) -I$(EIGEN) -I$(BOOST) $(ALLFLAGS) $(R_FLAGS)
 dbg:
 	$(CC) $(ALLFILES) -o $(DBG_NAME) -I$(DEV_LIB)$(GRAMMARS) -I$(DEV_LIB)$(TOOLBOX) -I$(EIGEN) -I$(BOOST) $(ALLFLAGS) $(D_FLAGS)
 dev:

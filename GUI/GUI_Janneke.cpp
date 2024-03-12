@@ -2,22 +2,20 @@
 #include <cmath>
 #include <vector>
 #include <iostream>
-#include <BSO/Structural_Design/SD_Analysis.hpp>
+
 #include <BSO/Spatial_Design/Movable_Sizable.hpp>
 #include <BSO/Spatial_Design/Conformation.hpp>
-#include <BSO/Performance_Indexing.hpp>
-
+#include <BSO/Spatial_Design/Zoning.hpp>
+#include <BSO/Structural_Design/SD_Analysis.hpp>
 #include <BSO/Structural_Design/Stabilization/Stabilize.hpp>
-
 #include <BSO/Visualisation/Visualisation.hpp>
+#include <BSO/Performance_Indexing.hpp>
+#include <AEI_Grammar/Grammar_stabilize.hpp>
 
-#include <Grammar_stabilize.hpp>
 
-
-// BSO definitions
-BSO::Spatial_Design::MS_Building MS("JH_Stabilization_Assignment_GUI_new/MS_Input.txt");
-BSO::Spatial_Design::MS_Conformal CF(MS, &(BSO::Grammar::grammar_stabilize));
-BSO::Structural_Design::SD_Analysis SD(CF);
+std::shared_ptr <BSO::Spatial_Design::MS_Building> MS = nullptr;
+std::shared_ptr <BSO::Spatial_Design::MS_Conformal> CF = nullptr;
+std::shared_ptr <BSO::Structural_Design::SD_Analysis_Vars> SD_Building = nullptr;
 
 // Global variables for visualisation
 bool visualisationActive = false; // Flag to control when to activate visualisation
@@ -119,6 +117,7 @@ void drawTextField(int x, int y, int width, int height, TextField& textfield);
 void onMouseClick(int button, int state, int x, int y);
 void setup2D();
 void setup3D();
+void setup_models();
 
 void visualise(BSO::Spatial_Design::MS_Building& ms_building)
 {
@@ -135,6 +134,12 @@ void visualise(BSO::Structural_Design::SD_Analysis_Vars* SD_building, int vis_sw
     vpmanager_local.addviewport(new BSO::Visualisation::viewport(new BSO::Visualisation::Stabilization_Model(SD_building, vis_switch)));
 }
 
+void setup_pointers() {
+    MS = std::make_shared<BSO::Spatial_Design::MS_Building>("JH_Stabilization_Assignment_GUI_new/MS_Input.txt");
+    CF = std::make_shared<BSO::Spatial_Design::MS_Conformal>(*MS, BSO::Grammar::grammar_stabilize);
+    (*CF).make_conformal();
+    SD_Building = std::make_shared<BSO::Structural_Design::SD_Analysis>(*CF);
+}
 
 void checkGLError(const char* action) {
     GLenum err;
@@ -152,10 +157,13 @@ void changeScreen(int screen) {
     std::cout << "Screen changed to: Screen " << screen << std::endl;
     
     if(screen == 2 || screen >=  10) {
-        // visualise(MS);
-        visualise(&SD, 1);
+        if(MS == nullptr || CF == nullptr || SD_Building == nullptr) {
+            setup_pointers();
+        }
+        // visualise(*MS);
+        // visualise(&SD, 1);
         // visualise(CF, "rectangles");
-        // visualise(SD_Building, 1);
+        visualise(SD_Building.get(), 1);
         visualisationActive = true;
     } else {
         vpmanager_local.clearviewports();
@@ -1149,11 +1157,30 @@ void screenReplaceBeamByTruss() {
 }
 
 int main(int argc, char** argv) {
+    // BSO::Spatial_Design::MS_Building MS("JH_Stabilization_Assignment_GUI_new/MS_Input.txt");
+    // BSO::Spatial_Design::MS_Conformal CF(MS, &(BSO::Grammar::grammar_stabilize));
+    // CF.make_conformal();
+
+    // std::cout << "Commencing Visualisation" << std::endl;
+    // BSO::Visualisation::init_visualisation(argc, argv);
+    // BSO::Visualisation::visualise(MS);
+    // BSO::Visualisation::visualise(CF,"rectangles");
+
+    // std::cout << "Commencing SD-Analysis " << std::endl;
+    // BSO::Structural_Design::SD_Analysis SD_Building(CF);
+
+    // BSO::Visualisation::end_visualisation();
+
     // Initialize GLUT
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(screenWidth, screenHeight);
     glutCreateWindow("Menu Interface");
+
+    // BSO::Spatial_Design::MS_Building MS("");
+    // BSO::Spatial_Design::MS_Conformal CF(MS, &(BSO::Grammar::grammar_stabilize));
+    // CF.make_conformal();
+    // BSO::Structural_Design::SD_Analysis SD(CF);
 
     // Set callback functions
     glutDisplayFunc(display);
@@ -1168,7 +1195,7 @@ int main(int argc, char** argv) {
     // glEnable(GL_LIGHTING);
     // glEnable(GL_LIGHT0);
 
-    CF.make_conformal();
+    // CF.make_conformal();
     
     // Make SD model
     // BSO::Structural_Design::SD_Analysis SD_Building(CF);

@@ -1,27 +1,55 @@
-# Makefile for GUI_Janneke
-#libraries
-BOOST   = /usr/include/boost
-EIGEN   = /usr/include/eigen
-BSO     = /home/kknopp/Documents/MSc_2023_Heuvelman
-AEI	= /home/kknopp/Documents/MSc_2023_Heuvelman/BSO_grammars/AEI_Grammar
-READS = /home/kknopp/Documents/MSc_2023_Heuvelman/BSO_grammars
+###################
+# input variables #
+###################
+# -> program name
+NAME 	 = GUI_Janneke
+# -> source files to compile
+ALLFILES = GUI_Janneke.cpp
+# -> location of the releases version of the toolbox
+CUR_LIB  = /home/kknopp/Documents/MSc_2023_Heuvelman
+# -> location of the development branch of the toolbox
+DEV_LIB  = /home/kknopp/Documents/MSc_2023_Heuvelman
+# -> location of the eigen libraries
+EIGEN    = /usr/include/eigen
+# -> location of the boost libraries
+BOOST    = /usr/include/boost
 
-ALL_LIB = -I$(BOOST) -I$(EIGEN) -I$(BSO) -I$(AEI) -I$(READS)
+####################################
+# Compiler flags, don't touch this #
+####################################
+# -> which compiler will be used
+CC 	     = g++ -std=c++11
+# -> common flags (visualisation and multithreading)
+ALLFLAGS = -lglut -lGL -lGLU -lpthread
+# -> release flags
+R_FLAGS  = -O3 -march=native
+# -> debug flags
+D_FLAGS  = -g -Og -Wall
+# -> location of the grammars
+GRAMMARS = /home/kknopp/Documents/MSc_2023_Heuvelman/BSO_grammars
+# -> location of the toolbox
+TOOLBOX  = /home/kknopp/Documents/MSc_2023_Heuvelman
+# -> program name for release version
+CUR_NAME = $NAME
+# -> program name for development version
+DEV_NAME = $(NAME)_dev
+# -> program name for debug version
+DBG_NAME = $(NAME)_dbg
 
-# Compiler settings
-CPP   = g++ -std=c++20 -fsanitize=address -g
-FLAGS  = -O3 -lglut -lGL -lGLU
-
-MAINFILE = GUI_Janneke.cpp
-
-.PHONY: all cls clean
-
-#make arguments
+####################################
+# make flags --> calls to compiler #
+####################################
+.PHONY: cls all dbg dev clean
 cls:
-	# this argument clears the screen, so that it is easier to find the beginning of the compiler output
 	@clear
 	@clear
 all:
-	$(CPP) -o GUI_Janneke $(ALL_LIB) $(MAINFILE) $(FLAGS)
+	$(CC) $(ALLFILES) -o $(NAME) -I$(GRAMMARS) -I$(TOOLBOX) -I$(EIGEN) -I$(BOOST) $(ALLFLAGS) $(R_FLAGS)
+dbg:
+	$(CC) $(ALLFILES) -o $(DBG_NAME) -I$(DEV_LIB)$(GRAMMARS) -I$(DEV_LIB)$(TOOLBOX) -I$(EIGEN) -I$(BOOST) $(ALLFLAGS) $(D_FLAGS)
+dev:
+	$(CC) $(ALLFILES) -o $(DEV_NAME) -I$(DEV_LIB)$(GRAMMARS) -I$(DEV_LIB)$(TOOLBOX) -I$(EIGEN) -I$(BOOST) $(ALLFLAGS) $(R_FLAGS)
 clean:
-	@rm -f get_results
+	@rm -f $(NAME)
+	@rm -f $(DEV_NAME)
+	@rm -f $(DBG_NAME)

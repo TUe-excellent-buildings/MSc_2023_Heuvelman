@@ -307,6 +307,28 @@ void drawText(const char* text, float centerX, float centerY, float textWidth) {
     }
 }
 
+// Function to draw bold text
+void drawBoldText(const char* text, float centerX, float centerY, float textWidth, float boldnessOffset) {
+    float lineHeight = 18; // Approximate line height, adjust as needed
+    float effectiveTextWidth = textWidth - 2 * MARGIN_PERCENT; // Effective width after considering margins
+
+    // Calculate the starting position (left align within the margin)
+    float startX = centerX - effectiveTextWidth / 2.0f;
+    float currentX = startX;
+    float currentY = centerY;
+
+    // Set text color to black
+    glColor3f(0.0, 0.0, 0.0); // black color for text
+
+    // First, draw the text normally
+    drawText(text, centerX, centerY, textWidth);
+
+    // Then, draw the text with a variable offset to simulate less boldness
+    glRasterPos2f(centerX + boldnessOffset, centerY + boldnessOffset); // Adjust the offset to control boldness
+    drawText(text, centerX + boldnessOffset, centerY + boldnessOffset, textWidth);
+}
+
+
 void motion(int x, int y)
 {
     double dx = prevx-x,
@@ -326,6 +348,49 @@ void motion(int x, int y)
 void passive_motion(int x, int y)
 {
     vpmanager_local.mousemove_event(x, y);
+}
+
+void setup2D() {
+    glViewport(0, 0, screenWidth, screenHeight);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0.0, screenWidth, 0.0, screenHeight);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glDisable(GL_DEPTH_TEST);
+
+    // Disable lighting for 2D
+    glDisable(GL_LIGHTING);
+    glDisable(GL_LIGHT0);
+}
+
+void setup3D() {
+    GLint viewportWidth = screenWidth / 1.7;
+    GLint viewportHeight = screenHeight;
+
+    vpmanager_local.resize(viewportWidth, viewportHeight);
+
+    // Set the viewport to cover the left part of the screen
+    glViewport(0, 0, viewportWidth, viewportHeight);
+
+    // Setup the projection matrix for 3D rendering
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+    // Adjust the perspective projection to match the new aspect ratio
+    GLfloat aspectRatio = (GLfloat)viewportWidth / (GLfloat)viewportHeight;
+    gluPerspective(45.0, aspectRatio, 0.1f, 1000.0f);
+
+    // Switch back to modelview matrix mode
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    // Enable depth testing, required for 3D rendering
+    glEnable(GL_DEPTH_TEST);
+
+    // Enable lighting if your visualization uses it
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
 }
 
 void display() {
@@ -399,48 +464,6 @@ void display() {
     while((err = glGetError()) != GL_NO_ERROR) {
         std::cerr << "OpenGL error: " << gluErrorString(err) << std::endl;
     }
-}
-
-void setup2D() {
-    glViewport(0, 0, screenWidth, screenHeight);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(0.0, screenWidth, 0.0, screenHeight);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    
-    // Disable lighting for 2D
-    glDisable(GL_LIGHTING);
-    glDisable(GL_LIGHT0);
-}
-
-void setup3D() {
-    GLint viewportWidth = screenWidth / 1.7;
-    GLint viewportHeight = screenHeight;
-
-    vpmanager_local.resize(viewportWidth, viewportHeight);
-
-    // Set the viewport to cover the left part of the screen
-    glViewport(0, 0, viewportWidth, viewportHeight);
-
-    // Setup the projection matrix for 3D rendering
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    
-    // Adjust the perspective projection to match the new aspect ratio
-    GLfloat aspectRatio = (GLfloat)viewportWidth / (GLfloat)viewportHeight;
-    gluPerspective(45.0, aspectRatio, 0.1f, 1000.0f);
-
-    // Switch back to modelview matrix mode
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    // Enable depth testing, required for 3D rendering
-    glEnable(GL_DEPTH_TEST);
-
-    // Enable lighting if your visualization uses it
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
 }
 
 void reshape(int width, int height) {
@@ -945,7 +968,7 @@ void mainScreen() {
 
 // ID 1: Assignment description screen
 void assignmentDescriptionScreen() {
-    drawText("Selected Assignment: 1​", 900, 740, 400);
+    drawText("Selected Assignment: 1 'Human stabilization assignment'​", 900, 740, 400);
     drawText("Expected duration: 20 minutes​", 900, 710, 400);
     drawText("Read the following instructions carefully:​", 900, 650, 400);
     drawText("You will in a moment go through a design task. You are asked to perform this task in the way you are used to go about a commission in your daily practice. It is important that you say aloud everything that you think or do in designing. ​So, in every step, explain what you do and why you do it. Try to keep speaking constantly and not be silent for longer than 20 seconds. ​Please speak English. Good luck!​",
@@ -1000,7 +1023,7 @@ void screen3() {
     drawButton("Hide member numbers", 1100, 50, 200, 50, buttonClicked, 1);
 
     // Draw the message at the top of the structure illustration
-    drawText("Stabilize the structural design with minimal structural adjustments. Say aloud everything you think and do; thus, explain your reasoning.", 1550, screenHeight - 35, 280);
+    drawBoldText("Stabilize the structural design with minimal structural adjustments. Say aloud everything you think and do; thus, explain your reasoning.", 1550, screenHeight - 35, 280, 1);
 
     //Message to summarize most important information and to refer to the full information in the instructions
     drawText("The structure consists of rods connected by hinges. Displacements are constrained at ground level. A rod is always connected to the structure with a hinged connection, and a beam with a fixed connection. Please refer to the information sheet for the whole explanation.", 1550, screenHeight - 130, 280);
@@ -1162,7 +1185,7 @@ void screen4f() {
 // ID 9: Screen 4g
 void screen5() {
     drawText("Thank you for your participation, this is the end of the assignment.", 600, 800, 600);
-    drawText("Please leave your email below if you want us to send you the results from this research and include you in the acknowledgments:", 600, 520, 600);
+    drawText("Please leave your email below if you want us to send you the results from this research and include you in the acknowledgments. Nevertheless, no results will be linked to your name since all results are pseudomized.", 600, 520, 600);
     drawTextField(300, 420, 500, 50, opinionTF12);
     drawText("Press enter to submit", 600, 550, 600);
 

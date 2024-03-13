@@ -5,7 +5,6 @@
 #include <chrono>
 #include <ctime>
 
-
 #include <BSO/Spatial_Design/Movable_Sizable.hpp>
 #include <BSO/Spatial_Design/Conformation.hpp>
 #include <BSO/Spatial_Design/Zoning.hpp>
@@ -18,6 +17,7 @@ std::shared_ptr <BSO::Spatial_Design::MS_Building> MS = nullptr;
 std::shared_ptr <BSO::Spatial_Design::MS_Conformal> CF = nullptr;
 std::shared_ptr <BSO::Spatial_Design::Zoning::Zoned_Design> Zoned = nullptr;
 std::shared_ptr <BSO::Structural_Design::SD_Analysis_Vars> SD_Building = nullptr;
+std::shared_ptr <BSO::Spatial_Design::Geometry::Space> space = nullptr;
 
 // Global variables for visualisation
 bool visualisationActive = false; // Flag to control when to activate visualisation
@@ -168,7 +168,7 @@ void visualise(BSO::Spatial_Design::MS_Conformal& cf_building, std::string type,
 
 
 void setup_pointers() {
-    MS = std::make_shared<BSO::Spatial_Design::MS_Building>("JH_Stabilization_Assignment_GUI_new/MS_Input.txt");
+    MS = std::make_shared<BSO::Spatial_Design::MS_Building>("JH_Zoning_Assignment_GUI/MS_Input.txt");
     CF = std::make_shared<BSO::Spatial_Design::MS_Conformal>(*MS, &(BSO::Grammar::grammar_zoning));
     (*CF).make_conformal();
     Zoned = std::make_shared<BSO::Spatial_Design::Zoning::Zoned_Design>(CF.get());
@@ -266,6 +266,7 @@ bool showSubmittedMessage = false;
 bool showSubmittedMessage2 = false;
 bool showSubmittedMessage3 = false;
 
+
 void initializeScreen() {
     // Your initialization code for the screen
 
@@ -293,7 +294,7 @@ void changeScreen(int screen) {
     selectedButtonLabel = "";
     initializeScreen();
 
-    
+
     if(screen == 2 || (screen >=  10 && screen <= 25)) {
         if(MS == nullptr || CF == nullptr || Zoned == nullptr) {
             setup_pointers();
@@ -350,6 +351,27 @@ void drawText(const char* text, float centerX, float centerY, float textWidth) {
     }
 }
 
+// Function to draw bold text
+void drawBoldText(const char* text, float centerX, float centerY, float textWidth, float boldnessOffset) {
+    float lineHeight = 18; // Approximate line height, adjust as needed
+    float effectiveTextWidth = textWidth - 2 * MARGIN_PERCENT; // Effective width after considering margins
+
+    // Calculate the starting position (left align within the margin)
+    float startX = centerX - effectiveTextWidth / 2.0f;
+    float currentX = startX;
+    float currentY = centerY;
+
+    // Set text color to black
+    glColor3f(0.0, 0.0, 0.0); // black color for text
+
+    // First, draw the text normally
+    drawText(text, centerX, centerY, textWidth);
+
+    // Then, draw the text with a variable offset to simulate less boldness
+    glRasterPos2f(centerX + boldnessOffset, centerY + boldnessOffset); // Adjust the offset to control boldness
+    drawText(text, centerX + boldnessOffset, centerY + boldnessOffset, textWidth);
+}
+
 void motion(int x, int y)
 {
     double dx = prevx-x,
@@ -371,13 +393,55 @@ void passive_motion(int x, int y)
     vpmanager_local.mousemove_event(x, y);
 }
 
+void setup2D() {
+    glViewport(0, 0, screenWidth, screenHeight);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0.0, screenWidth, 0.0, screenHeight);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glDisable(GL_DEPTH_TEST);
+
+    // Disable lighting for 2D
+    glDisable(GL_LIGHTING);
+    glDisable(GL_LIGHT0);
+}
+
+void setup3D() {
+    GLint viewportWidth = screenWidth / 1.7;
+    GLint viewportHeight = screenHeight;
+
+    vpmanager_local.resize(viewportWidth, viewportHeight);
+
+    // Set the viewport to cover the left part of the screen
+    glViewport(0, 0, viewportWidth, viewportHeight);
+
+    // Setup the projection matrix for 3D rendering
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+    // Adjust the perspective projection to match the new aspect ratio
+    GLfloat aspectRatio = (GLfloat)viewportWidth / (GLfloat)viewportHeight;
+    gluPerspective(45.0, aspectRatio, 0.1f, 1000.0f);
+
+    // Switch back to modelview matrix mode
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    // Enable depth testing, required for 3D rendering
+    glEnable(GL_DEPTH_TEST);
+
+    // Enable lighting if your visualization uses it
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+}
 
 void display() {
     //regarding closing the window in the end
     if (!windowOpen) {
         return; // Don't render anything if the window is closed
     }
-    
+
     // Clear the window with white background
     //glClearColor(1.0f, 1.0f, 1.0f, 1.0f); //white
     glClearColor(0.95f, 0.95f, 0.95f, 1.0f); //very light gray
@@ -394,7 +458,7 @@ void display() {
     if (visualisationActive) {
         // Set viewport for the left half of the screen
         setup3D();
-        
+
         // Render the visualisation
         vpmanager_local.render(cam_local);
         checkGLError("render");
@@ -464,47 +528,6 @@ void display() {
     }
 }
 
-void setup2D() {
-    glViewport(0, 0, screenWidth, screenHeight);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(0.0, screenWidth, 0.0, screenHeight);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    
-    // Disable lighting for 2D
-    glDisable(GL_LIGHTING);
-    glDisable(GL_LIGHT0);
-}
-
-void setup3D() {
-    GLint viewportWidth = screenWidth / 1.7;
-    GLint viewportHeight = screenHeight;
-
-    vpmanager_local.resize(viewportWidth, viewportHeight);
-
-    // Set the viewport to cover the left part of the screen
-    glViewport(0, 0, viewportWidth, viewportHeight);
-
-    // Setup the projection matrix for 3D rendering
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    
-    // Adjust the perspective projection to match the new aspect ratio
-    GLfloat aspectRatio = (GLfloat)viewportWidth / (GLfloat)viewportHeight;
-    gluPerspective(45.0, aspectRatio, 0.1f, 1000.0f);
-
-    // Switch back to modelview matrix mode
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    // Enable depth testing, required for 3D rendering
-    glEnable(GL_DEPTH_TEST);
-
-    // Enable lighting if your visualization uses it
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-}
 
 void reshape(int width, int height) {
     // Prevent a divide by zero error by making height equal to one
@@ -721,6 +744,45 @@ void keyboard(unsigned char key, int x, int y) {
             std::cout << "Entered text: " << opinionTF9.text << std::endl;
             // Write the entered text to the process file
             writeToProcessFile("process.csv", "Create Zone", opinionTF9.text);
+
+
+
+            // Parse the spaces from the text
+            //std::istringstream iss(opinionTF9.text);
+            //std::vector<int> spaceIDs;
+            //int spaceID;
+            //while (iss >> spaceID) {
+           //     spaceIDs.push_back(spaceID);
+           // }
+
+            // Create a zone with these spaces
+           // for (int spaceID : spaceIDs) {
+                // Find the space with the given ID
+              //  BSO::Spatial_Design::Geometry::Space* spacePtr = nullptr;
+             //   for (auto& sp : Zoned->m_spaces) {
+              //      if (sp->getID() == spaceID) {
+              //          spacePtr = sp;
+            //            break;
+              //      }
+             //   }
+             //   if (spacePtr) {
+             //       // Create a new zone and add the space to it
+             //       Zone* newZone = new Zone(); // Assuming you have a default constructor for Zone
+             //       newZone->add_space(spacePtr);
+             //       Zoned->m_zones.push_back(newZone);
+             //   }
+             //   else {
+                    // Handle the case where the space with the given ID was not found
+             //       std::cerr << "Space with ID " << spaceID << " not found!" << std::endl;
+             //   }
+          //  }
+
+            // Update the visualisation
+         //   visualiseZones();
+
+
+
+
             opinionTF9.text = ""; // Clear the input string after processing, needed for the next input
             changeScreen(2);
         }
@@ -926,7 +988,7 @@ void keyboard(unsigned char key, int x, int y) {
         }
     }
 
-    
+
     if (currentScreen == 22) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
             opinionTF20.text += key; // Append the character to the input string
@@ -999,107 +1061,31 @@ void keyboard(unsigned char key, int x, int y) {
     glutPostRedisplay();
 }
 
-void drawRoundedCorner(float centerX, float centerY, float radius, int segments, float lineWidth) {
-    // Adjust the number of line segments for a smoother appearance
-    int adjustedSegments = segments * 2;
-
-    // Calculate the angle increment for each segment
-    float angleIncrement = (2 * M_PI) / adjustedSegments;
-
-    // Draw each segment as a thick line
-    glBegin(GL_QUAD_STRIP);
-    for (int i = 0; i <= adjustedSegments; ++i) {
-        float angle = i * angleIncrement;
-        float x = centerX + (radius - lineWidth / 2) * cos(angle); // Adjusted radius
-        float y = centerY + (radius - lineWidth / 2) * sin(angle); // Adjusted radius
-
-        // Calculate tangent vector
-        float tangentX = -sin(angle);
-        float tangentY = cos(angle);
-
-        // Calculate perpendicular vector
-        float dx = -tangentY; // Perpendicular to tangent
-        float dy = tangentX;
-
-        // Normalize the perpendicular vector (optional)
-        //float length = sqrt(dx * dx + dy * dy);
-        //dx /= length;
-        //dy /= length;
-
-        // Draw points for the thick line
-        glVertex2f(x + dx * lineWidth / 2, y + dy * lineWidth / 2);
-        glVertex2f(x - dx * lineWidth / 2, y - dy * lineWidth / 2);
-    }
-    glEnd();
-}
-
-
-void drawButton(const char* text, float x, float y, float width, float height, ButtonCallback callback, int variable) {
-    float cornerRadius = 10.0; // Adjust this value to change the roundness of corners
+void drawButton(const char *text, float x, float y, float width, float height, ButtonCallback callback, int variable) {
     float borderWidth = 2.0;
-    float lineWidth = 2.0;
-    int cornerSegments = 50; // Number of line segments used to approximate the rounded corners
 
-    // Define a shift amount for the rounded corners
-    //float cornerShiftX = 1.0; // Adjust this value as needed
-    //float cornerShiftY = 1.0; // Adjust this value as needed
-
-    // Draw top-left rounded corner
-    drawRoundedCorner(x + cornerRadius - lineWidth / 2, y + height - cornerRadius + lineWidth / 2, cornerRadius -0.4, cornerSegments, lineWidth);
-
-    // Draw top-right rounded corner
-    drawRoundedCorner(x + width - cornerRadius + lineWidth / 2, y + height - cornerRadius + lineWidth / 2, cornerRadius -0.4, cornerSegments, lineWidth);
-
-    // Draw bottom-left rounded corner
-    drawRoundedCorner(x + cornerRadius - lineWidth / 2, y + cornerRadius - lineWidth / 2, cornerRadius -0.4, cornerSegments, lineWidth);
-
-    // Draw bottom-right rounded corner
-    drawRoundedCorner(x + width - cornerRadius + lineWidth / 2, y + cornerRadius - lineWidth / 2, cornerRadius -0.4, cornerSegments, lineWidth);
-
-    // Draw top border
+    glColor3f(0.0, 0.0, 0.0); // Black color for border
     glBegin(GL_QUADS);
-    glVertex2f(x + cornerRadius, y);
-    glVertex2f(x + width - cornerRadius, y);
-    glVertex2f(x + width - cornerRadius, y + borderWidth);
-    glVertex2f(x + cornerRadius, y + borderWidth);
+    glVertex2f(x - borderWidth, y - borderWidth);
+    glVertex2f(x + width + borderWidth, y - borderWidth);
+    glVertex2f(x + width + borderWidth, y + height + borderWidth);
+    glVertex2f(x - borderWidth, y + height + borderWidth);
     glEnd();
 
-    // Draw bottom border
-    glBegin(GL_QUADS);
-    glVertex2f(x + cornerRadius, y + height - borderWidth);
-    glVertex2f(x + width - cornerRadius, y + height - borderWidth);
-    glVertex2f(x + width - cornerRadius, y + height);
-    glVertex2f(x + cornerRadius, y + height);
-    glEnd();
-
-    // Draw left border
-    glBegin(GL_QUADS);
-    glVertex2f(x, y + cornerRadius);
-    glVertex2f(x + borderWidth, y + cornerRadius);
-    glVertex2f(x + borderWidth, y + height - cornerRadius);
-    glVertex2f(x, y + height - cornerRadius);
-    glEnd();
-
-    // Draw right border
-    glBegin(GL_QUADS);
-    glVertex2f(x + width - borderWidth, y + cornerRadius);
-    glVertex2f(x + width, y + cornerRadius);
-    glVertex2f(x + width, y + height - cornerRadius);
-    glVertex2f(x + width - borderWidth, y + height - cornerRadius);
-    glEnd();
-
-    // Draw filled rectangle for the button
+    // Set button background color based on whether it's clicked or not
     if (getSelectedButtonLabel() == text) {
-        glColor3f(0.1, 0.75, 0.9); // Light blue color for button background when clicked
+        // Change the background color when clicked
+        glColor3f(0.1, 0.75, 0.9); //light blue color for button background
     }
     else {
-        glColor3f(0.961, 0.961, 0.863); // Beige color for button background
+        //glColor3f(1.0, 1.0, 1.0); // White color for button background
+        glColor3f(0.961, 0.961, 0.863); //beige color for button background
     }
     glBegin(GL_QUADS);
-    glVertex2f(x + borderWidth, y + borderWidth);
-    glVertex2f(x + width - borderWidth, y + borderWidth);
-    glVertex2f(x + width - borderWidth, y + height - borderWidth);
-    glVertex2f(x + borderWidth, y + height - borderWidth);
+    glVertex2f(x, y);
+    glVertex2f(x + width, y);
+    glVertex2f(x + width, y + height);
+    glVertex2f(x, y + height);
     glEnd();
 
     // Centered text within the button with margin
@@ -1111,11 +1097,9 @@ void drawButton(const char* text, float x, float y, float width, float height, B
     glColor3f(0.0, 0.0, 0.0);
     drawText(text, centerX, centerY, textWidth);
 
-    Button button = { x, y, width, height, callback, text, variable };
+    Button button = {x, y, width, height, callback, text, variable};
     buttons.push_back(button);
 }
-
-
 
 // Function to reset the selected button label
 void resetSelectedButtonLabel() {
@@ -1294,7 +1278,7 @@ void mainScreen() {
 }
 
 void assignmentDescriptionScreen() {
-    drawText("Selected Assignment: 2​", 900, 740, 400);
+    drawText("Selected Assignment: 2 'Human zoning assignment'​", 900, 740, 400);
     drawText("Expected duration: 40 minutes​", 900, 710, 400);
     drawText("Read the following instructions carefully:​", 900, 650, 400);
     drawText("You will in a moment go through a design task. You are asked to perform this task in the way you are used to go about a commission in your daily practice. It is important that you say aloud everything that you think or do in designing. ​So, in every step, explain what you do and why you do it. Try to keep speaking constantly and not be silent for longer than 20 seconds. ​Please speak English. Good luck!​",
@@ -1387,7 +1371,7 @@ void screen3a() {
     drawButton("Delete zoned design", screenWidth - 310, 440, 200, 50, changeScreen, 17);
 
     // Draw the message at the top of the structure illustration
-    drawText("Step 1: Try to find all zoned designs for the given BSD. Say aloud everything you think and do.", 1550, screenHeight - 50, 250);
+    drawBoldText("Step 1: Try to find all zoned designs for the given BSD. Say aloud everything you think and do.", 1550, screenHeight - 50, 250, 1);
     //underline ALL
     glLineWidth(2.0);
     glColor3f(0.0, 0.0, 0.0);
@@ -1419,7 +1403,7 @@ void screen3b() {
     drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 1570, 750, 275);
 
     // Draw the message at the bottom of the structure illustration
-    drawText("Step 2: Pick one zoned design you would like to continue. Say aloud what you think.", 1550, screenHeight - 50, 250);
+    drawBoldText("Step 2: Pick one zoned design you would like to continue. Say aloud what you think.", 1550, screenHeight - 50, 250, 1);
 
     //step vs steps to go as a time indication for the user
     drawText("Step 2/6", screenWidth, screenHeight - 25, 180);
@@ -1444,7 +1428,7 @@ void screen3c() {
     drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 1570, 750, 275);
 
     // Draw the message at the bottom of the structure illustration
-    drawText("Step 3: This time, pick one based on the expected structural performace of the zoned designs. Say aloud what your reasoning is.", 1550, screenHeight - 50, 250);
+    drawBoldText("Step 3: This time, pick one based on the expected structural performace of the zoned designs. Say aloud what your reasoning is.", 1550, screenHeight - 50, 250, 1);
 
     //step vs steps to go as a time indication for the user
     drawText("Step 3/6", screenWidth, screenHeight - 25, 180);
@@ -1459,7 +1443,7 @@ void screen3d() {
     // Draw structural design illustration placeholder (left side)
 
     LineDivisionScreen();
-    
+
     // Draw counter area
     drawText("Modifications: 0/3", 1300, screenHeight - 100, 200);
 
@@ -1470,7 +1454,7 @@ void screen3d() {
     drawButton("Resize space", screenWidth - 310, 430, 200, 50, changeScreen, 21);
 
     // Draw the message at the bottom of the structure illustration
-    drawText("Step 4: Implement three modifications to adapt the initial BSD, creating a new BSD you desire. Keep the function of the building in mind, as well as the resulting zoned and structural designs. Say aloud everything you think and do.", 1550, screenHeight - 50, 250);
+    drawBoldText("Step 4: Implement three modifications to adapt the initial BSD, creating a new BSD you desire. Keep the function of the building in mind, as well as the resulting zoned and structural designs. Say aloud everything you think and do.", 1550, screenHeight - 50, 250, 1);
 
     //step vs steps to go as a time indication for the user
     drawText("Step 4/6", screenWidth, screenHeight - 25, 180);
@@ -1499,7 +1483,7 @@ void screen3e() {
     drawButton("Delete zoned design", screenWidth - 310, 440, 200, 50, changeScreen, 25);
 
     // Draw the message at the top of the structure illustration
-    drawText("Step 5: Try to find all zoned designs for the new BSD. Say aloud everything you think and do.", 1550, screenHeight - 50, 250);
+    drawBoldText("Step 5: Try to find all zoned designs for the new BSD. Say aloud everything you think and do.", 1550, screenHeight - 50, 250, 1);
     //underline ALL
     glLineWidth(2.0);
     glColor3f(0.0, 0.0, 0.0);
@@ -1533,7 +1517,7 @@ void screen4a() {
     drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
     // Draw the message at the bottom of the structure illustration
-    drawText("Step 6: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250);
+    drawBoldText("Step 6: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
     //step vs steps to go as a time indication for the user
     drawText("Step 6/6, Question 1/6", screenWidth - 115, screenHeight - 25, 180);
 
@@ -1557,7 +1541,7 @@ void screen4b() {
     drawTextField(300, 270, 500, 200, opinionTF4);
     drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
-    drawText("Step 6: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250);
+    drawBoldText("Step 6: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
     //step vs steps to go as a time indication for the user
     drawText("Step 6/6, Question 2/6", screenWidth - 115, screenHeight - 25, 180);
     LineDivisionScreen();
@@ -1580,7 +1564,7 @@ void screen4c() {
     drawTextField(300, 270, 500, 200, opinionTF5);
     drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
-    drawText("Step 6: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250);
+    drawBoldText("Step 6: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
     //step vs steps to go as a time indication for the user
     drawText("Step 6/6, Question 3/6", screenWidth - 115, screenHeight - 25, 180);
     LineDivisionScreen();
@@ -1598,7 +1582,7 @@ void screen4d() {
     drawTextField(300, 270, 500, 200, opinionTF6);
     drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
-    drawText("Step 6: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250);
+    drawBoldText("Step 6: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
     //step vs steps to go as a time indication for the user
     drawText("Step 6/6, Question 4/6", screenWidth - 115, screenHeight - 25, 180);
     LineDivisionScreen();
@@ -1616,7 +1600,7 @@ void screen4e() {
     drawTextField(300, 270, 500, 200, opinionTF7);
     drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
-    drawText("Step 6: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250);
+    drawBoldText("Step 6: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
     //step vs steps to go as a time indication for the user
     drawText("Step 6/6, Question 5/6", screenWidth - 115, screenHeight - 25, 180);
     LineDivisionScreen();
@@ -1630,7 +1614,7 @@ void screen4f() {
     drawTextField(300, 270, 500, 200, opinionTF8);
     drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
-    drawText("Step 6: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250);
+    drawBoldText("Step 6: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
     //step vs steps to go as a time indication for the user
     drawText("Step 6/6, Question 6/6", screenWidth - 115, screenHeight - 25, 180);
     LineDivisionScreen();
@@ -1640,7 +1624,7 @@ void screen4f() {
 
 void screen5() {
     drawText("Thank you for your participation, this is the end of the assignment.", 600, 800, 600);
-    drawText("Please leave your email below if you want us to send you the results from this research and include you in the acknowledgments:", 600, 520, 600);
+    drawText("Please leave your email below if you want us to send you the results from this research and include you in the acknowledgments. Nevertheless, no results will be linked to your name since all results are pseudomized.", 600, 520, 600);
     drawTextField(300, 420, 500, 50, opinionTF24);
     drawText("Press enter to submit", 600, 550, 600);
 
@@ -1953,7 +1937,7 @@ int main(int argc, char** argv) {
     // Main loop
     glutMainLoop();
     //return 0;
-    
+
     // At this point, the window is closed, so you can exit the application
     exit(EXIT_SUCCESS);
 }

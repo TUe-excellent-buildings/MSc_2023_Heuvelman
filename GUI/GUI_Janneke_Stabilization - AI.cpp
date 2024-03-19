@@ -112,6 +112,7 @@ void screenAddTrussDiagonally();
 void screenReplaceTrussByBeam();
 void screenDeleteDiagonalTruss();
 void screenReplaceBeamByTruss();
+void screenAISuggestion();
 void screenCheckNext();
 void screenCheckNext1();
 void screenCheckNext2();
@@ -162,7 +163,7 @@ std::ofstream processFile;
 //creating output in excel file
 void writeToOutputFile(std::string outputFileName, std::string question, std::string userAnswer, std::string userExplanation) {
     static bool headerPrinted = false;
-    outputFile.open("output2.csv", std::ios::app);
+    outputFile.open("output4.csv", std::ios::app);
     if (!headerPrinted) {
         outputFile << "Question,User Answer,User Explanation\n";
         headerPrinted = true;
@@ -176,12 +177,12 @@ void writeToOutputFile(std::string outputFileName, std::string question, std::st
     outputFile.close();
 }
 
-void writeToProcessFile(std::string processFileName, std::string action, std::string userInput) {
+void writeToProcessFile(std::string processFileName, std::string action, std::string userAnswer, std::string userInput) {
     //headers are only printed once, so the static variable for each column
     static bool headerPrinted = false;
-    processFile.open("process2.csv", std::ios::app);
+    processFile.open("process4.csv", std::ios::app);
     if (!headerPrinted) {
-        processFile << "Action,User input,Time\n";
+        processFile << "Action,user Answer,User input,Time\n";
         headerPrinted = true;
     }
     //to print the time
@@ -192,9 +193,18 @@ void writeToProcessFile(std::string processFileName, std::string action, std::st
     oss << std::put_time(&timeInfo, "%H:%M:%S"); // Format time as HH:MM:SS
     std::string timeString = oss.str();
 
-    processFile << action << "," << userInput << "," << timeString << "\n";
+    processFile << action << "," << userAnswer << "," << userInput << "," << timeString << "\n";
     processFile.close();
 }
+
+void initializeScreen() {
+    // Your initialization code for the screen
+
+    // Set initial active state for opinionTF13
+    opinionTF7.isActive = true;
+    opinionTF8.isActive = false;
+}
+
 
 //Declare a global variable to store the selected button label
 std::string selectedButtonLabel = "";
@@ -202,6 +212,54 @@ std::string selectedButtonLabel = "";
 // Function to get the selected button label
 std::string getSelectedButtonLabel() {
     return selectedButtonLabel;
+}
+
+void changeScreen(int screen) {
+    currentScreen = screen;
+    std::cout << "Changing to screen: " << screen << std::endl;
+    selectedButtonLabel = "";
+    initializeScreen();
+
+
+    if (screen == 2 || (screen >= 10 && screen <= 13) || screen == 14 || screen == 16) {
+        if (MS == nullptr || CF == nullptr || SD_Building == nullptr) {
+            setup_pointers();
+        }
+        // visualise(*MS);
+        // visualise(&SD, 1);
+        // visualise(CF, "rectangles");
+        visualise(SD_Building.get(), 1);
+        visualisationActive = true;
+    }
+    else {
+        vpmanager_local.clearviewports();
+    }
+    
+    //process the input of the previous screen
+    if (screen == 4) {
+        writeToOutputFile("output4.csv", "1..", getSelectedButtonLabel(), opinionTF.text);
+    }
+    if (screen == 5) {
+        writeToOutputFile("output4.csv", "2..", getSelectedButtonLabel(), opinionTF2.text);
+    }
+    if (screen == 6) {
+        writeToOutputFile("output4.csv", "3..", getSelectedButtonLabel(), opinionTF3.text);
+    }
+    if (screen == 7) {
+        writeToOutputFile("output4.csv", "4..", getSelectedButtonLabel(), opinionTF4.text);
+    }
+    if (screen == 8) {
+        writeToOutputFile("output4.csv", "5..", getSelectedButtonLabel(), opinionTF5.text);
+    }
+    if (screen == 9) {
+        writeToOutputFile("output4.csv", "6. What criteria did you keep in mind while performing this assignment?", "", opinionTF6.text);
+    }
+    if (screen == 17) {
+        writeToOutputFile("output4.csv", "e-mail adress:", getSelectedButtonLabel(), opinionTF12.text);
+    }
+
+    glutPostRedisplay();
+    buttons.clear();
 }
 
 void buttonClicked(int variable) {
@@ -233,78 +291,39 @@ void buttonClicked(int variable) {
     case 8:
         selectedButtonLabel = "No idea";
         break;
+    case 9:
+        selectedButtonLabel = "Accept";
+		break;
+    case 10:
+		selectedButtonLabel = "Discard"; 
+        break;
+    }
+
+    if (selectedButtonLabel == "Accept") {
+        writeToProcessFile("process4.csv", "AI suggestion", getSelectedButtonLabel(), "");
+        //changeScreen(2);
+    }
+    else if (selectedButtonLabel == "Discard") {
+        writeToProcessFile("process4.csv", "AI suggestion", getSelectedButtonLabel(), "");
+        //changeScreen(2);
     }
 
     // to print the selected button label in the actual screen.
     if (currentScreen == 3) {
-        writeToOutputFile("output2.csv", "1. How much did you enjoy performing this assignment?", getSelectedButtonLabel(), opinionTF.text);
+        writeToOutputFile("output4.csv", "1. How much did you enjoy performing this assignment?", getSelectedButtonLabel(), opinionTF.text);
     }
     if (currentScreen == 4) {
-        writeToOutputFile("output2.csv", "2. How would you rate the level of ease in performing this assignment?", getSelectedButtonLabel(), opinionTF2.text);
+        writeToOutputFile("output4.csv", "2. How would you rate the level of ease in performing this assignment?", getSelectedButtonLabel(), opinionTF2.text);
     }
     if (currentScreen == 5) {
-        writeToOutputFile("output2.csv", "3. How well do you think you performed the assignment?", getSelectedButtonLabel(), opinionTF3.text);
+        writeToOutputFile("output4.csv", "3. How well do you think you performed the assignment?", getSelectedButtonLabel(), opinionTF3.text);
     }
     if (currentScreen == 6) {
-        writeToOutputFile("output2.csv", "4. Do you think it would have gone better with an AI tool that identifies all zoned designs for you?", getSelectedButtonLabel(), opinionTF4.text);
+        writeToOutputFile("output4.csv", "4. Do you think it would have gone better without the AI tool?", getSelectedButtonLabel(), opinionTF4.text);
     }
     if (currentScreen == 7) {
-        writeToOutputFile("output2.csv", "5. Do you think the AI tool itself can perform zoning better than you?", getSelectedButtonLabel(), opinionTF5.text);
+        writeToOutputFile("output4.csv", "5. Do you think the AI tool itself can perform stabilization better than you?", getSelectedButtonLabel(), opinionTF5.text);
     }
-}
-
-void initializeScreen() {
-    // Your initialization code for the screen
-
-    // Set initial active state for opinionTF13
-    opinionTF7.isActive = true;
-    opinionTF8.isActive = false;
-}
-
-void changeScreen(int screen) {
-    currentScreen = screen;
-    std::cout << "Changing to screen: " << screen << std::endl;
-    selectedButtonLabel = "";
-    initializeScreen();
-
-    
-    if(screen == 2 || (screen >=  10 && screen <= 13)) {
-        if(MS == nullptr || CF == nullptr || SD_Building == nullptr) {
-            setup_pointers();
-        }
-        // visualise(*MS);
-        // visualise(&SD, 1);
-        // visualise(CF, "rectangles");
-        visualise(SD_Building.get(), 1);
-        visualisationActive = true;
-    } else {
-        vpmanager_local.clearviewports();
-    }
-
-    if (screen == 4) {
-        writeToOutputFile("output2.csv", "1..", getSelectedButtonLabel(), opinionTF.text);
-    }
-    if (screen == 5) {
-        writeToOutputFile("output2.csv", "2..", getSelectedButtonLabel(), opinionTF2.text);
-    }
-    if (screen == 6) {
-        writeToOutputFile("output2.csv", "3..", getSelectedButtonLabel(), opinionTF3.text);
-    }
-    if (screen == 7) {
-        writeToOutputFile("output2.csv", "4..", getSelectedButtonLabel(), opinionTF4.text);
-    }
-    if (screen == 8) {
-        writeToOutputFile("output2.csv", "5..,", getSelectedButtonLabel(), opinionTF5.text);
-    }
-    if (screen == 9) {
-        writeToOutputFile("output2.csv", "6. What criteria did you keep in mind while performing this assignment?", "", opinionTF6.text);
-    }
-    if (screen == 16) {
-        writeToOutputFile("output2.csv", "e-mail adress:", getSelectedButtonLabel(), opinionTF12.text);
-    }
-
-    glutPostRedisplay();
-    buttons.clear();
 }
 
 bool windowOpen = true; // Variable to track whether the window is open or closed
@@ -481,7 +500,8 @@ void display() {
         case 13: screenReplaceBeamByTruss(); break;
         case 14: screenCheckNext1(); break;
         case 15: screenCheckNext2(); break;
-        case 16: screen5b(); break;
+        case 16: screenAISuggestion(); break;
+        case 17: screen5b(); break;
         // Ensure you have a default case, even if it does nothing,
         // to handle any unexpected values of currentScreen
         default: break;
@@ -613,7 +633,7 @@ void keyboard(unsigned char key, int x, int y) {
                 // Print the entered text from opinionTF7 to the terminal
                 std::cout << "Entered text (opinionTF7): " << opinionTF7.text << std::endl;
                 // Write the entered text from opinionTF7 to the process file
-                writeToProcessFile("process2.csv", "Add diagonal: member 1", opinionTF7.text);
+                writeToProcessFile("process4.csv", "Add diagonal: member 1", "", opinionTF7.text);
                 // Clear the input string of opinionTF7 after processing
                 opinionTF7.text = "";
             }
@@ -621,7 +641,7 @@ void keyboard(unsigned char key, int x, int y) {
                 // Print the entered text from opinionTF8 to the terminal
                 std::cout << "Entered text (opinionTF14): " << opinionTF8.text << std::endl;
                 // Write the entered text from opinionTF8 to the process file
-                writeToProcessFile("process2.csv", "Add diagonal: member 2", opinionTF8.text);
+                writeToProcessFile("process4.csv", "Add diagonal: member 2", "", opinionTF8.text);
                 // Clear the input string of opinionTF8 after processing
                 opinionTF8.text = "";
             }
@@ -646,7 +666,7 @@ void keyboard(unsigned char key, int x, int y) {
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF9.text << std::endl;
             // Write the entered text to the process file
-            writeToProcessFile("process2.csv", "Replace rod by beam", opinionTF9.text);
+            writeToProcessFile("process4.csv", "Replace rod by beam", "", opinionTF9.text);
             opinionTF9.text = ""; // Clear the input string after processing
             changeScreen(2);
         }
@@ -663,7 +683,7 @@ void keyboard(unsigned char key, int x, int y) {
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF10.text << std::endl;
             // Write the entered text to the process file
-            writeToProcessFile("process2.csv", "Delete diagonal rod", opinionTF10.text);
+            writeToProcessFile("process4.csv", "Delete diagonal rod", "", opinionTF10.text);
             opinionTF10.text = ""; // Clear the input string after processing
             changeScreen(2);
         }
@@ -680,7 +700,7 @@ void keyboard(unsigned char key, int x, int y) {
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF11.text << std::endl;
             // Write the entered text to the process file
-            writeToProcessFile("process2.csv", "Replace beam by rod", opinionTF11.text);
+            writeToProcessFile("process4.csv", "Replace beam by rod", "", opinionTF11.text);
             opinionTF11.text = ""; // Clear the input string after processing
             changeScreen(2);
         }
@@ -735,7 +755,7 @@ void resetSelectedButtonLabel() {
     selectedButtonLabel = "";
 }
 
-void drawButtonWithBackgroundColor(const char* text, float x, float y, float width, float height, ButtonCallback callback, int variable) {
+void drawButtonWithBackgroundColor(const char* text, float x, float y, float width, float height, ButtonCallback callback, int variable, float red, float green, float blue) {
     // Draw button with specified background color
     float borderWidth = 2.0;
 
@@ -753,7 +773,8 @@ void drawButtonWithBackgroundColor(const char* text, float x, float y, float wid
     //glColor3f(1.0, 0.5, 0.5); //for light red
     //glColor3f(1.0, 0.7, 0.4); //for light orange
     //glColor3f(0.678, 0.847, 0.902); //for light blue
-    glColor3f(0.1, 0.75, 0.9); //for light blue brighter
+    //glColor3f(0.1, 0.75, 0.9); //for light blue brighter
+    glColor3f(red, green, blue); //for custom color
     glBegin(GL_QUADS);
     glVertex2f(x, y);
     glVertex2f(x + width, y);
@@ -918,10 +939,10 @@ void mainScreen() {
     drawText("Welcome to this experiment for a SED graduation project. We are glad to have you here and hope you will have a nice experience.", 930, 820, 400);
     drawText("In which assignment will you participate?", 930, 740, 400);
 
-    drawButton("Assignment 1", 800, 650, 200, 50, changeScreen, 1);
+    drawButton("Assignment 1", 800, 650, 200, 50, buttonClicked, 1);
     drawButton("Assignment 2", 800, 580, 200, 50, buttonClicked, 1);
     drawButton("Assignment 3", 800, 510, 200, 50, buttonClicked, 1);
-    drawButton("Assignment 4", 800, 440, 200, 50, buttonClicked, 1);
+    drawButton("Assignment 4", 800, 440, 200, 50, changeScreen, 1);
 
     // Draw the "Next step" button in the bottom right corner
     //drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 1);
@@ -929,7 +950,7 @@ void mainScreen() {
 
 // ID 1: Assignment description screen
 void assignmentDescriptionScreen() {
-    drawText("Selected Assignment: 1 'Human stabilization assignment'​", 900, 740, 400);
+    drawText("Selected Assignment: 1 'Human-AI stabilization assignment'​", 900, 740, 400);
     drawText("Expected duration: 20 minutes​", 900, 710, 400);
     drawText("Read the following instructions carefully:​", 900, 650, 400);
     drawText("You will in a moment go through a design task. You are asked to perform this task in the way you are used to go about a commission in your daily practice. It is important that you say aloud everything that you think or do in designing. ​So, in every step, explain what you do and why you do it. Try to keep speaking constantly and not be silent for longer than 20 seconds. ​Please speak English. Good luck!​",
@@ -970,24 +991,27 @@ void screen3() {
 
 
     // Draw the counter area
+    drawText("AI suggestions: 0/7", 1200, screenHeight - 50, 200);
     drawText("Number of diagonals: 0", 1200, screenHeight - 100, 200);
     drawText("Number of beams: 0", 1200, screenHeight - 120, 200);
 
     // Draw control buttons (right side)
-    drawText("Add elements", screenWidth - 170, 720, 200);
-    drawButton("Add rod diagonally", screenWidth - 310, 660, 200, 50, changeScreen, 10);
-    drawButton("Replace rod by beam", screenWidth - 310, 600, 200, 50, changeScreen, 11);
-    drawText("Remove elements", screenWidth - 180, 560, 200);
-    drawButton("Delete diagonal rod", screenWidth - 310, 500, 200, 50, changeScreen, 12);
-    drawButton("Replace beam by rod", screenWidth - 310, 440, 200, 50, changeScreen, 13);
+    drawText("Add elements", screenWidth - 170, 710, 200);
+    drawButton("Add rod diagonally", screenWidth - 310, 650, 200, 50, changeScreen, 10);
+    drawButton("Replace rod by beam", screenWidth - 310, 590, 200, 50, changeScreen, 11);
+    drawText("Remove elements", screenWidth - 180, 550, 200);
+    drawButton("Delete diagonal rod", screenWidth - 310, 490, 200, 50, changeScreen, 12);
+    drawButton("Replace beam by rod", screenWidth - 310, 430, 200, 50, changeScreen, 13);
+
+    drawButton("AI suggestion", screenWidth - 310, 330, 200, 50, changeScreen, 16);
 
     drawButton("Hide member numbers", 1100, 50, 200, 50, buttonClicked, 1);
 
     // Draw the message at the top of the structure illustration
-    drawBoldText("Stabilize the structural design with minimal structural adjustments. Say aloud everything you think and do; thus, explain your reasoning.", 1550, screenHeight - 35, 280, 1);
+    drawBoldText("Stabilize the structural design with minimal structural adjustments. You may use AI suggestions up to a maximum of seven times. Say aloud everything you think and do; thus, explain your reasoning.", 1550, screenHeight - 35, 280, 1);
 
     //Message to summarize most important information and to refer to the full information in the instructions
-    drawText("The structure consists of rods connected by hinges. Displacements are constrained at ground level. A rod is always connected to the structure with a hinged connection, and a beam with a fixed connection. Please refer to the information sheet for the whole explanation.", 1550, screenHeight - 130, 280);
+    drawText("The structure consists of rods connected by hinges. Displacements are constrained at ground level. A rod is always connected to the structure with a hinged connection, and a beam with a fixed connection. Please refer to the information sheet for the whole explanation.", 1550, screenHeight - 150, 280);
     //underline STABILIZE
     glLineWidth(1.4);
     glColor3f(0.0, 0.0, 0.0);
@@ -997,8 +1021,8 @@ void screen3() {
     glEnd();
     //underline INSTRUCTIONS
     glBegin(GL_LINES);
-    glVertex2f(1572.0, 779.0);
-    glVertex2f(1720.0, 779.0);
+    glVertex2f(1572.0, 759.0);
+    glVertex2f(1720.0, 759.0);
     glEnd();
 
     // Draw the "Next step" button in the bottom right corner
@@ -1086,7 +1110,7 @@ void screen4c() {
 
 // ID 6: Screen 4d
 void screen4d() {
-    drawText("4. Do you think it would have gone better with the assistance of an AI tool that you could ask for eight member placement suggestions?", 600, 800, 600);
+    drawText("4. Do you think it would have gone better without the assistance of the AI tool?", 620, 800, 650);
     drawButton("Yes", 300, 725, 75, 30, buttonClicked, 6);
     drawButton("No", 375, 725, 75, 30, buttonClicked, 7);
     drawButton("No idea", 450, 725, 75, 30, buttonClicked, 8);
@@ -1149,7 +1173,7 @@ void screen5() {
     drawTextField(300, 420, 500, 50, opinionTF12);
 
     LineDivisionScreen();
-    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 16);
+    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 17);
 }
 
 //ID 17
@@ -1162,14 +1186,14 @@ void screen5b() {
 void boxAroundPopUp() {
     glColor3f(0.0, 0.0, 0.0);
     glBegin(GL_LINES);
-    glVertex2f(1420.0f, 350.0f);
-    glVertex2f(1420.0f, 225.0f);
-    glVertex2f(1420.0f, 350.0f);
-    glVertex2f(1780.0f, 350.0f);
-    glVertex2f(1780.0f, 350.0f);
-    glVertex2f(1780.0f, 225.0f);
-    glVertex2f(1780.0f, 225.0f);
-    glVertex2f(1420.0f, 225.0f);
+    glVertex2f(1420.0f, 260.0f);
+    glVertex2f(1420.0f, 135.0f);
+    glVertex2f(1420.0f, 260.0f);
+    glVertex2f(1780.0f, 260.0f);
+    glVertex2f(1780.0f, 260.0f);
+    glVertex2f(1780.0f, 135.0f);
+    glVertex2f(1780.0f, 135.0f);
+    glVertex2f(1420.0f, 135.0f);
     glEnd();
 }
 
@@ -1177,14 +1201,14 @@ void screenAddTrussDiagonally() {
     screen3();
 
     //repeat button with a background color
-    drawButtonWithBackgroundColor("Add rod diagonally", screenWidth - 310, 660, 200, 50, buttonClicked, 1);
+    drawButtonWithBackgroundColor("Add rod diagonally", screenWidth - 310, 650, 200, 50, buttonClicked, 1, 0.1, 0.75, 0.9);
 
     //draw text and input adding a rod diagonally
-    drawText("Enter two opposite members to place the diagonal between:", 1575, 330, 275);
-    drawTextField(screenWidth - 355, 250, 150, 50, opinionTF7);
-    drawTextField(screenWidth - 195, 250, 150, 50, opinionTF8);
-    drawText("Use the 'Tab' key to swith input fields", screenWidth - 110, 390, 500);
-    drawText("Press enter to submit", screenWidth - 60, 370, 500);
+    drawText("Enter two opposite members to place the diagonal between:", 1575, 240, 275);
+    drawTextField(screenWidth - 355, 160, 150, 50, opinionTF7);
+    drawTextField(screenWidth - 195, 160, 150, 50, opinionTF8);
+    drawText("Use the 'Tab' key to swith input fields", screenWidth - 110, 300, 500);
+    drawText("Press enter to submit", screenWidth - 60, 280, 500);
 
     //draw lines around it
     boxAroundPopUp();
@@ -1201,12 +1225,12 @@ void screenReplaceTrussByBeam() {
     // BSO::Visualisation::end_visualisation();
 
     //repeat button with a background color
-    drawButtonWithBackgroundColor("Replace rod by beam", screenWidth - 310, 600, 200, 50, buttonClicked, 1);
+    drawButtonWithBackgroundColor("Replace rod by beam", screenWidth - 310, 590, 200, 50, buttonClicked, 1, 0.1, 0.75, 0.9);
 
     //draw text and input adding a beam
-    drawText("Member to replace:", 1600, 320, 350);
-    drawTextField(screenWidth - 355, 250, 150, 50, opinionTF9);
-    drawText("Press enter to submit", screenWidth - 60, 370, 500);
+    drawText("Member to replace:", 1600, 230, 350);
+    drawTextField(screenWidth - 355, 160, 150, 50, opinionTF9);
+    drawText("Press enter to submit", screenWidth - 60, 280, 500);
 
     //draw lines around it
     boxAroundPopUp();
@@ -1217,12 +1241,12 @@ void screenDeleteDiagonalTruss() {
     screen3();
 
     //repeat button with a background color
-    drawButtonWithBackgroundColor("Delete diagonal rod", screenWidth - 310, 500, 200, 50, buttonClicked, 1);
+    drawButtonWithBackgroundColor("Delete diagonal rod", screenWidth - 310, 490, 200, 50, buttonClicked, 1, 0.1, 0.75, 0.9);
 
     //draw text and input deleting a diagonal rod element
-    drawText("Member to delete:", 1600, 320, 350);
-    drawTextField(screenWidth - 355, 250, 150, 50, opinionTF10);
-    drawText("Press enter to submit", screenWidth - 60, 370, 500);
+    drawText("Member to delete:", 1600, 230, 350);
+    drawTextField(screenWidth - 355, 160, 150, 50, opinionTF10);
+    drawText("Press enter to submit", screenWidth - 60, 280, 500);
 
     //draw lines around it
     boxAroundPopUp();
@@ -1232,12 +1256,29 @@ void screenReplaceBeamByTruss() {
     screen3();
 
     //repeat button with a background color
-    drawButtonWithBackgroundColor("Replace beam by rod", screenWidth - 310, 440, 200, 50, buttonClicked, 1);
+    drawButtonWithBackgroundColor("Replace beam by rod", screenWidth - 310, 430, 200, 50, buttonClicked, 1, 0.1, 0.75, 0.9);
 
     //draw text and input adding a beam
-    drawText("Member to replace:", 1600, 320, 350);
-    drawTextField(screenWidth - 355, 250, 150, 50, opinionTF11);
-    drawText("Press enter to submit", screenWidth - 60, 370, 500);
+    drawText("Member to replace:", 1600, 230, 350);
+    drawTextField(screenWidth - 355, 160, 150, 50, opinionTF11);
+    drawText("Press enter to submit", screenWidth - 60, 280, 500);
+
+    //draw lines around it
+    boxAroundPopUp();
+}
+
+void screenAISuggestion() {
+    screen3();
+
+    //repeat button with a background color
+    drawButtonWithBackgroundColor("AI suggestion", screenWidth - 310, 330, 200, 50, buttonClicked, 1, 0.1, 0.75, 0.9);
+
+    drawText("Choose to accept or discard the suggestion:", 1575, 240, 275);
+	//either a suggestion OR a message that the structure is stable
+    // if.. than this and else it is stable.
+    drawButtonWithBackgroundColor("Accept", 1445, 160, 150, 50, buttonClicked, 9, 0.5, 0.8, 0.5);
+    drawButtonWithBackgroundColor("Discard", 1605, 160, 150, 50, buttonClicked, 10, 1.0, 0.5, 0.5);
+        //drawText("The structure is stable.", 1575, 200, 275);
 
     //draw lines around it
     boxAroundPopUp();

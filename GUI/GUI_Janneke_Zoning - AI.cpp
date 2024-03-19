@@ -82,10 +82,6 @@ TextField opinionTF5;
 TextField opinionTF6;
 TextField opinionTF7;
 TextField opinionTF8;
-TextField opinionTF9;
-TextField opinionTF10;
-TextField opinionTF11;
-TextField opinionTF12;
 TextField opinionTF13;
 TextField opinionTF14;
 TextField opinionTF15;
@@ -93,11 +89,10 @@ TextField opinionTF16;
 TextField opinionTF17;
 TextField opinionTF18;
 TextField opinionTF19;
-TextField opinionTF20;
-TextField opinionTF21;
-TextField opinionTF22;
-TextField opinionTF23;
 TextField opinionTF24;
+TextField opinionTF25;
+TextField opinionTF26;
+TextField opinionTF27;
 
 // Global variables for current screen and screen dimensions
 int currentScreen = 0;
@@ -118,26 +113,22 @@ void screen3b();
 void screen3c();
 void screen3d();
 void screen3e();
+void screen3f();
+void screen3g();
+void screen3g2();
 void screen4a();
 void screen4b();
 void screen4c();
 void screen4d();
 void screen4e();
 void screen4f();
+void screen4g();
 void screen5();
 void screen5b();
-void screenCreateZone();
-void screenDeleteZone();
-void screenCreateZonedDesign();
-void screenDeleteZonedDesign();
 void screenAddSpace();
 void screenDeleteSpace();
 void screenMoveSpace();
 void screenResizeSpace();
-void screenCreateZone2();
-void screenDeleteZone2();
-void screenCreateZonedDesign2();
-void screenDeleteZonedDesign2();
 void screenCheckNext();
 void screenCheckNext1();
 void screenCheckNext2();
@@ -145,6 +136,7 @@ void screenCheckNext3();
 void screenCheckNext4();
 void screenCheckNext5();
 void screenCheckNext6();
+void screenCheckNext7();
 void drawText(const char *text, float x, float y);
 void drawButton(const char *text, float x, float y, float width, float height, ButtonCallback callback, int variable);
 void drawButtonWithBackgroundColor(const char* text, float x, float y, float width, float height, ButtonCallback callback, int variable, float r, float g, float b);
@@ -192,11 +184,12 @@ void checkGLError(const char* action) {
 //declare outputfile at global scope
 std::ofstream outputFile;
 std::ofstream processFile;
+std::ofstream IQDFile;
 
 //creating output in excel file
 void writeToOutputFile(std::string outputFileName, std::string question, std::string userAnswer, std::string userExplanation) {
     static bool headerPrinted = false;
-    outputFile.open("output.csv", std::ios::app);
+    outputFile.open("output3.csv", std::ios::app);
     if (!headerPrinted) {
         outputFile << "Question,User Answer,User Explanation\n";
         headerPrinted = true;
@@ -213,7 +206,7 @@ void writeToOutputFile(std::string outputFileName, std::string question, std::st
 void writeToProcessFile(std::string processFileName, std::string action, std::string userInput) {
     //headers are only printed once, so the static variable for each column
     static bool headerPrinted = false;
-    processFile.open("process.csv", std::ios::app);
+    processFile.open("process3.csv", std::ios::app);
     if (!headerPrinted) {
         processFile << "Action,User input,Time\n";
         headerPrinted = true;
@@ -228,6 +221,17 @@ void writeToProcessFile(std::string processFileName, std::string action, std::st
 
     processFile << action << "," << userInput << "," << timeString << "\n";
     processFile.close();
+}
+
+void writeToIQDFile(std::string IQDFileName, std::string question, std::string userAnswer) {
+    static bool headerPrinted = false;
+    IQDFile.open("IQD assessments.csv", std::ios::app); // Use the provided IQDFileName instead of hardcoding "output3.csv"
+    if (!headerPrinted) {
+        IQDFile << "Question,User Answer\n";
+        headerPrinted = true;
+    }
+    IQDFile << question << "," << userAnswer << "\n";
+    IQDFile.close();
 }
 
 //Declare a global variable to store the selected button label
@@ -267,23 +271,39 @@ void buttonClicked(int variable) {
     case 8:
         selectedButtonLabel = "No idea";
         break;
+    case 9:
+        selectedButtonLabel = "Limited options";
+        break;
+    case 10:
+        selectedButtonLabel = "All options";
+        break;
     }
 
     if (currentScreen == 7) {
-        writeToOutputFile("output.csv", "1. How much did you enjoy performing this assignment?", getSelectedButtonLabel(), opinionTF3.text);
+        writeToOutputFile("output3.csv", "1. How much did you enjoy performing this assignment?", getSelectedButtonLabel(), opinionTF3.text);
     }
     if (currentScreen == 8) {
-        writeToOutputFile("output.csv", "2. How would you rate the level of ease in performing this assignment?", getSelectedButtonLabel(), opinionTF4.text);
-    }
-    if (currentScreen == 9) {
-        writeToOutputFile("output.csv", "3. How well do you think you performed the assignment?", getSelectedButtonLabel(), opinionTF5.text);
+        writeToOutputFile("output3.csv", "2. How would you rate the level of ease in performing this assignment?", getSelectedButtonLabel(), opinionTF4.text);
 	}
+    if (currentScreen == 9) {
+        writeToOutputFile("output3.csv", "3. How well do you think you performed the assignment?", getSelectedButtonLabel(), opinionTF5.text);
+    }
     if (currentScreen == 10) {
-        writeToOutputFile("output.csv", "4. Do you think it would have gone better with an AI tool that identifies all zoned designs for you?", getSelectedButtonLabel(), opinionTF6.text);
-    }
+        writeToOutputFile("output3.csv", "4. Do you think it would have gone better without the AI tool?", getSelectedButtonLabel(), opinionTF6.text);
+	}
     if (currentScreen == 11) {
-        writeToOutputFile("output.csv", "5. Do you think the AI tool itself can perform zoning better than you?", getSelectedButtonLabel(), opinionTF7.text);
+        writeToOutputFile("output3.csv", "5. Do you think the AI tool itself can perform zoning better than you?", getSelectedButtonLabel(), opinionTF7.text);
     }
+    if (currentScreen == 12) {
+        writeToOutputFile("output3.csv", "6. What criteria did you keep in mind while performing this assignment?", "", opinionTF8.text);
+    }
+    if (currentScreen == 36) {
+        writeToOutputFile("output3.csv", "7. Did you prefer choosing from all options or the IQD selection?", getSelectedButtonLabel(), opinionTF26.text);
+    }
+
+    if (currentScreen == 35) {
+		writeToIQDFile("IQD assessments.csv", "Assessment 1", getSelectedButtonLabel());
+	}
 }
 
 void initializeScreen() {
@@ -310,10 +330,10 @@ bool visualisationActive_3b = false;
 bool visualisationActive_3c = false;
 bool visualisationActive_3d = false;
 bool visualisationActive_3e = false;
+bool visualisationActive_3f = false;
 bool visualisationActive_3a2 = false;
 bool visualisationActive_3e2 = false;
-bool visualisationActive_3a3 = false;
-bool visualisationActive_3e3 = false;
+bool visualisationActive_3f2 = false;
 
 void changeScreen(int screen) {
     currentScreen = screen;
@@ -327,16 +347,15 @@ void changeScreen(int screen) {
     visualisationActive_3c = false;
     visualisationActive_3d = false;
     visualisationActive_3e = false;
+    visualisationActive_3f = false;
     visualisationActive_3a2 = false;
     visualisationActive_3e2 = false;
-    visualisationActive_3a3 = false;
-    visualisationActive_3e3 = false;
+    visualisationActive_3f2 = false;
 
     if (screen == 2 || (screen >= 14 && screen <= 17) || (screen == 26)) {
         //Screens first time zoning (screen 3a and pop ups)
         visualisationActive_3a = true;
         visualisationActive_3a2 = true;
-        visualisationActive_3a3 = true;
     }
     else if (screen == 3 || (screen == 27)) {
 		//Screens second time zoning (screen 3b and pop ups)
@@ -354,9 +373,12 @@ void changeScreen(int screen) {
         //Screens second time zoning (screen 3e and pop ups)
         visualisationActive_3e = true;
         visualisationActive_3e2 = true;
-        visualisationActive_3e3 = true;
     }
-
+    else if (screen == 32 || screen == 33) {
+        //Screens second time zoning (screen 3f and pop ups)
+        visualisationActive_3f = true;
+        visualisationActive_3f2 = true;
+    }
     // Based on the flags, activate/deactivate visualization for each group
     if (visualisationActive_3a) {
         // Activate visualization for group 3a
@@ -380,18 +402,6 @@ void changeScreen(int screen) {
         // visualise(&SD, 1);
         // visualise(CF, "rectangles");
         // visualise(*SD_Building, 4);
-        //visualisationActive = true; // Set overall visualization flag
-    }
-    else if (visualisationActive_3a3) {
-		// Activate visualization for group 3a
-        if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
-			setup_pointers();
-		}
-		visualiseZones();
-		//visualise(*MS);
-		// visualise(&SD, 1);
-		//visualise(CF, "rectangles");
-		// visualise(*SD_Building, 4);
         //visualisationActive = true; // Set overall visualization flag
     }
     else if (visualisationActive_3b) {
@@ -454,7 +464,19 @@ void changeScreen(int screen) {
         // visualise(*SD_Building, 4);
         //visualisationActive = true; // Set overall visualization flag
     }
-    else if (visualisationActive_3e3) {
+    else if (visualisationActive_3f) {
+        // Activate visualization for group 3a
+        if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
+            setup_pointers();
+        }
+        //visualiseZones();
+        visualise(*MS);
+        // visualise(&SD, 1);
+        // visualise(CF, "rectangles");
+        // visualise(*SD_Building, 4);
+        //visualisationActive = true; // Set overall visualization flag
+    }
+    else if (visualisationActive_3f2) {
         // Activate visualization for group 3a
         if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
             setup_pointers();
@@ -476,36 +498,41 @@ void changeScreen(int screen) {
         visualisationActive_3e = false;
         visualisationActive_3a2 = false;
         visualisationActive_3e2 = false;
-        visualisationActive_3a3 = false;
-        visualisationActive_3e3 = false;
     }
 
     if (screen == 4) {
-        writeToOutputFile("output.csv", "Step 2: Pick one zoned design you would like to continue with and explain why.", "", opinionTF.text);
+        writeToOutputFile("output3.csv", "Step 2: Pick one zoned design you would like to continue with and explain why.", "", opinionTF.text);
     }
-    if (screen == 5) {
-        writeToOutputFile("output.csv", "Step 3: This time pick the one of which you think its structural design has the highest stiffness. Explain your reasoning.", "", opinionTF2.text);
+    if (screen == 33) {
+        writeToOutputFile("output3.csv", "Step 3: This time pick the one of which you think its structural design has the highest stiffness. Explain your reasoning.", "", opinionTF2.text);
+        writeToOutputFile("output3.csv", "Step 5: Pick one to continue with out of the two most diverse zoned designs. Explain your reasoning.", "", opinionTF25.text);
+    }
+    if (screen == 34) {
+        writeToOutputFile("output3.csv", "Step 6: This time pick again out of all zoned designs. Explain your reasoning.", "", opinionTF27.text);
     }
     if (screen == 8) {
-        writeToOutputFile("output.csv", "1..", getSelectedButtonLabel(), opinionTF3.text);
+        writeToOutputFile("output3.csv", "1..", getSelectedButtonLabel(), opinionTF3.text);
     }
     if (screen == 9) {
-        writeToOutputFile("output.csv", "2..", getSelectedButtonLabel(), opinionTF4.text);
+        writeToOutputFile("output3.csv", "2..", getSelectedButtonLabel(), opinionTF4.text);
     }
     if (screen == 10) {
-        writeToOutputFile("output.csv", "3..", getSelectedButtonLabel(), opinionTF5.text);
+        writeToOutputFile("output3.csv", "3..", getSelectedButtonLabel(), opinionTF5.text);
 	}
     if (screen == 11) {
-        writeToOutputFile("output.csv", "4..", getSelectedButtonLabel(), opinionTF6.text);
-	}
-    if (screen == 12) {
-        writeToOutputFile("output.csv", "5..", getSelectedButtonLabel(), opinionTF7.text);
+        writeToOutputFile("output3.csv", "4..", getSelectedButtonLabel(), opinionTF6.text);
     }
-    if (screen == 13) {
-        writeToOutputFile("output.csv", "6. What criteria did you keep in mind while performing this assignment?", "", opinionTF8.text);
+    if (screen == 12) {
+        writeToOutputFile("output3.csv", "5..", getSelectedButtonLabel(), opinionTF7.text);
 	}
-    if (screen == 32) {
-        writeToOutputFile("output.csv", "e-mail adress:", "", opinionTF24.text);
+    if (screen == 36) {
+        writeToOutputFile("output3.csv", "6..", "", opinionTF8.text);
+	}
+    if (screen == 13) {
+        writeToOutputFile("output3.csv", "7..", getSelectedButtonLabel(), opinionTF26.text);
+    }
+    if (screen == 37) {
+        writeToOutputFile("output3.csv", "e-mail adress:", getSelectedButtonLabel(), opinionTF24.text);
     }
 
     glutPostRedisplay();
@@ -719,7 +746,7 @@ void display() {
 
     if (visualisationActive_3a) {
         // Set viewport for the left half of the screen
-        setup3D(0.6, 0.7, 300.0);
+        setup3D(0.6, 0.8, 300.0);
 
         // Render the visualization
         vpmanager_local.render(cam_local);
@@ -771,7 +798,20 @@ void display() {
 
     if (visualisationActive_3e) {
         // Set viewport for the left half of the screen
-        setup3D(0.6, 0.7, 300);
+        setup3D(0.6, 0.8, 300);
+
+        // Render the visualization
+        vpmanager_local.render(cam_local);
+        checkGLError("render");
+
+        // Reset the viewport to full window size for the rest of your GUI, if necessary
+        setup2D();
+        checkGLError("setup2D");
+    }
+
+    if (visualisationActive_3f) {
+        // Set viewport for the left half of the screen
+        setup3D(0.6, 0.8, 200);
 
         // Render the visualization
         vpmanager_local.render(cam_local);
@@ -784,7 +824,7 @@ void display() {
 
     if (visualisationActive_3a2) {
         // Set viewport for the left half of the screen
-        setup3D2(0.6, 0.1, 200);
+        setup3D2(0.6, 0.2, 200);
 
         // Render the visualization
         vpmanager_local.render(cam_local2);
@@ -797,7 +837,7 @@ void display() {
 
     if (visualisationActive_3e2) {
         // Set viewport for the left half of the screen
-        setup3D(0.6, 0.1, 200);
+        setup3D(0.6, 0.2, 200);
 
         // Render the visualization
         vpmanager_local.render(cam_local);
@@ -808,22 +848,9 @@ void display() {
         checkGLError("setup2D");
     }
 
-    if (visualisationActive_3a3) {
+    if (visualisationActive_3f2) {
         // Set viewport for the left half of the screen
-        setup3D(0.6, 0.2, 0);
-
-        // Render the visualization
-        vpmanager_local.render(cam_local);
-        checkGLError("render");
-
-        // Reset the viewport to full window size for the rest of your GUI, if necessary
-        setup2D();
-        checkGLError("setup2D");
-    }
-
-    if (visualisationActive_3e3) {
-        // Set viewport for the left half of the screen
-        setup3D(0.6, 0.2, 0);
+        setup3D(0.6, 0.2, 200);
 
         // Render the visualization
         vpmanager_local.render(cam_local);
@@ -850,25 +877,22 @@ void display() {
         case 11: screen4e(); break;
         case 12: screen4f(); break;
         case 13: screen5(); break;
-        case 14: screenCreateZone(); break;
-        case 15: screenDeleteZone(); break;
-        case 16: screenCreateZonedDesign(); break;
-        case 17: screenDeleteZonedDesign(); break;
         case 18: screenAddSpace(); break;
         case 19: screenDeleteSpace(); break;
         case 20: screenMoveSpace(); break;
         case 21: screenResizeSpace(); break;
-        case 22: screenCreateZone2(); break;
-        case 23: screenDeleteZone2(); break;
-        case 24: screenCreateZonedDesign2(); break;
-        case 25: screenDeleteZonedDesign2(); break;
         case 26: screenCheckNext1(); break;
         case 27: screenCheckNext2(); break;
         case 28: screenCheckNext3(); break;
         case 29: screenCheckNext4(); break;
         case 30: screenCheckNext5(); break;
 		case 31: screenCheckNext6(); break;
-        case 32: screen5b(); break;
+        case 32: screenCheckNext7(); break;
+        case 33: screen3f(); break;
+        case 34: screen3g(); break;
+        case 35: screen3g2(); break;
+        case 36: screen4g(); break;
+        case 37: screen5b(); break;
         // Ensure you have a default case, even if it does nothing,
         // to handle any unexpected values of currentScreen
         default: break;
@@ -914,20 +938,9 @@ std::vector<int> parseValues(const std::string& input, char delimiter) {
     std::vector<int> values;
     std::stringstream ss(input);
     std::string token;
-
     while (std::getline(ss, token, delimiter)) {
-        try {
-            // Convert the token to an integer and add it to the vector
-            int value = std::stoi(token);
-            values.push_back(value);
-        }
-        catch (const std::invalid_argument& e) {
-            // Handle invalid input format (non-integer values)
-            std::cerr << "Invalid input format: " << e.what() << std::endl;
-            return {};
-        }
+        values.push_back(std::stoi(token));
     }
-
     return values;
 }
 
@@ -954,6 +967,24 @@ void keyboard(unsigned char key, int x, int y) {
         }
         else if (key == 8 && opinionTF2.text != "") { // Backspace key
             opinionTF2.text.pop_back(); // Remove the last character from input string
+        }
+    }
+
+    if (currentScreen == 6) {
+        if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
+            opinionTF25.text += key; // Append the character to the input string
+        }
+        else if (key == 8 && opinionTF25.text != "") { // Backspace key
+            opinionTF25.text.pop_back(); // Remove the last character from input string
+        }
+    }
+
+    if (currentScreen == 33) {
+        if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
+            opinionTF27.text += key; // Append the character to the input string
+        }
+        else if (key == 8 && opinionTF27.text != "") { // Backspace key
+            opinionTF27.text.pop_back(); // Remove the last character from input string
         }
     }
 
@@ -1009,6 +1040,16 @@ void keyboard(unsigned char key, int x, int y) {
         else if (key == 8 && opinionTF8.text != "") { // Backspace key
             opinionTF8.text.pop_back(); // Remove the last character from input string
         }
+
+    }
+
+    if (currentScreen == 36) {
+        if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
+            opinionTF26.text += key; // Append the character to the input string
+        }
+        else if (key == 8 && opinionTF26.text != "") { // Backspace key
+            opinionTF26.text.pop_back(); // Remove the last character from input string
+        }
     }
 
     if (currentScreen == 13) {
@@ -1017,113 +1058,6 @@ void keyboard(unsigned char key, int x, int y) {
         }
         else if (key == 8 && opinionTF24.text != "") { // Backspace key
             opinionTF24.text.pop_back(); // Remove the last character from input string
-        }
-    }
-
-    if (currentScreen == 14) {
-        if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
-            opinionTF9.text += key; // Append the character to the input string
-        }
-        else if (key == 8 && opinionTF9.text != "") { // Backspace key
-            opinionTF9.text.pop_back(); // Remove the last character from input string
-        }
-        else if (key == 13) { // Enter key
-            // Print the entered text to the terminal
-            std::cout << "Entered text: " << opinionTF9.text << std::endl;
-            // Write the entered text to the process file
-            writeToProcessFile("process.csv", "Create Zone", opinionTF9.text);
-
-
-
-            // Parse the spaces from the text
-            //std::istringstream iss(opinionTF9.text);
-            //std::vector<int> spaceIDs;
-            //int spaceID;
-            //while (iss >> spaceID) {
-           //     spaceIDs.push_back(spaceID);
-           // }
-
-            // Create a zone with these spaces
-           // for (int spaceID : spaceIDs) {
-                // Find the space with the given ID
-              //  BSO::Spatial_Design::Geometry::Space* spacePtr = nullptr;
-             //   for (auto& sp : Zoned->m_spaces) {
-              //      if (sp->getID() == spaceID) {
-              //          spacePtr = sp;
-            //            break;
-              //      }
-             //   }
-             //   if (spacePtr) {
-             //       // Create a new zone and add the space to it
-             //       Zone* newZone = new Zone(); // Assuming you have a default constructor for Zone
-             //       newZone->add_space(spacePtr);
-             //       Zoned->m_zones.push_back(newZone);
-             //   }
-             //   else {
-                    // Handle the case where the space with the given ID was not found
-             //       std::cerr << "Space with ID " << spaceID << " not found!" << std::endl;
-             //   }
-          //  }
-
-            // Update the visualisation
-         //   visualiseZones();
-
-
-
-
-            opinionTF9.text = ""; // Clear the input string after processing, needed for the next input
-            changeScreen(2);
-        }
-    }
-
-    if (currentScreen == 15) {
-        if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
-            opinionTF10.text += key; // Append the character to the input string
-        }
-        else if (key == 8 && opinionTF10.text != "") { // Backspace key
-            opinionTF10.text.pop_back(); // Remove the last character from input string
-        }
-        else if (key == 13) { // Enter key
-            // Print the entered text to the terminal
-            std::cout << "Entered text: " << opinionTF10.text << std::endl;
-            //Write the entered text to the process file
-            writeToProcessFile("process.csv", "Delete Zone", opinionTF10.text);
-            opinionTF10.text = ""; // Clear the input string after processing
-            changeScreen(2);
-        }
-    }
-
-    if (currentScreen == 16) {
-        if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
-            opinionTF11.text += key; // Append the character to the input string
-        }
-        else if (key == 8 && opinionTF11.text != "") { // Backspace key
-            opinionTF11.text.pop_back(); // Remove the last character from input string
-        }
-        else if (key == 13) { // Enter key
-            // Print the entered text to the terminal
-            std::cout << "Entered text: " << opinionTF11.text << std::endl;
-            // Write the entered text to the process file
-            writeToProcessFile("process.csv", "Create Zoned Design", opinionTF11.text);
-            opinionTF11.text = ""; // Clear the input string after processing
-            changeScreen(2);
-        }
-    }
-
-    if (currentScreen == 17) {
-        if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
-            opinionTF12.text += key; // Append the character to the input string
-        }
-        else if (key == 8 && opinionTF12.text != "") { // Backspace key
-            opinionTF12.text.pop_back(); // Remove the last character from input string
-        }
-        else if (key == 13) { // Enter key
-            // Print the entered text to the terminal
-            std::cout << "Entered text: " << opinionTF12.text << std::endl;
-            // Write the entered text to the process file
-            writeToProcessFile("process.csv", "Delete Zoned Design", opinionTF12.text);
-            opinionTF12.text = ""; // Clear the input string after processing
-            changeScreen(2);
         }
     }
 
@@ -1204,7 +1138,7 @@ void keyboard(unsigned char key, int x, int y) {
                         break;
                     }
                 }
-                
+
                 // add space
                 new_space.ID = nextID;
                 new_space.x = x;
@@ -1265,10 +1199,10 @@ void keyboard(unsigned char key, int x, int y) {
                 }
             }
             else {
-				// Handle empty space ID input gracefully
-				std::cout << "Error: Space ID input is empty." << std::endl;
-				validInput = false;
-			}
+                // Handle empty space ID input gracefully
+                std::cout << "Error: Space ID input is empty." << std::endl;
+                validInput = false;
+            }
 
             if (validInput) {
                 // Delete the space at the specified index
@@ -1283,9 +1217,9 @@ void keyboard(unsigned char key, int x, int y) {
                 changeScreen(5);
             }
             else {
-				// Handle empty space ID input gracefully
-				std::cout << "Error: Space ID input is empty." << std::endl;
-			}
+                // Handle empty space ID input gracefully
+                std::cout << "Error: Space ID input is empty." << std::endl;
+            }
         }
     }
 
@@ -1321,7 +1255,7 @@ void keyboard(unsigned char key, int x, int y) {
                 // Write the entered text from opinionTF16 to the process file
                 writeToProcessFile("process.csv", "Move Space: space", opinionTF16.text);
                 // Clear the input string of opinionTF16 after processing
-                
+
                 std::stringstream ss(opinionTF16.text);
                 int space_ID;
                 if (!(ss >> space_ID)) {
@@ -1345,7 +1279,7 @@ void keyboard(unsigned char key, int x, int y) {
                 // Write the entered text from opinionTF17 to the process file
                 writeToProcessFile("process.csv", "Move Space: new location", opinionTF17.text);
                 // Clear the input string of opinionTF17 after processing
-                
+
                 std::vector<int> location = parseValues(opinionTF17.text, ',');
                 if (location.size() != 3) {
                     // Handle invalid location format gracefully
@@ -1376,7 +1310,7 @@ void keyboard(unsigned char key, int x, int y) {
                 //current sizes of the space
                 BSO::Spatial_Design::MS_Space space = msBuilding->obtain_space(space_index);
                 std::cout << "Width: " << space.width << ", Depth: " << space.depth << ", Height: " << space.height << std::endl;
-                
+
                 // Create a new space object with the parsed properties
                 new_space.ID = space_ID;
                 new_space.x = x;
@@ -1514,74 +1448,7 @@ void keyboard(unsigned char key, int x, int y) {
         }
     }
 
-
-    if (currentScreen == 22) {
-        if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
-            opinionTF20.text += key; // Append the character to the input string
-        }
-        else if (key == 8 && opinionTF20.text != "") { // Backspace key
-            opinionTF20.text.pop_back(); // Remove the last character from input string
-        }
-        else if (key == 13) { // Enter key
-            // Print the entered text to the terminal
-            std::cout << "Entered text: " << opinionTF20.text << std::endl;
-            // Write the entered text to the process file
-            writeToProcessFile("process.csv", "Create Zone", opinionTF20.text);
-            opinionTF20.text = ""; // Clear the input string after processing
-            changeScreen(6);
-        }
-    }
-
-    if (currentScreen == 23) {
-        if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
-            opinionTF21.text += key; // Append the character to the input string
-        }
-        else if (key == 8 && opinionTF21.text != "") { // Backspace key
-            opinionTF21.text.pop_back(); // Remove the last character from input string
-        }
-        else if (key == 13) { // Enter key
-            // Print the entered text to the terminal
-            std::cout << "Entered text: " << opinionTF21.text << std::endl;
-            // Write the entered text to the process file
-            writeToProcessFile("process.csv", "Delete Zone", opinionTF21.text);
-            opinionTF21.text = ""; // Clear the input string after processing
-            changeScreen(6);
-        }
-    }
-
-    if (currentScreen == 24) {
-        if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
-            opinionTF22.text += key; // Append the character to the input string
-        }
-        else if (key == 8 && opinionTF22.text != "") { // Backspace key
-            opinionTF22.text.pop_back(); // Remove the last character from input string
-        }
-        else if (key == 13) { // Enter key
-            // Print the entered text to the terminal
-            std::cout << "Entered text: " << opinionTF22.text << std::endl;
-            // Write the entered text to the process file
-            writeToProcessFile("process.csv", "Create Zoned Design", opinionTF22.text);
-            opinionTF22.text = ""; // Clear the input string after processing
-            changeScreen(6);
-        }
-    }
-
-    if (currentScreen == 25) {
-        if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
-            opinionTF23.text += key; // Append the character to the input string
-        }
-        else if (key == 8 && opinionTF23.text != "") { // Backspace key
-            opinionTF23.text.pop_back(); // Remove the last character from input string
-        }
-        else if (key == 13) { // Enter key
-            // Print the entered text to the terminal
-            std::cout << "Entered text: " << opinionTF23.text << std::endl;
-            // Write the entered text to the process file
-            writeToProcessFile("process.csv", "Delete Zoned Design", opinionTF23.text);
-            opinionTF23.text = ""; // Clear the input string after processing
-            changeScreen(6);
-        }
-    }
+  
 
     // Redraw screen
     glutPostRedisplay();
@@ -1795,8 +1662,8 @@ void mainScreen() {
     drawText("In which assignment will you participate?", 930, 740, 400);
 
     drawButton("Assignment 1", 800, 650, 200, 50, buttonClicked, 1);
-    drawButton("Assignment 2", 800, 580, 200, 50, changeScreen, 1);
-    drawButton("Assignment 3", 800, 510, 200, 50, buttonClicked, 1);
+    drawButton("Assignment 2", 800, 580, 200, 50, buttonClicked, 1);
+    drawButton("Assignment 3", 800, 510, 200, 50, changeScreen, 1);
     drawButton("Assignment 4", 800, 440, 200, 50, buttonClicked, 1);
 
     // Draw the "Next step" button in the bottom right corner
@@ -1804,8 +1671,8 @@ void mainScreen() {
 }
 
 void assignmentDescriptionScreen() {
-    drawText("Selected Assignment: 2 'Human zoning assignment'​", 900, 740, 400);
-    drawText("Expected duration: 40 minutes​", 900, 710, 400);
+    drawText("Selected Assignment: 2 'Human-AI zoning assignment'​", 900, 740, 400);
+    drawText("Expected duration: 25 minutes​", 900, 710, 400);
     drawText("Read the following instructions carefully:​", 900, 650, 400);
     drawText("You will in a moment go through a design task. You are asked to perform this task in the way you are used to go about a commission in your daily practice. It is important that you say aloud everything that you think or do in designing. ​So, in every step, explain what you do and why you do it. Try to keep speaking constantly and not be silent for longer than 20 seconds. ​Please speak English. Good luck!​",
     900, 600, 400);
@@ -1888,28 +1755,13 @@ void screen3a() {
     drawText(number_zones.c_str(), 100, 300, 200);
     drawText("Zoned designs: 0", 100, 150, 200);
 
-    // Draw control buttons (right side)
-    drawText("Zones", screenWidth - 150, 720, 200);
-    drawButton("Create zone", screenWidth - 310, 660, 200, 50, changeScreen, 14);
-    drawButton("Delete zone", screenWidth - 310, 600, 200, 50, changeScreen, 15);
-    drawText("Zoned designs", screenWidth - 180, 560, 200);
-    drawButton("Create zoned design", screenWidth - 310, 500, 200, 50, changeScreen, 16);
-    drawButton("Delete zoned design", screenWidth - 310, 440, 200, 50, changeScreen, 17);
-
     // Draw the message at the top of the structure illustration
-    drawBoldText("Step 1: Try to find all zoned designs for the given BSD. Say aloud everything you think and do.", 1550, screenHeight - 50, 250, 1);
-    //underline ALL
-    glLineWidth(2.0);
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1584.0f, 948.0f);
-    glVertex2f(1606.0f, 948.0f);
-    glEnd();
+    drawBoldText("Step 1: The top screens shows a BSD. The bottom screen shows the zoned designs that AI found. You can continue to the next step.", 1550, screenHeight - 50, 250, 1);
 
     //step vs steps to go as a time indication for the user
-    drawText("Step 1/6", screenWidth, screenHeight - 25, 180);
+    drawText("Step 1/8", screenWidth, screenHeight - 25, 180);
 
-    ReadInstructions();
+    ReadInstructions2();
 
     // Draw the "Next step" button in the bottom right corner
     drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 26);
@@ -1929,10 +1781,10 @@ void screen3b() {
     //drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 1570, 750, 275);
 
     // Draw the message at the bottom of the structure illustration
-    drawBoldText("Step 2: Pick one zoned design you would like to continue. Say aloud what you think.", 1550, screenHeight - 50, 250, 1);
+    drawBoldText("Step 2: Pick one zoned design you would like to continue with. Say aloud what you think.", 1550, screenHeight - 50, 250, 1);
 
     //step vs steps to go as a time indication for the user
-    drawText("Step 2/6", screenWidth, screenHeight - 25, 180);
+    drawText("Step 2/8", screenWidth, screenHeight - 25, 180);
 
     ReadInstructions();
 
@@ -1957,7 +1809,7 @@ void screen3c() {
     drawBoldText("Step 3: This time, pick one based on the expected structural performace of the zoned designs. Say aloud what your reasoning is.", 1550, screenHeight - 50, 250, 1);
 
     //step vs steps to go as a time indication for the user
-    drawText("Step 3/6", screenWidth, screenHeight - 25, 180);
+    drawText("Step 3/8", screenWidth, screenHeight - 25, 180);
 
     ReadInstructions3();
 
@@ -1983,7 +1835,7 @@ void screen3d() {
     drawBoldText("Step 4: Implement max. seven modifications to adapt the initial BSD, creating a new BSD you desire. Keep the function of the building in mind, as well as the resulting zoned and structural designs. Say aloud everything you think and do.", 1550, screenHeight - 50, 250, 1);
 
     //step vs steps to go as a time indication for the user
-    drawText("Step 4/6", screenWidth, screenHeight - 25, 180);
+    drawText("Step 4/8", screenWidth, screenHeight - 25, 180);
 
     ReadInstructions2();
 
@@ -2049,35 +1901,88 @@ void screen3e() {
     LineDivisionScreen();
 
     // Draw the bottom area where zones and zoned designs are displayed
-    drawText("Zones: 0", 100, 300, 200);
     drawText("Zoned designs: 0", 100, 150, 200);
 
-    // Draw control buttons (right side)
-    drawText("Zones", screenWidth - 150, 720, 200);
-    drawButton("Create zone", screenWidth - 310, 660, 200, 50, changeScreen, 22);
-    drawButton("Delete zone", screenWidth - 310, 600, 200, 50, changeScreen, 23);
-    drawText("Zoned designs", screenWidth - 180, 560, 200);
-    drawButton("Create zoned design", screenWidth - 310, 500, 200, 50, changeScreen, 24);
-    drawButton("Delete zoned design", screenWidth - 310, 440, 200, 50, changeScreen, 25);
+    //Draw text and a textfield(textbox)
+    drawText("Zoned design:", screenWidth - 180, 660, 200);
+    drawTextField(1510, 600, 150, 50, opinionTF25);
+    //drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 1565, 740, 275);
 
     // Draw the message at the top of the structure illustration
-    drawBoldText("Step 5: Try to find all zoned designs for the new BSD. Say aloud everything you think and do.", 1550, screenHeight - 50, 250, 1);
-    //underline ALL
-    glLineWidth(2.0);
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex2f(1584.0f, 948.0f);    // Start point of the line at the top
-    glVertex2f(1606.0f, 948.0f); // End point of the line at the bottom
-    glEnd();
+    drawBoldText("Step 5: The top screens shows your new BSD. The bottom screen shows the two most diverse zoned designs that AI found. Pick one zoned design you would like to continue with. Say aloud what you think.", 1550, screenHeight - 50, 250, 1);
 
-    ReadInstructions();
+    ReadInstructions2();
 
     //step vs steps to go as a time indication for the user
-    drawText("Step 5/6", screenWidth, screenHeight - 25, 180);
+    drawText("Step 5/8", screenWidth, screenHeight - 25, 180);
 
     // Draw the "Next step" button in the bottom right corner
     drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 30);
 }
+
+void screen3f() {
+    // Draw structural design illustration placeholder (left side)
+    LineDivisionScreen();
+
+    // Draw the bottom area where zones and zoned designs are displayed
+    drawText("Zoned designs: 0", 100, 150, 200);
+
+    //Draw text and a textfield(textbox)
+    drawText("Zoned design:", screenWidth - 180, 660, 200);
+    drawTextField(1510, 600, 150, 50, opinionTF27);
+    //drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 1565, 740, 275);
+
+    // Draw the message at the top of the structure illustration
+    drawBoldText("Step 6: The top screens shows your new BSD. The bottom screen shows ALL zoned designs that AI found. Again, pick one zoned design you would like to continue with. Say aloud what you think.", 1550, screenHeight - 50, 250, 1);
+
+    ReadInstructions2();
+
+    //step vs steps to go as a time indication for the user
+    drawText("Step 6/8", screenWidth, screenHeight - 25, 180);
+
+    // Draw the "Next step" button in the bottom right corner
+    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 32);
+}
+
+void screen3g() {
+    // Draw structural design illustration placeholder (left side)
+    LineDivisionScreen();
+
+    // Draw the message at the top of the structure illustration
+    drawBoldText("Step 7: In the next steps, you will need to assess the similarity between these BSDs. Spend max. 5-10 seconds per assessment. You no longer need to speak aloud.", 1550, screenHeight - 50, 250, 1);
+
+    //VISUALS OF ALL BUIDLINGS TO BE ASSESSED
+
+    //step vs steps to go as a time indication for the user
+    drawText("Step 7/8, Assessment 0/21", screenWidth - 160, screenHeight - 25, 200);
+
+    // Draw the "Next step" button in the bottom right corner
+    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 35);
+}
+
+void screen3g2() {
+    // Draw structural design illustration placeholder (left side)
+    LineDivisionScreen();
+
+    // Draw the message at the top of the structure illustration
+    drawBoldText("Step 7: Assess the similarity between these two BSDs. Spend max. 5-10 seconds per assessment. You no longer need to speak aloud.", 1550, screenHeight - 50, 250, 1);
+
+    drawButton("1", 1450, 725, 50, 30, buttonClicked, 1);
+    drawButton("2", 1500, 725, 50, 30, buttonClicked, 2);
+    drawButton("3", 1550, 725, 50, 30, buttonClicked, 3);
+    drawButton("4", 1600, 725, 50, 30, buttonClicked, 4);
+    drawButton("5", 1650, 725, 50, 30, buttonClicked, 5);
+
+    drawText("1: Very different", 1550, 700, 200);
+    drawText("5: Very similar", 1550, 670, 200);
+
+    //step vs steps to go as a time indication for the user
+    drawText("Step 7/8, Assessment 1/21", screenWidth - 160, screenHeight - 25, 200);
+
+    // Draw the "Next step" button in the bottom right corner
+    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 7);
+}
+
 void screen4a() {
     //draw buttons 1 to 5
     drawText("1. How much did you enjoy performing this assignment?", 600, 800, 600);
@@ -2095,9 +2000,9 @@ void screen4a() {
     //drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
     // Draw the message at the bottom of the structure illustration
-    drawBoldText("Step 6: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
+    drawBoldText("Step 8: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
     //step vs steps to go as a time indication for the user
-    drawText("Step 6/6, Question 1/6", screenWidth - 115, screenHeight - 25, 180);
+    drawText("Step 8/8, Question 1/7", screenWidth - 115, screenHeight - 25, 180);
 
     LineDivisionScreen();
 
@@ -2119,9 +2024,9 @@ void screen4b() {
     drawTextField(300, 270, 500, 200, opinionTF4);
     //drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
-    drawBoldText("Step 6: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
+    drawBoldText("Step 8: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
     //step vs steps to go as a time indication for the user
-    drawText("Step 6/6, Question 2/6", screenWidth - 115, screenHeight - 25, 180);
+    drawText("Step 8/8, Question 2/7", screenWidth - 115, screenHeight - 25, 180);
     LineDivisionScreen();
 
     drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 9);
@@ -2142,16 +2047,16 @@ void screen4c() {
     drawTextField(300, 270, 500, 200, opinionTF5);
     //drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
-    drawBoldText("Step 6: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
+    drawBoldText("Step 8: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
     //step vs steps to go as a time indication for the user
-    drawText("Step 6/6, Question 3/6", screenWidth - 115, screenHeight - 25, 180);
+    drawText("Step 8/8, Question 3/7", screenWidth - 115, screenHeight - 25, 180);
     LineDivisionScreen();
 
     drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 10);
 }
 
 void screen4d() {
-    drawText("4. Do you think it would have gone better with an AI tool that identifies all zoned designs for you?", 600, 800, 600);
+    drawText("4. Do you think it would have gone better without the AI tool that identified all zoned designs for you?", 600, 800, 600);
     drawButton("Yes", 300, 725, 75, 30, buttonClicked, 6);
     drawButton("No", 375, 725, 75, 30, buttonClicked, 7);
     drawButton("No idea", 450, 725, 75, 30, buttonClicked, 8);
@@ -2160,9 +2065,9 @@ void screen4d() {
     drawTextField(300, 270, 500, 200, opinionTF6);
     //drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
-    drawBoldText("Step 6: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
+    drawBoldText("Step 8: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
     //step vs steps to go as a time indication for the user
-    drawText("Step 6/6, Question 4/6", screenWidth - 115, screenHeight - 25, 180);
+    drawText("Step 8/8, Question 4/7", screenWidth - 115, screenHeight - 25, 180);
     LineDivisionScreen();
 
     drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 11);
@@ -2178,9 +2083,9 @@ void screen4e() {
     drawTextField(300, 270, 500, 200, opinionTF7);
     //drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
-    drawBoldText("Step 6: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
+    drawBoldText("Step 8: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
     //step vs steps to go as a time indication for the user
-    drawText("Step 6/6, Question 5/6", screenWidth - 115, screenHeight - 25, 180);
+    drawText("Step 8/8, Question 5/7", screenWidth - 115, screenHeight - 25, 180);
     LineDivisionScreen();
 
     drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 12);
@@ -2192,9 +2097,27 @@ void screen4f() {
     drawTextField(300, 270, 500, 200, opinionTF8);
     //drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
-    drawBoldText("Step 6: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
+    drawBoldText("Step 8: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
     //step vs steps to go as a time indication for the user
-    drawText("Step 6/6, Question 6/6", screenWidth - 115, screenHeight - 25, 180);
+    drawText("Step 8/8, Question 6/7", screenWidth - 115, screenHeight - 25, 180);
+    LineDivisionScreen();
+
+    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 36);
+}
+
+void screen4g() {
+    drawText("7. In step 5 a limited number of zoned designs (only the two most diverse ones) were shown to you to choose from. Did you prefer choosing from the limited zoned design options or from all zoned design options?", 600, 800, 600);
+    drawButton("Limited options", 300, 715, 150, 30, buttonClicked, 9);
+    drawButton("All options", 450, 715, 150, 30, buttonClicked, 10);
+    drawButton("No idea", 600, 715, 150, 30, buttonClicked, 8);
+
+    drawText("Please explain your answer:", 600, 500, 600);
+    drawTextField(300, 270, 500, 200, opinionTF26);
+    //drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
+
+    drawBoldText("Step 8: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
+    //step vs steps to go as a time indication for the user
+    drawText("Step 8/8, Question 6/7", screenWidth - 115, screenHeight - 25, 180);
     LineDivisionScreen();
 
     drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 13);
@@ -2205,7 +2128,7 @@ void screen5() {
     drawTextField(300, 420, 500, 50, opinionTF24);
 
     LineDivisionScreen();
-    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 32);
+    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 37);
 }
 
 void screen5b() {
@@ -2240,66 +2163,6 @@ void boxAroundPopUp2() {
     glVertex2f(1780.0f, 225.0f);
     glVertex2f(1420.0f, 225.0f);
     glEnd();
-}
-
-void screenCreateZone() {
-    screen3a();
-
-    //repeat button with a background color
-    drawButtonWithBackgroundColor("Create zone", screenWidth - 310, 660, 200, 50, buttonClicked, 1);
-
-    //draw text and input for creating a zone
-    drawText("Space(s) to include:", screenWidth, 320, 600);
-	drawTextField(screenWidth - 310, 250, 200, 50, opinionTF9);
-    drawText("Press enter to submit.", screenWidth - 60, 370, 500);
-
-    //draw lines around it
-    boxAroundPopUp();
-}
-
-void screenDeleteZone() {
-    screen3a();
-
-    //repeat button with a background color
-    drawButtonWithBackgroundColor("Delete zone", screenWidth - 310, 600, 200, 50, buttonClicked, 1);
-
-    //draw text and input for deleting a zone
-    drawText("Zone to delete:", screenWidth, 320, 600);
-    drawTextField(screenWidth - 310, 250, 200, 50, opinionTF10);
-    drawText("Press enter to submit.", screenWidth - 60, 370, 500);
-
-    //draw lines around it
-    boxAroundPopUp();
-}
-
-void screenCreateZonedDesign() {
-    screen3a();
-
-    //repeat button with a background color
-    drawButtonWithBackgroundColor("Create zoned design", screenWidth - 310, 500, 200, 50, buttonClicked, 1);
-
-    //draw text and input for creating a zoned design
-    drawText("Zone(s) to include:", screenWidth, 320, 600);
-    drawTextField(screenWidth - 310, 250, 200, 50, opinionTF11);
-    drawText("Press enter to submit", screenWidth - 60, 370, 500);
-
-    //draw lines around it
-    boxAroundPopUp();
-}
-
-void screenDeleteZonedDesign() {
-    screen3a();
-
-    //repeat button with a background color
-    drawButtonWithBackgroundColor("Delete zoned design", screenWidth - 310, 440, 200, 50, buttonClicked, 1);
-
-    //draw text and input for deleting a zoned design
-    drawText("Zoned design to delete:", screenWidth, 320, 600);
-    drawTextField(screenWidth - 310, 250, 200, 50, opinionTF12);
-    drawText("Press enter to submit", screenWidth - 60, 370, 500);
-
-    //draw lines around it
-    boxAroundPopUp();
 }
 
 void screenAddSpace() {
@@ -2371,66 +2234,6 @@ void screenResizeSpace() {
     boxAroundPopUp2();
 }
 
-void screenCreateZone2() {
-    screen3e();
-
-    //repeat button with a background color
-    drawButtonWithBackgroundColor("Create zone", screenWidth - 310, 660, 200, 50, buttonClicked, 1);
-
-    //draw text and input for creating a zone
-    drawText("Space(s) to include:", screenWidth, 320, 600);
-    drawTextField(screenWidth - 310, 250, 200, 50, opinionTF20);
-    drawText("Press enter to submit", screenWidth - 60, 370, 500);
-
-    //draw lines around it
-    boxAroundPopUp();
-}
-
-void screenDeleteZone2() {
-    screen3e();
-
-    //repeat button with a background color
-    drawButtonWithBackgroundColor("Delete zone", screenWidth - 310, 600, 200, 50, buttonClicked, 1);
-
-    //draw text and input for deleting a zone
-    drawText("Zone to delete:", screenWidth, 320, 600);
-    drawTextField(screenWidth - 310, 250, 200, 50, opinionTF21);
-    drawText("Press enter to submit", screenWidth - 60, 370, 500);
-
-    //draw lines around it
-    boxAroundPopUp();
-}
-
-void screenCreateZonedDesign2() {
-    screen3e();
-
-    //repeat button with a background color
-    drawButtonWithBackgroundColor("Create zoned design", screenWidth - 310, 500, 200, 50, buttonClicked, 1);
-
-    //draw text and input for creating a zoned design
-    drawText("Zone(s) to include:", screenWidth, 320, 600);
-    drawTextField(screenWidth - 310, 250, 200, 50, opinionTF22);
-    drawText("Press enter to submit", screenWidth - 60, 370, 500);
-
-    //draw lines around it
-    boxAroundPopUp();
-}
-
-void screenDeleteZonedDesign2() {
-    screen3e();
-
-    //repeat button with a background color
-    drawButtonWithBackgroundColor("Delete zoned design", screenWidth - 310, 440, 200, 50, buttonClicked, 1);
-
-    //draw text and input for deleting a zoned design
-    drawText("Zoned design to delete:", screenWidth, 320, 600);
-    drawTextField(screenWidth - 310, 250, 200, 50, opinionTF23);
-    drawText("Press enter to submit", screenWidth - 60, 370, 500);
-
-    //draw lines around it
-    boxAroundPopUp();
-}
-
 void screenCheckNext() {
     glColor3f(1.0f, 1.0f, 1.0f); // Set color to white
     glRectf(750.0f, 500.0f, 1050.0f, 650.0f); // Draw rectangle covering the entire screen
@@ -2484,7 +2287,7 @@ void screenCheckNext4() {
 void screenCheckNext5() {
     screen3e();
 	screenCheckNext();
-	drawButton("Yes", 790, 510, 100, 30, changeScreen, 7);
+	drawButton("Yes", 790, 510, 100, 30, changeScreen, 33);
 	drawButton("No", 910, 510, 100, 30, changeScreen, 6);
 }
 
@@ -2493,6 +2296,13 @@ void screenCheckNext6() {
     screenCheckNext();
     drawButton("Yes", 790, 510, 100, 30, changeScreen, 2);
     drawButton("No", 910, 510, 100, 30, changeScreen, 1);
+}
+
+void screenCheckNext7() {
+    screen3f();
+    screenCheckNext();
+    drawButton("Yes", 790, 510, 100, 30, changeScreen, 34);
+    drawButton("No", 910, 510, 100, 30, changeScreen, 33);
 }
 
 int main(int argc, char** argv) {

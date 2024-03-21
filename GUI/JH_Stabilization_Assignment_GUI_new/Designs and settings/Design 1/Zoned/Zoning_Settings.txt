@@ -14,8 +14,4 @@ C,			N,			N
 
 # Check unzoned design [Y/N]
 #			unzoned?
-<<<<<<< HEAD:16_zoning_program/JH_Stabilization_Assignment_GUI_new/Designs and settings/Design 1/Zoned/Zoning_Settings.txt
 D,			N
-=======
-D,			Y
->>>>>>> 678f7d4baf97bfa76fda6952301b686f7d25d729:16_zoning_program/JH_Stabilization_Assignment_GUI/Designs and settings/Design 1/Unzoned/Zoning_Settings.txt

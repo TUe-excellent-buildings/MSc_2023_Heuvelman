@@ -2,7 +2,7 @@
 
 # Span settings [mm]
 #			maximum span,		minimum span
-A,			6000,			3000
+A,			100000,			3000
 
 # Solution space settings [Y/N]
 #			large?			whole-space zones only?

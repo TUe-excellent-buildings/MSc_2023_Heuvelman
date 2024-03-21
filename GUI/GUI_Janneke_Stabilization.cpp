@@ -107,6 +107,7 @@ void screen4d();
 void screen4e();
 void screen4f();
 void screen5();
+void screen5b();
 void screenAddTrussDiagonally();
 void screenReplaceTrussByBeam();
 void screenDeleteDiagonalTruss();
@@ -163,11 +164,15 @@ void writeToOutputFile(std::string outputFileName, std::string question, std::st
     static bool headerPrinted = false;
     outputFile.open("output2.csv", std::ios::app);
     if (!headerPrinted) {
-        outputFile << "Question,User Answer\n";
+        outputFile << "Question,User Answer,User Explanation\n";
         headerPrinted = true;
     }
-    outputFile << question << "," << userAnswer << "\n";
-    outputFile << "User Explanation," << userExplanation << "\n";
+    if (!userExplanation.empty()) {
+        outputFile << question << "," << userAnswer << "," << userExplanation << "\n";
+    }
+    else {
+        outputFile << question << "," << userAnswer << ",\n";
+    }
     outputFile.close();
 }
 
@@ -193,6 +198,11 @@ void writeToProcessFile(std::string processFileName, std::string action, std::st
 
 //Declare a global variable to store the selected button label
 std::string selectedButtonLabel = "";
+
+// Function to get the selected button label
+std::string getSelectedButtonLabel() {
+    return selectedButtonLabel;
+}
 
 void buttonClicked(int variable) {
     std::cout << "Button clicked: " << variable << std::endl;
@@ -224,16 +234,24 @@ void buttonClicked(int variable) {
         selectedButtonLabel = "No idea";
         break;
     }
-}
 
-// Function to get the selected button label
-std::string getSelectedButtonLabel() {
-    return selectedButtonLabel;
+    // to print the selected button label in the actual screen.
+    if (currentScreen == 3) {
+        writeToOutputFile("output2.csv", "1. How much did you enjoy performing this assignment?", getSelectedButtonLabel(), opinionTF.text);
+    }
+    if (currentScreen == 4) {
+        writeToOutputFile("output2.csv", "2. How would you rate the level of ease in performing this assignment?", getSelectedButtonLabel(), opinionTF2.text);
+    }
+    if (currentScreen == 5) {
+        writeToOutputFile("output2.csv", "3. How well do you think you performed the assignment?", getSelectedButtonLabel(), opinionTF3.text);
+    }
+    if (currentScreen == 6) {
+        writeToOutputFile("output2.csv", "4. Do you think it would have gone better with an AI tool that identifies all zoned designs for you?", getSelectedButtonLabel(), opinionTF4.text);
+    }
+    if (currentScreen == 7) {
+        writeToOutputFile("output2.csv", "5. Do you think the AI tool itself can perform zoning better than you?", getSelectedButtonLabel(), opinionTF5.text);
+    }
 }
-
-// Show the "Submitted" message or not
-bool showSubmittedMessage2 = false;
-bool showSubmittedMessage3 = false;
 
 void initializeScreen() {
     // Your initialization code for the screen
@@ -246,8 +264,6 @@ void initializeScreen() {
 void changeScreen(int screen) {
     currentScreen = screen;
     std::cout << "Changing to screen: " << screen << std::endl;
-    showSubmittedMessage2 = false;
-    showSubmittedMessage3 = false;
     selectedButtonLabel = "";
     initializeScreen();
 
@@ -263,6 +279,28 @@ void changeScreen(int screen) {
         visualisationActive = true;
     } else {
         vpmanager_local.clearviewports();
+    }
+
+    if (screen == 4) {
+        writeToOutputFile("output2.csv", "1..", getSelectedButtonLabel(), opinionTF.text);
+    }
+    if (screen == 5) {
+        writeToOutputFile("output2.csv", "2..", getSelectedButtonLabel(), opinionTF2.text);
+    }
+    if (screen == 6) {
+        writeToOutputFile("output2.csv", "3..", getSelectedButtonLabel(), opinionTF3.text);
+    }
+    if (screen == 7) {
+        writeToOutputFile("output2.csv", "4..", getSelectedButtonLabel(), opinionTF4.text);
+    }
+    if (screen == 8) {
+        writeToOutputFile("output2.csv", "5..,", getSelectedButtonLabel(), opinionTF5.text);
+    }
+    if (screen == 9) {
+        writeToOutputFile("output2.csv", "6. What criteria did you keep in mind while performing this assignment?", "", opinionTF6.text);
+    }
+    if (screen == 16) {
+        writeToOutputFile("output2.csv", "e-mail adress:", getSelectedButtonLabel(), opinionTF12.text);
     }
 
     glutPostRedisplay();
@@ -307,6 +345,28 @@ void drawText(const char* text, float centerX, float centerY, float textWidth) {
     }
 }
 
+// Function to draw bold text
+void drawBoldText(const char* text, float centerX, float centerY, float textWidth, float boldnessOffset) {
+    float lineHeight = 18; // Approximate line height, adjust as needed
+    float effectiveTextWidth = textWidth - 2 * MARGIN_PERCENT; // Effective width after considering margins
+
+    // Calculate the starting position (left align within the margin)
+    float startX = centerX - effectiveTextWidth / 2.0f;
+    float currentX = startX;
+    float currentY = centerY;
+
+    // Set text color to black
+    glColor3f(0.0, 0.0, 0.0); // black color for text
+
+    // First, draw the text normally
+    drawText(text, centerX, centerY, textWidth);
+
+    // Then, draw the text with a variable offset to simulate less boldness
+    glRasterPos2f(centerX + boldnessOffset, centerY + boldnessOffset); // Adjust the offset to control boldness
+    drawText(text, centerX + boldnessOffset, centerY + boldnessOffset, textWidth);
+}
+
+
 void motion(int x, int y)
 {
     double dx = prevx-x,
@@ -326,6 +386,49 @@ void motion(int x, int y)
 void passive_motion(int x, int y)
 {
     vpmanager_local.mousemove_event(x, y);
+}
+
+void setup2D() {
+    glViewport(0, 0, screenWidth, screenHeight);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0.0, screenWidth, 0.0, screenHeight);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glDisable(GL_DEPTH_TEST);
+
+    // Disable lighting for 2D
+    glDisable(GL_LIGHTING);
+    glDisable(GL_LIGHT0);
+}
+
+void setup3D() {
+    GLint viewportWidth = screenWidth / 1.7;
+    GLint viewportHeight = screenHeight;
+
+    vpmanager_local.resize(viewportWidth, viewportHeight);
+
+    // Set the viewport to cover the left part of the screen
+    glViewport(0, 0, viewportWidth, viewportHeight);
+
+    // Setup the projection matrix for 3D rendering
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+    // Adjust the perspective projection to match the new aspect ratio
+    GLfloat aspectRatio = (GLfloat)viewportWidth / (GLfloat)viewportHeight;
+    gluPerspective(45.0, aspectRatio, 0.1f, 1000.0f);
+
+    // Switch back to modelview matrix mode
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    // Enable depth testing, required for 3D rendering
+    glEnable(GL_DEPTH_TEST);
+
+    // Enable lighting if your visualization uses it
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
 }
 
 void display() {
@@ -378,17 +481,10 @@ void display() {
         case 13: screenReplaceBeamByTruss(); break;
         case 14: screenCheckNext1(); break;
         case 15: screenCheckNext2(); break;
+        case 16: screen5b(); break;
         // Ensure you have a default case, even if it does nothing,
         // to handle any unexpected values of currentScreen
         default: break;
-    }
-
-    // Check if we need to render the "Submitted" message
-    if (showSubmittedMessage2) {
-        drawText("Submitted", 600, 240, 600);
-    }
-    if (showSubmittedMessage3) {
-        drawText("Submitted", 600, 385, 600);
     }
 
     // Swap buffers
@@ -399,48 +495,6 @@ void display() {
     while((err = glGetError()) != GL_NO_ERROR) {
         std::cerr << "OpenGL error: " << gluErrorString(err) << std::endl;
     }
-}
-
-void setup2D() {
-    glViewport(0, 0, screenWidth, screenHeight);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(0.0, screenWidth, 0.0, screenHeight);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    
-    // Disable lighting for 2D
-    glDisable(GL_LIGHTING);
-    glDisable(GL_LIGHT0);
-}
-
-void setup3D() {
-    GLint viewportWidth = screenWidth / 1.7;
-    GLint viewportHeight = screenHeight;
-
-    vpmanager_local.resize(viewportWidth, viewportHeight);
-
-    // Set the viewport to cover the left part of the screen
-    glViewport(0, 0, viewportWidth, viewportHeight);
-
-    // Setup the projection matrix for 3D rendering
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    
-    // Adjust the perspective projection to match the new aspect ratio
-    GLfloat aspectRatio = (GLfloat)viewportWidth / (GLfloat)viewportHeight;
-    gluPerspective(45.0, aspectRatio, 0.1f, 1000.0f);
-
-    // Switch back to modelview matrix mode
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    // Enable depth testing, required for 3D rendering
-    glEnable(GL_DEPTH_TEST);
-
-    // Enable lighting if your visualization uses it
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
 }
 
 void reshape(int width, int height) {
@@ -468,8 +522,6 @@ void reshape(int width, int height) {
 }
 
 void keyboard(unsigned char key, int x, int y) {
-    showSubmittedMessage2 = false;
-    showSubmittedMessage3 = false;
     
     GLenum err;
     while ((err = glGetError()) != GL_NO_ERROR) {
@@ -479,131 +531,63 @@ void keyboard(unsigned char key, int x, int y) {
     if(currentScreen == 3) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
             opinionTF.text += key; // Append the character to the input string
-            showSubmittedMessage2 = false;
-        } else if (key == 8 && opinionTF.text != "") { // Backspace key
+        }
+        else if (key == 8 && opinionTF.text != "") { // Backspace key
             opinionTF.text.pop_back(); // Remove the last character from input string
-            showSubmittedMessage2 = false;
-        } else if (key == 13) { // Enter key
-            // Print the entered text to the terminal
-            std::cout << "Entered text: " << opinionTF.text << std::endl;
-            // Write the entered text to the output file
-            writeToOutputFile("output2.csv", "1. How much did you enjoy performing this assignment?", getSelectedButtonLabel(), opinionTF.text);
-            //opinionTF.text = ""; // Clear the input string after processing
-            showSubmittedMessage2 = true;
         }
     }
 
     if (currentScreen == 4) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
             opinionTF2.text += key; // Append the character to the input string
-            showSubmittedMessage2 = false;
         }
         else if (key == 8 && opinionTF2.text != "") { // Backspace key
             opinionTF2.text.pop_back(); // Remove the last character from input string
-            showSubmittedMessage2 = false;
-        }
-        else if (key == 13) { // Enter key
-            // Print the entered text to the terminal
-            std::cout << "Entered text: " << opinionTF2.text << std::endl;
-            // Write the entered text to the output file
-            writeToOutputFile("output2.csv", "2. How would you rate the level of ease in performing this assignment?", getSelectedButtonLabel(), opinionTF2.text);
-            //opinionTF2.text = ""; // Clear the input string after processing
-            showSubmittedMessage2 = true;
         }
     }
 
     if (currentScreen == 5) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
             opinionTF3.text += key; // Append the character to the input string
-            showSubmittedMessage2 = false;
         }
         else if (key == 8 && opinionTF3.text != "") { // Backspace key
             opinionTF3.text.pop_back(); // Remove the last character from input string
-            showSubmittedMessage2 = false;
-        }
-        else if (key == 13) { // Enter key
-            // Print the entered text to the terminal
-            std::cout << "Entered text: " << opinionTF3.text << std::endl;
-            // Write the entered text to the output file
-            writeToOutputFile("output2.csv", "3. How well do you think you performed the assignment?", getSelectedButtonLabel(), opinionTF3.text);
-            //opinionTF3.text = ""; // Clear the input string after processing
-            showSubmittedMessage2 = true;
         }
     }
 
     if (currentScreen == 6) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
             opinionTF4.text += key; // Append the character to the input string
-            showSubmittedMessage2 = false;
         }
         else if (key == 8 && opinionTF4.text != "") { // Backspace key
             opinionTF4.text.pop_back(); // Remove the last character from input string
-            showSubmittedMessage2 = false;
-        }
-        else if (key == 13) { // Enter key
-            // Print the entered text to the terminal
-            std::cout << "Entered text: " << opinionTF4.text << std::endl;
-            // Write the entered text to the output file
-            writeToOutputFile("output2.csv", "4. Do you think it would have gone better with an AI tool that identifies all zoned designs for you?", getSelectedButtonLabel(), opinionTF4.text);
-            //opinionTF4.text = ""; // Clear the input string after processing
-            showSubmittedMessage2 = true;
         }
     }
 
     if (currentScreen == 7) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
             opinionTF5.text += key; // Append the character to the input string
-            showSubmittedMessage2 = false;
         }
         else if (key == 8 && opinionTF5.text != "") { // Backspace key
             opinionTF5.text.pop_back(); // Remove the last character from input string
-            showSubmittedMessage2 = false;
-        }
-        else if (key == 13) { // Enter key
-            // Print the entered text to the terminal
-            std::cout << "Entered text: " << opinionTF5.text << std::endl;
-            // Write the entered text to the output file
-            writeToOutputFile("output2.csv", "5. Do you think the AI tool itself can perform zoning better than you?", getSelectedButtonLabel(), opinionTF5.text);
-            //opinionTF5.text = ""; // Clear the input string after processing
-            showSubmittedMessage2 = true;
         }
     }
 
     if (currentScreen == 8) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
             opinionTF6.text += key; // Append the character to the input string
-            showSubmittedMessage2 = false;
         }
         else if (key == 8 && opinionTF6.text != "") { // Backspace key
             opinionTF6.text.pop_back(); // Remove the last character from input string
-            showSubmittedMessage2 = false;
-        }
-        else if (key == 13) { // Enter key
-            // Print the entered text to the terminal
-            std::cout << "Entered text: " << opinionTF6.text << std::endl;
-            // Write the entered text to the output file
-            writeToOutputFile("output2.csv", "6. What criteria did you keep in mind while performing this assignment?", "", opinionTF6.text);
-            //opinionTF6.text = ""; // Clear the input string after processing
-            showSubmittedMessage2 = true;
         }
     }
 
     if (currentScreen == 9) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
             opinionTF12.text += key; // Append the character to the input string
-            showSubmittedMessage3 = false;
         }
         else if (key == 8 && opinionTF12.text != "") { // Backspace key
             opinionTF12.text.pop_back(); // Remove the last character from input string
-            showSubmittedMessage3 = false;
-        }
-        else if (key == 13) { // Enter key
-            // Print the entered text to the terminal
-            std::cout << "Entered text: " << opinionTF12.text << std::endl;
-            // Write the entered text to the process file
-            writeToOutputFile("output2.csv", "e-mail adress:", getSelectedButtonLabel(), opinionTF12.text);
-            //opinionTF12.text = ""; // Clear the input string after processing
-            showSubmittedMessage3 = true;
         }
     }
 
@@ -629,7 +613,7 @@ void keyboard(unsigned char key, int x, int y) {
                 // Print the entered text from opinionTF7 to the terminal
                 std::cout << "Entered text (opinionTF7): " << opinionTF7.text << std::endl;
                 // Write the entered text from opinionTF7 to the process file
-                writeToProcessFile("process.csv", "Add diagonal: member 1", opinionTF7.text);
+                writeToProcessFile("process2.csv", "Add diagonal: member 1", opinionTF7.text);
                 // Clear the input string of opinionTF7 after processing
                 opinionTF7.text = "";
             }
@@ -637,7 +621,7 @@ void keyboard(unsigned char key, int x, int y) {
                 // Print the entered text from opinionTF8 to the terminal
                 std::cout << "Entered text (opinionTF14): " << opinionTF8.text << std::endl;
                 // Write the entered text from opinionTF8 to the process file
-                writeToProcessFile("process.csv", "Add diagonal: member 2", opinionTF8.text);
+                writeToProcessFile("process2.csv", "Add diagonal: member 2", opinionTF8.text);
                 // Clear the input string of opinionTF8 after processing
                 opinionTF8.text = "";
             }
@@ -935,9 +919,9 @@ void mainScreen() {
     drawText("In which assignment will you participate?", 930, 740, 400);
 
     drawButton("Assignment 1", 800, 650, 200, 50, changeScreen, 1);
-    drawButton("Assignment 2", 800, 580, 200, 50, changeScreen, 1);
-    drawButton("Assignment 3", 800, 510, 200, 50, changeScreen, 1);
-    drawButton("Assignment 4", 800, 440, 200, 50, changeScreen, 1);
+    drawButton("Assignment 2", 800, 580, 200, 50, buttonClicked, 1);
+    drawButton("Assignment 3", 800, 510, 200, 50, buttonClicked, 1);
+    drawButton("Assignment 4", 800, 440, 200, 50, buttonClicked, 1);
 
     // Draw the "Next step" button in the bottom right corner
     //drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 1);
@@ -945,7 +929,7 @@ void mainScreen() {
 
 // ID 1: Assignment description screen
 void assignmentDescriptionScreen() {
-    drawText("Selected Assignment: 1​", 900, 740, 400);
+    drawText("Selected Assignment: 1 'Human stabilization assignment'​", 900, 740, 400);
     drawText("Expected duration: 20 minutes​", 900, 710, 400);
     drawText("Read the following instructions carefully:​", 900, 650, 400);
     drawText("You will in a moment go through a design task. You are asked to perform this task in the way you are used to go about a commission in your daily practice. It is important that you say aloud everything that you think or do in designing. ​So, in every step, explain what you do and why you do it. Try to keep speaking constantly and not be silent for longer than 20 seconds. ​Please speak English. Good luck!​",
@@ -1000,7 +984,7 @@ void screen3() {
     drawButton("Hide member numbers", 1100, 50, 200, 50, buttonClicked, 1);
 
     // Draw the message at the top of the structure illustration
-    drawText("Stabilize the structural design with minimal structural adjustments. Say aloud everything you think and do; thus, explain your reasoning.", 1550, screenHeight - 35, 280);
+    drawBoldText("Stabilize the structural design with minimal structural adjustments. Say aloud everything you think and do; thus, explain your reasoning.", 1550, screenHeight - 35, 280, 1);
 
     //Message to summarize most important information and to refer to the full information in the instructions
     drawText("The structure consists of rods connected by hinges. Displacements are constrained at ground level. A rod is always connected to the structure with a hinged connection, and a beam with a fixed connection. Please refer to the information sheet for the whole explanation.", 1550, screenHeight - 130, 280);
@@ -1036,10 +1020,10 @@ void screen4a() {
 
     drawText("Please explain your answer:", 600, 500, 600);
     drawTextField(300, 270, 500, 200, opinionTF);
-    drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
+    //drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
     // Draw the message at the top of the structure illustration
-    drawText("Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250);
+    drawBoldText("Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
     //step vs steps to go as a time indication for the user
     drawText("Question 1/6", screenWidth - 50, screenHeight - 25, 180);
 
@@ -1062,10 +1046,10 @@ void screen4b() {
 
     drawText("Please explain your answer:", 600, 500, 600);
     drawTextField(300, 270, 500, 200, opinionTF2);
-    drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
+    //drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
     // Draw the message at the top of the structure illustration
-    drawText("Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250);
+    drawBoldText("Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
     //step vs steps to go as a time indication for the user
     drawText("Question 2/6", screenWidth - 50, screenHeight - 25, 180);
 
@@ -1088,10 +1072,10 @@ void screen4c() {
 
     drawText("Please explain your answer:", 600, 500, 600);
     drawTextField(300, 270, 500, 200, opinionTF3);
-    drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
+    //drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
     // Draw the message at the top of the structure illustration
-    drawText("Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250);
+    drawBoldText("Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
     //step vs steps to go as a time indication for the user
     drawText("Question 3/6", screenWidth - 50, screenHeight - 25, 180);
 
@@ -1109,10 +1093,10 @@ void screen4d() {
 
     drawText("Please explain your answer:", 600, 500, 600);
     drawTextField(300, 270, 500, 200, opinionTF4);
-    drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
+    //drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
     // Draw the message at the top of the structure illustration
-    drawText("Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250);
+    drawBoldText("Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
     //step vs steps to go as a time indication for the user
     drawText("Question 4/6", screenWidth - 50, screenHeight - 25, 180);
 
@@ -1130,10 +1114,10 @@ void screen4e() {
 
     drawText("Please explain your answer:", 600, 500, 600);
     drawTextField(300, 270, 500, 200, opinionTF5);
-    drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
+    //drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
     // Draw the message at the top of the structure illustration
-    drawText("Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250);
+    drawBoldText("Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
     //step vs steps to go as a time indication for the user
     drawText("Question 5/6", screenWidth - 50, screenHeight - 25, 180);
 
@@ -1147,10 +1131,10 @@ void screen4f() {
     drawText("6. What criteria did you keep in mind while performing this assignment?", 600, 800, 600);
     drawText("(For example, structural, aesthetical, functional, and stability requirements.)", 600, 770, 600);
     drawTextField(300, 270, 500, 200, opinionTF6);
-    drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
+    //drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 650, 530, 700);
 
     // Draw the message at the top of the structure illustration
-    drawText("Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250);
+    drawBoldText("Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
     //step vs steps to go as a time indication for the user
     drawText("Question 6/6", screenWidth - 50, screenHeight - 25, 180);
 
@@ -1161,11 +1145,16 @@ void screen4f() {
 
 // ID 9: Screen 4g
 void screen5() {
-    drawText("Thank you for your participation, this is the end of the assignment.", 600, 800, 600);
-    drawText("Please leave your email below if you want us to send you the results from this research and include you in the acknowledgments:", 600, 520, 600);
+    drawText("Please leave your email below if you want us to send you the results from this research and include you in the acknowledgments. Nevertheless, no results will be linked to your name since all results are pseudomized.", 600, 520, 600);
     drawTextField(300, 420, 500, 50, opinionTF12);
-    drawText("Press enter to submit", 600, 550, 600);
 
+    LineDivisionScreen();
+    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 16);
+}
+
+//ID 17
+void screen5b() {
+    drawText("Thank you for your participation, this is the end of the assignment.", 600, 800, 600);
     LineDivisionScreen();
     drawButton("-> | End", 1590, 50, 200, 50, closeWindowCallback, 0);
 }

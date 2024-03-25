@@ -42,9 +42,10 @@ struct TextField {
     std::string text;
     int cursorPosition;
     bool isActive;
+    float x, y, width, height; // Add x, y, width, and height to make them clickable
 
     // Constructor
-    TextField() : cursorPosition(0), isActive(false) {}
+    TextField() : cursorPosition(0), isActive(false), x(0), y(0), width(0), height(0) {}
 
     // Add a character where the cursor is
     void addChar(char c) {
@@ -1691,6 +1692,10 @@ void drawButtonWithBackgroundColor(const char* text, float x, float y, float wid
 }
 
 void drawTextField(int x, int y, int width, int height, TextField& textfield) {
+    textfield.x = x;
+    textfield.y = y;
+    textfield.width = width;
+    textfield.height = height;
     float borderWidth = 2.0;
 
     // Calculate the adjusted width and height considering padding
@@ -1775,10 +1780,43 @@ void drawTextField(int x, int y, int width, int height, TextField& textfield) {
     }
 }
 
+void checkTextFieldClick(TextField& textField, float mouseX, float mouseY) {
+    if (mouseX >= textField.x && mouseX <= textField.x + textField.width &&
+        mouseY >= textField.y && mouseY <= textField.y + textField.height) {
+        textField.isActive = true; // Activate the clicked text field
+    }
+    else {
+        textField.isActive = false; // Deactivate the text field if not clicked
+    }
+}
+
 void onMouseClick(int button, int state, int x, int y) {
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
         float mouseY = screenHeight - static_cast<float>(y);
         float mouseX = static_cast<float>(x);
+
+        // Check each text field individually
+        checkTextFieldClick(opinionTF, mouseX, mouseY);
+        checkTextFieldClick(opinionTF2, mouseX, mouseY);
+        checkTextFieldClick(opinionTF3, mouseX, mouseY);
+        checkTextFieldClick(opinionTF4, mouseX, mouseY);
+        checkTextFieldClick(opinionTF5, mouseX, mouseY);
+        checkTextFieldClick(opinionTF6, mouseX, mouseY);
+        checkTextFieldClick(opinionTF7, mouseX, mouseY);
+        checkTextFieldClick(opinionTF8, mouseX, mouseY);
+        checkTextFieldClick(opinionTF13, mouseX, mouseY);
+        checkTextFieldClick(opinionTF14, mouseX, mouseY);
+        checkTextFieldClick(opinionTF15, mouseX, mouseY);
+        checkTextFieldClick(opinionTF16, mouseX, mouseY);
+        checkTextFieldClick(opinionTF17, mouseX, mouseY);
+        checkTextFieldClick(opinionTF18, mouseX, mouseY);
+        checkTextFieldClick(opinionTF19, mouseX, mouseY);
+        checkTextFieldClick(opinionTF24, mouseX, mouseY);
+        checkTextFieldClick(opinionTF25, mouseX, mouseY);
+        checkTextFieldClick(opinionTF26, mouseX, mouseY);
+        checkTextFieldClick(opinionTF27, mouseX, mouseY);
+
+        // Check for button clicks
 
         for (const auto& btn : buttons) {
             if (mouseX >= btn.x && mouseX <= btn.x + btn.width &&
@@ -1823,7 +1861,7 @@ void mainScreen() {
 }
 
 void assignmentDescriptionScreen() {
-    drawText("Selected Assignment: 2 'Human-AI zoning assignment'​", 900, 740, 400);
+    drawText("Selected Assignment: 3 'Human-AI zoning assignment'​", 900, 740, 400);
     drawText("Expected duration: 25 minutes​", 900, 710, 400);
     drawText("Read the following instructions carefully:​", 900, 650, 400);
     drawText("You will in a moment go through a design task. You are asked to perform this task in the way you are used to go about a commission in your daily practice. It is important that you say aloud everything that you think or do in designing. ​So, in every step, explain what you do and why you do it. Try to keep speaking constantly and not be silent for longer than 20 seconds. ​Please speak English. Good luck!​",

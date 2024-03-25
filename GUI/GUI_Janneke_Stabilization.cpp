@@ -40,9 +40,10 @@ struct TextField {
     std::string text;
     int cursorPosition;
     bool isActive;
+    float x, y, width, height; // Add x, y, width, and height to make them clickable
 
     // Constructor
-    TextField() : cursorPosition(0), isActive(false) {}
+    TextField() : cursorPosition(0), isActive(false), x(0), y(0), width(0), height(0) {}
 
     // Add a character where the cursor is
     void addChar(char c) {
@@ -824,6 +825,10 @@ void drawButtonWithBackgroundColor(const char* text, float x, float y, float wid
 }
 
 void drawTextField(int x, int y, int width, int height, TextField& textfield) {
+    textfield.x = x;
+    textfield.y = y;
+    textfield.width = width;
+    textfield.height = height;
     float borderWidth = 2.0;
 
     // Calculate the adjusted width and height considering padding
@@ -908,11 +913,36 @@ void drawTextField(int x, int y, int width, int height, TextField& textfield) {
     }
 }
 
+void checkTextFieldClick(TextField& textField, float mouseX, float mouseY) {
+    if (mouseX >= textField.x && mouseX <= textField.x + textField.width &&
+        mouseY >= textField.y && mouseY <= textField.y + textField.height) {
+        textField.isActive = true; // Activate the clicked text field
+    }
+    else {
+        textField.isActive = false; // Deactivate the text field if not clicked
+    }
+}
+
 void onMouseClick(int button, int state, int x, int y) {
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
         float mouseY = screenHeight - static_cast<float>(y);
         float mouseX = static_cast<float>(x);
 
+        // Check each text field individually
+        checkTextFieldClick(opinionTF, mouseX, mouseY);
+        checkTextFieldClick(opinionTF2, mouseX, mouseY);
+        checkTextFieldClick(opinionTF3, mouseX, mouseY);
+        checkTextFieldClick(opinionTF4, mouseX, mouseY);
+        checkTextFieldClick(opinionTF5, mouseX, mouseY);
+        checkTextFieldClick(opinionTF6, mouseX, mouseY);
+        checkTextFieldClick(opinionTF7, mouseX, mouseY);
+        checkTextFieldClick(opinionTF8, mouseX, mouseY);
+        checkTextFieldClick(opinionTF9, mouseX, mouseY);
+        checkTextFieldClick(opinionTF10, mouseX, mouseY);
+        checkTextFieldClick(opinionTF11, mouseX, mouseY);
+        checkTextFieldClick(opinionTF12, mouseX, mouseY);
+
+        // Check for button clicks
         for (const auto& btn : buttons) {
             if (mouseX >= btn.x && mouseX <= btn.x + btn.width &&
                 mouseY >= btn.y && mouseY <= btn.y + btn.height) {

@@ -130,6 +130,9 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 
 		std::pair<Components::Point*, Components::Point*> getBoundaryPoints(int ID);
 		void create_manual_truss(std::pair<Components::Point*, Components::Point*> dof_key);
+		void create_manual_beam(Components::Point* p1, Components::Point* p2);
+		Spatial_Design::Geometry::Rectangle* return_rectangle(Components::Point* p1, Components::Point* p2);
+		void delete_element(int ID);
 
 		// Output:
 		void show_free_dofs();
@@ -3013,6 +3016,15 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
         }
 	} // delete_truss()
 
+	void Stabilize::delete_element(int ID) {
+		if(ID < m_SD->m_components.size()) {
+			std::rotate(m_SD->m_components.begin() + ID, m_SD->m_components.begin() + ID + 1, m_SD->m_components.end());
+			m_SD->m_components.pop_back();
+		} else {
+			std::cout << "Could not find element to delete";
+		}
+	}
+
     void Stabilize::relate_points_geometry()
     {
         unsigned int vertex_count = m_CF->get_vertex_count();
@@ -3065,6 +3077,30 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 			}
 		}
 		return found;
+	} // find_rectangle()
+
+	Spatial_Design::Geometry::Rectangle* Stabilize::return_rectangle(Components::Point* p1, Components::Point* p2)
+	{
+        std::map<Components::Point*, std::vector<Spatial_Design::Geometry::Rectangle*> >::iterator it_1; // point_rectangles
+		std::map<Spatial_Design::Geometry::Rectangle*, std::vector<Components::Point*> >::iterator it_2; // rectangle_points
+		Spatial_Design::Geometry::Rectangle* temp_rectangle;
+		std::vector<Components::Point*> temp_points;
+		bool found = false;
+
+		it_1 = point_rectangles.find(p1);
+		for (unsigned int i = 0; i < it_1->second.size(); i++)
+		{
+			temp_rectangle = it_1->second[i];
+			it_2 = rectangle_points.find(temp_rectangle);
+			temp_points = it_2->second;
+			if (std::find(temp_points.begin(), temp_points.end(), p2) != temp_points.end())
+			{
+				found = true;
+				break;
+			}
+		}
+		if(found) std::cout << "Found rectangle" << std::endl;
+		return temp_rectangle;
 	} // find_rectangle()
 
 	Spatial_Design::Geometry::Rectangle* Stabilize::get_rectangle(Components::Point* p1, Components::Point* p2)

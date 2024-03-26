@@ -721,6 +721,11 @@ void keyboard(unsigned char key, int x, int y) {
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF9.text << std::endl;
+            std::pair<BSO::Structural_Design::Components::Point*, BSO::Structural_Design::Components::Point*> p_delete = Stab_model->getBoundaryPoints(std::stoi(clean_str(opinionTF9.text)));
+            std::cout << "Got boundary points" << std::endl;
+            Stab_model->delete_element(std::stoi(clean_str(opinionTF9.text)));
+            std::cout << "Deleted truss" << std::endl;
+            Stab_model->create_manual_beam(p_delete.first, p_delete.second);
             // Write the entered text to the process file
             writeToProcessFile("process2.csv", "Replace rod by beam", opinionTF9.text);
             opinionTF9.text = ""; // Clear the input string after processing
@@ -738,6 +743,10 @@ void keyboard(unsigned char key, int x, int y) {
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF10.text << std::endl;
+            std::pair<BSO::Structural_Design::Components::Point*, BSO::Structural_Design::Components::Point*> p_delete = Stab_model->getBoundaryPoints(std::stoi(clean_str(opinionTF10.text)));
+            std::cout << "Got boundary points" << std::endl;
+            Stab_model->delete_element(std::stoi(clean_str(opinionTF10.text)));
+            std::cout << "Deleted element" << std::endl;
             // Write the entered text to the process file
             writeToProcessFile("process2.csv", "Delete diagonal rod", opinionTF10.text);
             opinionTF10.text = ""; // Clear the input string after processing
@@ -755,6 +764,11 @@ void keyboard(unsigned char key, int x, int y) {
         else if (key == 13) { // Enter key
             // Print the entered text to the terminal
             std::cout << "Entered text: " << opinionTF11.text << std::endl;
+            std::pair<BSO::Structural_Design::Components::Point*, BSO::Structural_Design::Components::Point*> p_delete = Stab_model->getBoundaryPoints(std::stoi(clean_str(opinionTF11.text)));
+            std::cout << "Got boundary points" << std::endl;
+            Stab_model->delete_element(std::stoi(clean_str(opinionTF11.text)));
+            std::cout << "Deleted bea," << std::endl;
+            Stab_model->create_manual_truss(p_delete);
             // Write the entered text to the process file
             writeToProcessFile("process2.csv", "Replace beam by rod", opinionTF11.text);
             opinionTF11.text = ""; // Clear the input string after processing

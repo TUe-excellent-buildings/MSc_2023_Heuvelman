@@ -92,6 +92,12 @@ int currentScreen = 0;
 const int screenWidth = 1800;
 const int screenHeight = 1000;
 
+// Variable to keep track of the number of trusses and beams added
+int TrussCount = 0;
+int BeamCount = 0;
+// Draw a message when input is invalid
+bool DrawInvalidInput = false;
+
 // Text margin as a percentage of the window width
 const float MARGIN_PERCENT = 5.0f; // Margin as a percentage of the window width
 
@@ -268,10 +274,10 @@ void changeScreen(int screen) {
     currentScreen = screen;
     std::cout << "Changing to screen: " << screen << std::endl;
     selectedButtonLabel = "";
+    DrawInvalidInput = false;
     initializeScreen();
 
-    
-    if(screen == 2 || (screen >=  10 && screen <= 13)) {
+    if(screen == 2 || (screen >=  10 && screen <= 14)) {
         if(MS == nullptr || CF == nullptr || SD_Building == nullptr) {
             setup_pointers();
         }
@@ -661,6 +667,7 @@ void keyboard(unsigned char key, int x, int y) {
             else if (opinionTF8.isActive) {
                 opinionTF8.text += key; // Append the character to the input string
             }
+            DrawInvalidInput = false;
         }
         else if (key == 8) { // Backspace key
             if (opinionTF7.isActive && !opinionTF7.text.empty()) {
@@ -669,40 +676,74 @@ void keyboard(unsigned char key, int x, int y) {
             else if (opinionTF8.isActive && !opinionTF8.text.empty()) {
                 opinionTF8.text.pop_back(); // Remove the last character from input string
             }
+            DrawInvalidInput = false;
         }
         else if (key == 13) { // Enter key
+            bool validInput = true; // Flag to track if the input is valid
+            DrawInvalidInput = false;
+            //Needed variables for the truss
             std::pair<BSO::Structural_Design::Components::Point*, BSO::Structural_Design::Components::Point*> p1;
             std::pair<BSO::Structural_Design::Components::Point*, BSO::Structural_Design::Components::Point*> p2;
             std::pair<BSO::Structural_Design::Components::Point*, BSO::Structural_Design::Components::Point*> p3;
             bool TF7 = 0;
             bool TF8 = 0;
+
             if (!opinionTF7.text.empty()) {
                 // Print the entered text from opinionTF7 to the terminal
                 std::cout << "Entered text (opinionTF7): " << opinionTF7.text << std::endl;
-                p1 = Stab_model->getBoundaryPoints(std::stoi(clean_str(opinionTF7.text)));
+                //p1 = Stab_model->getBoundaryPoints(std::stoi(clean_str(opinionTF7.text)));
                 // Write the entered text from opinionTF7 to the process file
                 writeToProcessFile("process2.csv", "Add diagonal: member 1", opinionTF7.text);
                 // Clear the input string of opinionTF7 after processing
-                opinionTF7.text = "";
-                TF7 = true;
+                
+                try {
+                    int pointIndex = std::stoi(clean_str(opinionTF7.text));
+                    p1 = Stab_model->getBoundaryPoints(pointIndex);
+                    TF7 = true;
+                }
+                catch (const std::invalid_argument& e) {
+                    std::cerr << "Invalid input for opinionTF7: " << e.what() << std::endl;
+                    validInput = false;
+                    DrawInvalidInput = true;
+                }
             }
+
             if (!opinionTF8.text.empty()) {
                 // Print the entered text from opinionTF8 to the terminal
                 std::cout << "Entered text (opinionTF8): " << opinionTF8.text << std::endl;
-                p2 = Stab_model->getBoundaryPoints(std::stoi(clean_str(opinionTF8.text)));
+                //p2 = Stab_model->getBoundaryPoints(std::stoi(clean_str(opinionTF8.text)));
                 // Write the entered text from opinionTF8 to the process file
                 writeToProcessFile("process2.csv", "Add diagonal: member 2", opinionTF8.text);
                 // Clear the input string of opinionTF8 after processing
-                opinionTF8.text = "";
-                TF8 = true;
+                
+                try {
+                    int pointIndex = std::stoi(clean_str(opinionTF8.text));
+                    p2 = Stab_model->getBoundaryPoints(pointIndex);
+                    TF8 = true;
+                }
+                catch (const std::invalid_argument& e) {
+                    std::cerr << "Invalid input for opinionTF8: " << e.what() << std::endl;
+                    validInput = false;
+                    DrawInvalidInput = true;
+                }
             }
-            if(TF7 && TF8) {
+            if(validInput && TF7 && TF8) {
                 p3.first = p1.first;
                 p3.second = p2.second;
                 Stab_model->create_manual_truss(p3);
+                opinionTF7.text = ""; // Clear the input string of opinionTF7
+                opinionTF8.text = ""; // Clear the input string of opinionTF8
+                // Change the screen after processing both text fields
+                changeScreen(2);
+                TrussCount++;
             }
-            // Change the screen after processing both text fields
-            changeScreen(2);
+            else {
+                // Handle invalid input gracefully
+                std::cout << "Invalid input. Please make sure both inputs are valid." << std::endl;
+                validInput = false;
+                DrawInvalidInput = true;
+            }
+
         }
         else if (key == '\t') { // Tab key
             // Toggle active state between opinionTF7 and opinionTF8
@@ -714,65 +755,149 @@ void keyboard(unsigned char key, int x, int y) {
     if (currentScreen == 11) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
             opinionTF9.text += key; // Append the character to the input string
+            DrawInvalidInput = false;
         }
         else if (key == 8 && opinionTF9.text != "") { // Backspace key
             opinionTF9.text.pop_back(); // Remove the last character from input string
+            DrawInvalidInput = false;
         }
         else if (key == 13) { // Enter key
-            // Print the entered text to the terminal
-            std::cout << "Entered text: " << opinionTF9.text << std::endl;
-            std::pair<BSO::Structural_Design::Components::Point*, BSO::Structural_Design::Components::Point*> p_delete = Stab_model->getBoundaryPoints(std::stoi(clean_str(opinionTF9.text)));
-            std::cout << "Got boundary points" << std::endl;
-            Stab_model->delete_element(std::stoi(clean_str(opinionTF9.text)));
-            std::cout << "Deleted truss" << std::endl;
-            Stab_model->create_manual_beam(p_delete.first, p_delete.second);
-            // Write the entered text to the process file
-            writeToProcessFile("process2.csv", "Replace rod by beam", opinionTF9.text);
-            opinionTF9.text = ""; // Clear the input string after processing
-            changeScreen(2);
+            bool validInput = true; // Flag to track if the input is valid
+            DrawInvalidInput = false;
+
+            try {
+                // Print the entered text to the terminal
+                std::cout << "Entered text: " << opinionTF9.text << std::endl;
+                int elementIndex = std::stoi(clean_str(opinionTF9.text));
+                std::pair<BSO::Structural_Design::Components::Point*, BSO::Structural_Design::Components::Point*> p_delete = Stab_model->getBoundaryPoints(elementIndex);
+                Stab_model->delete_element(elementIndex);
+                Stab_model->create_manual_beam(p_delete.first, p_delete.second);
+
+                // Write the entered text to the process file
+                writeToProcessFile("process2.csv", "Replace rod by beam", opinionTF9.text);
+
+                opinionTF9.text = ""; // Clear the input string after processing
+                changeScreen(2);
+                BeamCount++;
+            }
+            catch (const std::invalid_argument& e) {
+                // Handle invalid input gracefully
+                std::cerr << "Invalid input: " << e.what() << std::endl;
+                validInput = false;
+                DrawInvalidInput = true;
+            }
+            catch (const std::out_of_range& e) {
+                // Handle out of range input gracefully
+                std::cerr << "Out of range input: " << e.what() << std::endl;
+                validInput = false;
+                DrawInvalidInput = true;
+            }
+            catch (const std::exception& e) {
+                // Handle any other exceptions gracefully
+                std::cerr << "Exception occurred: " << e.what() << std::endl;
+                validInput = false;
+                DrawInvalidInput = true;
+            }
         }
     }
 
     if (currentScreen == 12) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
             opinionTF10.text += key; // Append the character to the input string
+            DrawInvalidInput = false;
         }
         else if (key == 8 && opinionTF10.text != "") { // Backspace key
             opinionTF10.text.pop_back(); // Remove the last character from input string
+            DrawInvalidInput = false;
         }
         else if (key == 13) { // Enter key
-            // Print the entered text to the terminal
-            std::cout << "Entered text: " << opinionTF10.text << std::endl;
-            std::pair<BSO::Structural_Design::Components::Point*, BSO::Structural_Design::Components::Point*> p_delete = Stab_model->getBoundaryPoints(std::stoi(clean_str(opinionTF10.text)));
-            std::cout << "Got boundary points" << std::endl;
-            Stab_model->delete_element(std::stoi(clean_str(opinionTF10.text)));
-            std::cout << "Deleted element" << std::endl;
-            // Write the entered text to the process file
-            writeToProcessFile("process2.csv", "Delete diagonal rod", opinionTF10.text);
-            opinionTF10.text = ""; // Clear the input string after processing
-            changeScreen(2);
+            bool validInput = true; // Flag to track if the input is valid
+            DrawInvalidInput = false;
+
+            try {
+                // Print the entered text to the terminal
+                std::cout << "Entered text: " << opinionTF10.text << std::endl;
+                int elementIndex = std::stoi(clean_str(opinionTF10.text));
+                std::pair<BSO::Structural_Design::Components::Point*, BSO::Structural_Design::Components::Point*> p_delete = Stab_model->getBoundaryPoints(elementIndex);
+                Stab_model->delete_element(elementIndex);
+
+                // Write the entered text to the process file
+                writeToProcessFile("process2.csv", "Delete diagonal rod", opinionTF10.text);
+
+                opinionTF10.text = ""; // Clear the input string after processing
+                changeScreen(2);
+                TrussCount--;
+            }
+            catch (const std::invalid_argument& e) {
+                // Handle invalid input gracefully
+                std::cerr << "Invalid input: " << e.what() << std::endl;
+                validInput = false;
+                DrawInvalidInput = true;
+            }
+            catch (const std::out_of_range& e) {
+                // Handle out of range input gracefully
+                std::cerr << "Out of range input: " << e.what() << std::endl;
+                validInput = false;
+                DrawInvalidInput = true;
+            }
+            catch (const std::exception& e) {
+                // Handle any other exceptions gracefully
+                std::cerr << "Exception occurred: " << e.what() << std::endl;
+                validInput = false;
+                DrawInvalidInput = true;
+            }
         }
     }
 
     if (currentScreen == 13) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
             opinionTF11.text += key; // Append the character to the input string
+            DrawInvalidInput = false;
         }
         else if (key == 8 && opinionTF11.text != "") { // Backspace key
             opinionTF11.text.pop_back(); // Remove the last character from input string
+            DrawInvalidInput = false;
         }
         else if (key == 13) { // Enter key
-            // Print the entered text to the terminal
-            std::cout << "Entered text: " << opinionTF11.text << std::endl;
-            std::pair<BSO::Structural_Design::Components::Point*, BSO::Structural_Design::Components::Point*> p_delete = Stab_model->getBoundaryPoints(std::stoi(clean_str(opinionTF11.text)));
-            std::cout << "Got boundary points" << std::endl;
-            Stab_model->delete_element(std::stoi(clean_str(opinionTF11.text)));
-            std::cout << "Deleted bea," << std::endl;
-            Stab_model->create_manual_truss(p_delete);
-            // Write the entered text to the process file
-            writeToProcessFile("process2.csv", "Replace beam by rod", opinionTF11.text);
-            opinionTF11.text = ""; // Clear the input string after processing
-            changeScreen(2);
+            bool validInput = true; // Flag to track if the input is valid
+            DrawInvalidInput = false;
+
+            try {
+                // Print the entered text to the terminal
+                std::cout << "Entered text: " << opinionTF11.text << std::endl;
+
+                int elementIndex = std::stoi(clean_str(opinionTF11.text));
+
+                std::pair<BSO::Structural_Design::Components::Point*, BSO::Structural_Design::Components::Point*> p_delete = Stab_model->getBoundaryPoints(elementIndex);
+
+                Stab_model->delete_element(elementIndex);
+                Stab_model->create_manual_truss(p_delete);
+
+                // Write the entered text to the process file
+                writeToProcessFile("process2.csv", "Replace beam by rod", opinionTF11.text);
+
+                opinionTF11.text = ""; // Clear the input string after processing
+                changeScreen(2);
+                BeamCount--;
+            }
+            catch (const std::invalid_argument& e) {
+                // Handle invalid input gracefully
+                std::cerr << "Invalid input: " << e.what() << std::endl;
+                validInput = false;
+                DrawInvalidInput = true;
+            }
+            catch (const std::out_of_range& e) {
+                // Handle out of range input gracefully
+                std::cerr << "Out of range input: " << e.what() << std::endl;
+                validInput = false;
+                DrawInvalidInput = true;
+            }
+            catch (const std::exception& e) {
+                // Handle any other exceptions gracefully
+                std::cerr << "Exception occurred: " << e.what() << std::endl;
+                validInput = false;
+                DrawInvalidInput = true;
+            }
         }
     }
 
@@ -1077,9 +1202,16 @@ void LineDivisionScreen() {
 void screen3() {
     LineDivisionScreen();
 
-    // Draw the counter area
-    drawText("Number of diagonals: 0", 1200, screenHeight - 100, 200);
-    drawText("Number of beams: 0", 1200, screenHeight - 120, 200);
+    //draw a message when input is invalid. it is handled in the keyboard function
+    if (DrawInvalidInput == true) {
+        drawText("Invalid input.", 1645, 170, 200);
+    }
+
+    // Draw the counter area, which updates based on the user's actions
+    std::string TrussCountStr = "Number of diagonals: " + std::to_string(TrussCount);
+    drawText(TrussCountStr.c_str(), 1200, screenHeight - 100, 200);
+    std::string BeamCountStr = "Number of beams: " + std::to_string(BeamCount);
+    drawText(BeamCountStr.c_str(), 1200, screenHeight - 120, 200);
 
     // Draw control buttons (right side)
     drawText("Add elements", screenWidth - 170, 720, 200);
@@ -1089,7 +1221,7 @@ void screen3() {
     drawButton("Delete diagonal rod", screenWidth - 310, 500, 200, 50, changeScreen, 12);
     drawButton("Replace beam by rod", screenWidth - 310, 440, 200, 50, changeScreen, 13);
 
-    drawButton("Hide member numbers", 1100, 50, 200, 50, buttonClicked, 1);
+    //drawButton("Hide member numbers", 1100, 50, 200, 50, buttonClicked, 1);
 
     // Draw the message at the top of the structure illustration
     drawBoldText("Stabilize the structural design with minimal structural adjustments. Say aloud everything you think and do; thus, explain your reasoning.", 1550, screenHeight - 35, 280, 1);
@@ -1105,8 +1237,8 @@ void screen3() {
     glEnd();
     //underline INSTRUCTIONS
     glBegin(GL_LINES);
-    glVertex2f(1572.0, 779.0);
-    glVertex2f(1720.0, 779.0);
+    glVertex2f(1568.0, 779.0);
+    glVertex2f(1716.0, 779.0);
     glEnd();
 
     // Draw the "Next step" button in the bottom right corner
@@ -1291,7 +1423,7 @@ void screenAddTrussDiagonally() {
     drawText("Enter two opposite members to place the diagonal between:", 1575, 330, 275);
     drawTextField(screenWidth - 355, 250, 150, 50, opinionTF7);
     drawTextField(screenWidth - 195, 250, 150, 50, opinionTF8);
-    drawText("Use the 'Tab' key to swith input fields", screenWidth - 110, 390, 500);
+    //drawText("Use the 'Tab' key to swith input fields", screenWidth - 110, 390, 500);
     drawText("Press enter to submit", screenWidth - 60, 370, 500);
 
     //draw lines around it

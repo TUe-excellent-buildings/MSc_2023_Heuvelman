@@ -41,9 +41,10 @@ struct TextField {
     std::string text;
     int cursorPosition;
     bool isActive;
+    float x, y, width, height; // Add x, y, width, and height to make them clickable
 
     // Constructor
-    TextField() : cursorPosition(0), isActive(false) {}
+    TextField() : cursorPosition(0), isActive(false), x(0), y(0), width(0), height(0) {}
 
     // Add a character where the cursor is
     void addChar(char c) {
@@ -331,7 +332,56 @@ void drawText(const char* text, float centerX, float centerY, float textWidth) {
         // Check if we need to wrap the line
         if ((currentX - startX > effectiveTextWidth) && (*c == ' ' || *c == '\n')) {
             currentY -= lineHeight;
-            currentX = startX;
+            currentX = startX-4;
+        }
+
+        glRasterPos2f(currentX, currentY);
+
+        // Set text color to black
+        glColor3f(0.0, 0.0, 0.0); // black color for text
+
+        // Draw the character
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
+
+        // Move to the next character position
+        currentX += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *c);
+    }
+}
+
+// Function to draw text centered within a given width, used within the draw button function. 
+void drawTextCentered(const char* text, float centerX, float centerY, float textWidth) {
+    float lineHeight = 18; // Approximate line height, adjust as needed
+    float effectiveTextWidth = textWidth - 2 * MARGIN_PERCENT; // Effective width after considering margins
+
+    float totalLineWidth = 0.0f; // Total width of the current line
+    float maxLineWidth = 0.0f; // Maximum width among all lines
+
+    for (const char* c = text; *c != '\0'; c++) {
+        // Check for line break
+        if (*c == '\n') {
+            maxLineWidth = fmax(maxLineWidth, totalLineWidth);
+            totalLineWidth = 0.0f; // Reset total width for the new line
+            continue;
+        }
+
+        // Accumulate width of each character
+        totalLineWidth += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *c);
+    }
+    // Update maxLineWidth if needed (in case the last line didn't have a line break)
+    maxLineWidth = fmax(maxLineWidth, totalLineWidth);
+
+    // Calculate the starting position (center align within the margin)
+    float startX = centerX - maxLineWidth / 2.0f;
+    float currentX = startX;
+    float currentY = centerY;
+
+    for (const char* c = text; *c != '\0'; c++) {
+        // Check for line break
+        if (*c == '\n') {
+            // Move to the next line
+            currentY -= lineHeight;
+            currentX = startX; // Reset X position for the new line
+            continue;
         }
 
         glRasterPos2f(currentX, currentY);
@@ -745,12 +795,12 @@ void drawButton(const char *text, float x, float y, float width, float height, B
 
     // Centered text within the button with margin
     float centerX = x + width / 2;
-    float centerY = y + height / 2;
+    float centerY = y + (height - 11) / 2;
     float textWidth = width - 2 * MARGIN_PERCENT; // Text width considering margin
 
     // Set text color to black
     glColor3f(0.0, 0.0, 0.0);
-    drawText(text, centerX, centerY, textWidth);
+    drawTextCentered(text, centerX, centerY, textWidth);
 
     Button button = {x, y, width, height, callback, text, variable};
     buttons.push_back(button);
@@ -789,18 +839,22 @@ void drawButtonWithBackgroundColor(const char* text, float x, float y, float wid
 
     // Centered text within the button with margin
     float centerX = x + width / 2;
-    float centerY = y + height / 2;
+    float centerY = y + (height - 11) / 2;
     float textWidth = width - 2 * MARGIN_PERCENT; // Text width considering margin
 
     // Set text color to black
     glColor3f(0.0, 0.0, 0.0);
-    drawText(text, centerX, centerY, textWidth);
+    drawTextCentered(text, centerX, centerY, textWidth);
 
     Button button = { x, y, width, height, callback, text, variable };
     buttons.push_back(button);
 }
 
 void drawTextField(int x, int y, int width, int height, TextField& textfield) {
+    textfield.x = x;
+    textfield.y = y;
+    textfield.width = width;
+    textfield.height = height;
     float borderWidth = 2.0;
 
     // Calculate the adjusted width and height considering padding
@@ -879,9 +933,19 @@ void drawTextField(int x, int y, int width, int height, TextField& textfield) {
         int cursorY = startY; // Use the same starting Y coordinate as the text
         glColor3f(0.0, 0.0, 0.0); // black cursor
         glBegin(GL_LINES);
-        glVertex2f(cursorX, cursorY - 18); // Adjust the Y coordinate to draw the cursor above the text
-        glVertex2f(cursorX, cursorY - 3);  // Adjust the Y coordinate to draw the cursor above the text
+        glVertex2f(cursorX + 2, cursorY + 18); // Adjust the Y coordinate to draw the cursor above the text
+        glVertex2f(cursorX + 2, cursorY - 3);  // Adjust the Y coordinate to draw the cursor above the text
         glEnd();
+    }
+}
+
+void checkTextFieldClick(TextField& textField, float mouseX, float mouseY) {
+    if (mouseX >= textField.x && mouseX <= textField.x + textField.width &&
+        mouseY >= textField.y && mouseY <= textField.y + textField.height) {
+        textField.isActive = true; // Activate the clicked text field
+    }
+    else {
+        textField.isActive = false; // Deactivate the text field if not clicked
     }
 }
 
@@ -890,6 +954,21 @@ void onMouseClick(int button, int state, int x, int y) {
         float mouseY = screenHeight - static_cast<float>(y);
         float mouseX = static_cast<float>(x);
 
+        // Check each text field individually
+        checkTextFieldClick(opinionTF, mouseX, mouseY);
+        checkTextFieldClick(opinionTF2, mouseX, mouseY);
+        checkTextFieldClick(opinionTF3, mouseX, mouseY);
+        checkTextFieldClick(opinionTF4, mouseX, mouseY);
+        checkTextFieldClick(opinionTF5, mouseX, mouseY);
+        checkTextFieldClick(opinionTF6, mouseX, mouseY);
+        checkTextFieldClick(opinionTF7, mouseX, mouseY);
+        checkTextFieldClick(opinionTF8, mouseX, mouseY);
+        checkTextFieldClick(opinionTF9, mouseX, mouseY);
+        checkTextFieldClick(opinionTF10, mouseX, mouseY);
+        checkTextFieldClick(opinionTF11, mouseX, mouseY);
+        checkTextFieldClick(opinionTF12, mouseX, mouseY);
+
+        // Check for button clicks
         for (const auto& btn : buttons) {
             if (mouseX >= btn.x && mouseX <= btn.x + btn.width &&
                 mouseY >= btn.y && mouseY <= btn.y + btn.height) {

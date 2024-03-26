@@ -42,9 +42,10 @@ struct TextField {
     std::string text;
     int cursorPosition;
     bool isActive;
+    float x, y, width, height; // Add x, y, width, and height to make them clickable
 
     // Constructor
-    TextField() : cursorPosition(0), isActive(false) {}
+    TextField() : cursorPosition(0), isActive(false), x(0), y(0), width(0), height(0) {}
 
     // Add a character where the cursor is
     void addChar(char c) {
@@ -101,6 +102,12 @@ const int screenHeight = 1000;
 
 // Text margin as a percentage of the window width
 const float MARGIN_PERCENT = 5.0f; // Margin as a percentage of the window width
+
+// Variable to keep track of BSD modifications
+int modificationCount = 0;
+// Draw a message when input is invalid
+bool DrawInvalidInput = false;
+
 
 // Function prototypes
 void display();
@@ -339,6 +346,7 @@ void changeScreen(int screen) {
     currentScreen = screen;
     std::cout << "Changing to screen: " << screen << std::endl;
     selectedButtonLabel = "";
+    DrawInvalidInput = false;
     initializeScreen();
 
     // Define separate flags for each group of screens
@@ -562,7 +570,7 @@ void drawText(const char* text, float centerX, float centerY, float textWidth) {
         // Check if we need to wrap the line
         if ((currentX - startX > effectiveTextWidth) && (*c == ' ' || *c == '\n')) {
             currentY -= lineHeight;
-            currentX = startX;
+            currentX = startX-4;
         }
 
         glRasterPos2f(currentX, currentY);
@@ -578,6 +586,7 @@ void drawText(const char* text, float centerX, float centerY, float textWidth) {
     }
 }
 
+//Function to draw small text (size 12). Same as the ormal drawText function, but with a different font size.
 void drawText2(const char* text, float centerX, float centerY, float textWidth) {
     float lineHeight = 14; // Approximate line height for font size 12
     float effectiveTextWidth = textWidth - 2 * MARGIN_PERCENT; // Effective width after considering margins
@@ -604,6 +613,55 @@ void drawText2(const char* text, float centerX, float centerY, float textWidth) 
 
         // Move to the next character position
         currentX += glutBitmapWidth(GLUT_BITMAP_HELVETICA_12, *c);
+    }
+}
+
+// Function to draw text centered within a given width, used within the draw button function. 
+void drawTextCentered(const char* text, float centerX, float centerY, float textWidth) {
+    float lineHeight = 18; // Approximate line height, adjust as needed
+    float effectiveTextWidth = textWidth - 2 * MARGIN_PERCENT; // Effective width after considering margins
+
+    float totalLineWidth = 0.0f; // Total width of the current line
+    float maxLineWidth = 0.0f; // Maximum width among all lines
+
+    for (const char* c = text; *c != '\0'; c++) {
+        // Check for line break
+        if (*c == '\n') {
+            maxLineWidth = fmax(maxLineWidth, totalLineWidth);
+            totalLineWidth = 0.0f; // Reset total width for the new line
+            continue;
+        }
+
+        // Accumulate width of each character
+        totalLineWidth += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *c);
+    }
+    // Update maxLineWidth if needed (in case the last line didn't have a line break)
+    maxLineWidth = fmax(maxLineWidth, totalLineWidth);
+
+    // Calculate the starting position (center align within the margin)
+    float startX = centerX - maxLineWidth / 2.0f;
+    float currentX = startX;
+    float currentY = centerY;
+
+    for (const char* c = text; *c != '\0'; c++) {
+        // Check for line break
+        if (*c == '\n') {
+            // Move to the next line
+            currentY -= lineHeight;
+            currentX = startX; // Reset X position for the new line
+            continue;
+        }
+
+        glRasterPos2f(currentX, currentY);
+
+        // Set text color to black
+        glColor3f(0.0, 0.0, 0.0); // black color for text
+
+        // Draw the character
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
+
+        // Move to the next character position
+        currentX += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *c);
     }
 }
 
@@ -944,7 +1002,6 @@ std::vector<int> parseValues(const std::string& input, char delimiter) {
     return values;
 }
 
-
 void keyboard(unsigned char key, int x, int y) {
 
     GLenum err;
@@ -1069,6 +1126,7 @@ void keyboard(unsigned char key, int x, int y) {
             else if (opinionTF14.isActive) {
                 opinionTF14.text += key; // Append the character to the input string
             }
+            DrawInvalidInput = false;
         }
         else if (key == 8) { // Backspace key
             if (opinionTF13.isActive && !opinionTF13.text.empty()) {
@@ -1077,14 +1135,16 @@ void keyboard(unsigned char key, int x, int y) {
             else if (opinionTF14.isActive && !opinionTF14.text.empty()) {
                 opinionTF14.text.pop_back(); // Remove the last character from input string
             }
+            DrawInvalidInput = false;
         }
         else if (key == 13) { // Enter key
             bool validInput = true; // Flag to track if the input is valid
+            DrawInvalidInput = false;
             //Needed variables
             std::shared_ptr<BSO::Spatial_Design::MS_Building> msBuilding = MS;
             BSO::Spatial_Design::MS_Space new_space;
-            double x, y, z;
-            double width, depth, height;
+            double x1 = 0.0, y1 = 0.0, z1 = 0.0;
+            double width1 = 0.0, depth1 = 0.0, height1 = 0.0;
 
             if (!opinionTF13.text.empty()) {
                 // Print the entered text from opinionTF13 to the terminal
@@ -1094,13 +1154,14 @@ void keyboard(unsigned char key, int x, int y) {
 
                 std::vector<int> sizes = parseValues(opinionTF13.text, ',');
                 if (sizes.size() == 3) {
-                    width = sizes[0];
-                    depth = sizes[1];
-                    height = sizes[2];
+                    width1 = sizes[0] * 1000;
+                    depth1 = sizes[1] * 1000;
+                    height1 = sizes[2] * 1000;
                 }
                 else {
                     std::cout << "Invalid input format" << std::endl;
                     validInput = false;
+                    DrawInvalidInput = true;
                 }
             }
 
@@ -1112,51 +1173,63 @@ void keyboard(unsigned char key, int x, int y) {
 
                 std::vector<int> location = parseValues(opinionTF14.text, ',');
                 if (location.size() == 3) {
-                    x = location[0];
-                    y = location[1];
-                    z = location[2];
+                    x1 = location[0] * 1000;
+                    y1 = location[1] * 1000;
+                    z1 = location[2] * 1000;
                 }
                 else {
                     std::cout << "Invalid input format" << std::endl;
                     validInput = false;
+                    DrawInvalidInput = true;
                 }
             }
 
             if (validInput) {
-                int nextID = 1;
-                for (int i = 1; i <= 11; ++i) {
-                    bool spaceExists = false;
-                    for (int j = 0; j < MS->obtain_space_count(); ++j) {
-                        if (MS->get_space_ID(j) == i) {
-                            spaceExists = true;
+                DrawInvalidInput = false;
+                if (modificationCount < 7) { // Check if modification count is less than 7
+                    int nextID = 1;
+                    for (int i = 1; i <= 20; ++i) {
+                        bool spaceExists = false;
+                        for (int j = 0; j < MS->obtain_space_count(); ++j) {
+                            if (MS->get_space_ID(j) == i) {
+                                spaceExists = true;
+                                break;
+                            }
+                        }
+                        if (!spaceExists) {
+                            // Found an available ID, set it to nextID and exit the loop
+                            nextID = i;
                             break;
                         }
                     }
-                    if (!spaceExists) {
-                        // Found an available ID, set it to nextID and exit the loop
-                        nextID = i;
-                        break;
+
+                    // add space
+                    new_space.ID = nextID;
+                    new_space.x = x1;
+                    new_space.y = y1;
+                    new_space.z = z1;
+                    new_space.width = width1;
+                    new_space.depth = depth1;
+                    new_space.height = height1;
+                    // Set other space properties as needed...
+                    std::cout << "Added space " << new_space.ID << " with location and size: (" << new_space.x << ", " << new_space.y << ", " << new_space.z << ", " << new_space.width << ", " << new_space.depth << ", " << new_space.height << ")" << std::endl;
+                    // Add the space to the building
+                    MS->add_space(new_space);
+
+                    // Clear the input strings after processing
+                    opinionTF13.text = "";
+                    opinionTF14.text = "";
+                    // Change the screen after processing both text fields
+                    changeScreen(5);
+                    modificationCount++;
+
+                    if (modificationCount == 7) {
+                        // If modification count reaches 7, change the message on screen3d
                     }
                 }
-
-                // add space
-                new_space.ID = nextID;
-                new_space.x = x;
-                new_space.y = y;
-                new_space.z = z;
-                new_space.width = width;
-                new_space.depth = depth;
-                new_space.height = height;
-                // Set other space properties as needed...
-                std::cout << "Added space " << new_space.ID << " with location and size: (" << new_space.x << ", " << new_space.y << ", " << new_space.z << ", " << new_space.width << ", " << new_space.depth << ", " << new_space.height << ")" << std::endl;
-                // Add the space to the building
-                MS->add_space(new_space);
-
-                // Clear the input strings after processing
-                opinionTF13.text = "";
-                opinionTF14.text = "";
-                // Change the screen after processing both text fields
-                changeScreen(5);
+                else {
+                    // If modification count is already 7, display the message on screen3d
+                }
             }
         }
         else if (key == '\t') { // Tab key
@@ -1169,12 +1242,15 @@ void keyboard(unsigned char key, int x, int y) {
     if (currentScreen == 19) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
             opinionTF15.text += key; // Append the character to the input string
+            DrawInvalidInput = false;
         }
         else if (key == 8 && opinionTF15.text != "") { // Backspace key
             opinionTF15.text.pop_back(); // Remove the last character from input string
+            DrawInvalidInput = false;
         }
         else if (key == 13) { // Enter key
             bool validInput = true; // Flag to track if the input is valid
+            DrawInvalidInput = false;
             if (!opinionTF15.text.empty()) {
                 // Print the entered text to the terminal
                 std::cout << "Entered text: " << opinionTF15.text << std::endl;
@@ -1187,14 +1263,24 @@ void keyboard(unsigned char key, int x, int y) {
                     // Handle invalid space ID format gracefully
                     std::cout << "Error: Invalid space ID format." << std::endl;
                     validInput = false;
+                    DrawInvalidInput = true;
                 }
                 else {
+                    // Check if the space ID exists in the list of spaces
+                    bool spaceFound = false;
                     // Get the index of the space with the specified ID
-                    int space_index = MS->get_space_index(space_ID);
-                    if (space_index < 0) {
+                    for (int i = 0; i < MS->obtain_space_count(); ++i) {
+                        if (MS->get_space_ID(i) == space_ID) {
+                            spaceFound = true;
+                            int space_index = MS->get_space_index(space_ID);
+                            break;
+                        }
+                    }
+                    if (!spaceFound) {
                         // Handle space not found gracefully
                         std::cout << "Error: Space with ID " << space_ID << " not found." << std::endl;
                         validInput = false;
+                        DrawInvalidInput = true;
                     }
                 }
             }
@@ -1202,19 +1288,31 @@ void keyboard(unsigned char key, int x, int y) {
                 // Handle empty space ID input gracefully
                 std::cout << "Error: Space ID input is empty." << std::endl;
                 validInput = false;
+                DrawInvalidInput = true;
             }
 
             if (validInput) {
-                // Delete the space at the specified index
-                std::stringstream ss(opinionTF15.text);
-                int space_ID;
-                ss >> space_ID;
+                DrawInvalidInput = false;
+                if (modificationCount < 7) { // Check if modification count is less than 7
+                    // Delete the space at the specified index
+                    std::stringstream ss(opinionTF15.text);
+                    int space_ID;
+                    ss >> space_ID;
 
-                int space_index = MS->get_space_index(space_ID);
-                MS->delete_space(space_index);
+                    int space_index = MS->get_space_index(space_ID);
+                    MS->delete_space(space_index);
 
-                opinionTF15.text = ""; // Clear the input string after processing
-                changeScreen(5);
+                    opinionTF15.text = ""; // Clear the input string after processing
+                    changeScreen(5);
+                    modificationCount++;
+
+                    if (modificationCount == 7) {
+                        // If modification count reaches 7, change the message on screen3d
+                    }
+                }
+                else {
+                    // If modification count is already 7, display the message on screen3d
+                }
             }
             else {
                 // Handle empty space ID input gracefully
@@ -1224,15 +1322,8 @@ void keyboard(unsigned char key, int x, int y) {
     }
 
     if (currentScreen == 20) {
-        bool validInput = true; // Flag to track if the input is valid
-        //Needed variables
-        std::shared_ptr<BSO::Spatial_Design::MS_Building> msBuilding = MS;
-        BSO::Spatial_Design::MS_Space new_space;
-
-        double x, y, z;
-        double width, depth, height;
-
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
+            DrawInvalidInput = false;
             if (opinionTF16.isActive) {
                 opinionTF16.text += key; // Append the character to the input string
             }
@@ -1241,6 +1332,7 @@ void keyboard(unsigned char key, int x, int y) {
             }
         }
         else if (key == 8) { // Backspace key
+            DrawInvalidInput = false;
             if (opinionTF16.isActive && !opinionTF16.text.empty()) {
                 opinionTF16.text.pop_back(); // Remove the last character from input string
             }
@@ -1249,6 +1341,14 @@ void keyboard(unsigned char key, int x, int y) {
             }
         }
         else if (key == 13) { // Enter key
+            bool validInput = true; // Flag to track if the input is valid
+            DrawInvalidInput = false;
+            //Needed variables
+            std::shared_ptr<BSO::Spatial_Design::MS_Building> msBuilding = MS;
+            BSO::Spatial_Design::MS_Space new_space;
+            double x3 = 0.0, y3 = 0.0, z3 = 0.0;
+            double width3 = 0.0, depth3 = 0.0, height3 = 0.0;
+
             if (!opinionTF16.text.empty()) {
                 // Print the entered text from opinionTF16 to the terminal
                 std::cout << "Entered text (opinionTF16): " << opinionTF16.text << std::endl;
@@ -1262,14 +1362,24 @@ void keyboard(unsigned char key, int x, int y) {
                     // Handle invalid space ID format gracefully
                     std::cout << "Error: Invalid space ID format." << std::endl;
                     validInput = false;
+                    DrawInvalidInput = true;
                 }
                 else {
+                    // Check if the space ID exists in the list of spaces
+                    bool spaceFound = false;
                     // Get the index of the space with the specified ID
-                    int space_index = MS->get_space_index(space_ID);
-                    if (space_index < 0) {
+                    for (int i = 0; i < MS->obtain_space_count(); ++i) {
+                        if (MS->get_space_ID(i) == space_ID) {
+                            spaceFound = true;
+                            int space_index = MS->get_space_index(space_ID);
+                            break;
+                        }
+                    }
+                    if (!spaceFound) {
                         // Handle space not found gracefully
                         std::cout << "Error: Space with ID " << space_ID << " not found." << std::endl;
                         validInput = false;
+                        DrawInvalidInput = true;
                     }
                 }
             }
@@ -1285,50 +1395,64 @@ void keyboard(unsigned char key, int x, int y) {
                     // Handle invalid location format gracefully
                     std::cout << "Error: Invalid location format." << std::endl;
                     validInput = false;
+                    DrawInvalidInput = true;
                 }
             }
             else {
                 // Handle empty location input gracefully
                 std::cout << "Error: Location input is empty." << std::endl;
                 validInput = false;
+                DrawInvalidInput = true;
             }
 
             if (validInput) {
-                std::vector<int> location = parseValues(opinionTF17.text, ',');
-                int x = location[0];
-                int y = location[1];
-                int z = location[2];
+                DrawInvalidInput = false;
+                if (modificationCount < 7) { // Check if modification count is less than 7
+                    std::vector<int> location = parseValues(opinionTF17.text, ',');
+                    int x3 = location[0] * 1000;
+                    int y3 = location[1] * 1000;
+                    int z3 = location[2] * 1000;
 
-                // Delete the space at the specified index
-                std::stringstream ss(opinionTF16.text);
-                int space_ID;
-                ss >> space_ID;
+                    // Delete the space at the specified index
+                    std::stringstream ss(opinionTF16.text);
+                    int space_ID;
+                    ss >> space_ID;
 
-                int space_index = MS->get_space_index(space_ID);
-                MS->delete_space(space_index);
+                    int space_index = MS->get_space_index(space_ID);
+                    //current sizes of the space
+                    BSO::Spatial_Design::MS_Space space = msBuilding->obtain_space(space_index);
+                    std::cout << "Width: " << space.width << ", Depth: " << space.depth << ", Height: " << space.height << std::endl;
 
-                //current sizes of the space
-                BSO::Spatial_Design::MS_Space space = msBuilding->obtain_space(space_index);
-                std::cout << "Width: " << space.width << ", Depth: " << space.depth << ", Height: " << space.height << std::endl;
+                    MS->delete_space(space_index);
 
-                // Create a new space object with the parsed properties
-                new_space.ID = space_ID;
-                new_space.x = x;
-                new_space.y = y;
-                new_space.z = z;
-                new_space.width = space.width; //existing width
-                new_space.depth = space.depth; //existing depth
-                new_space.height = space.height; //existing height
-                // Set other space properties as needed...
-                std::cout << "Moved space " << new_space.ID << " to location: (" << new_space.x << ", " << new_space.y << ", " << new_space.z << ")" << std::endl;
-                // Add the space to the building
-                MS->add_space(new_space);
+                    // Create a new space object with the parsed properties
+                    BSO::Spatial_Design::MS_Space new_space;
+                    new_space.ID = space_ID;
+                    new_space.x = x3;
+                    new_space.y = y3;
+                    new_space.z = z3;
+                    new_space.width = space.width; //existing width
+                    new_space.depth = space.depth; //existing depth
+                    new_space.height = space.height; //existing height
+                    // Set other space properties as needed...
+                    std::cout << "Moved space " << new_space.ID << " to location: (" << new_space.x << ", " << new_space.y << ", " << new_space.z << ")" << std::endl;
+                    // Add the space to the building
+                    MS->add_space(new_space);
 
-                // Clear the input strings after processing
-                opinionTF16.text = "";
-                opinionTF17.text = "";
-                // Change the screen after processing both text fields
-                changeScreen(5);
+                    // Clear the input strings after processing
+                    opinionTF16.text = "";
+                    opinionTF17.text = "";
+                    // Change the screen after processing both text fields
+                    changeScreen(5);
+                    modificationCount++;
+
+                    if (modificationCount == 7) {
+                        // If modification count reaches 7, change the message on screen3d
+                    }
+                }
+                else {
+                    // If modification count is already 7, display the message on screen3d
+                }
             }
         }
         else if (key == '\t') { // Tab key
@@ -1339,12 +1463,8 @@ void keyboard(unsigned char key, int x, int y) {
     }
 
     if (currentScreen == 21) {
-        bool validInput = true; // Flag to track if the input is valid
-        //Needed variables
-        std::shared_ptr<BSO::Spatial_Design::MS_Building> msBuilding = MS;
-        BSO::Spatial_Design::MS_Space new_space;
-
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
+            DrawInvalidInput = false;
             if (opinionTF18.isActive) {
                 opinionTF18.text += key; // Append the character to the input string
             }
@@ -1353,6 +1473,7 @@ void keyboard(unsigned char key, int x, int y) {
             }
         }
         else if (key == 8) { // Backspace key
+            DrawInvalidInput = false;
             if (opinionTF18.isActive && !opinionTF18.text.empty()) {
                 opinionTF18.text.pop_back(); // Remove the last character from input string
             }
@@ -1361,6 +1482,14 @@ void keyboard(unsigned char key, int x, int y) {
             }
         }
         else if (key == 13) { // Enter key
+            bool validInput = true; // Flag to track if the input is valid
+            DrawInvalidInput = false;
+            //Needed variables
+            std::shared_ptr<BSO::Spatial_Design::MS_Building> msBuilding = MS;
+            BSO::Spatial_Design::MS_Space new_space;
+            double x4 = 0.0, y4 = 0.0, z4 = 0.0;
+            double width4 = 0.0, depth4 = 0.0, height4 = 0.0;
+
             if (!opinionTF18.text.empty()) {
                 // Print the entered text from opinionTF18 to the terminal
                 std::cout << "Entered text (opinionTF18): " << opinionTF18.text << std::endl;
@@ -1373,14 +1502,24 @@ void keyboard(unsigned char key, int x, int y) {
                     // Handle invalid space ID format gracefully
                     std::cout << "Error: Invalid space ID format." << std::endl;
                     validInput = false;
+                    DrawInvalidInput = true;
                 }
                 else {
+                    // Check if the space ID exists in the list of spaces
+                    bool spaceFound = false;
                     // Get the index of the space with the specified ID
-                    int space_index = MS->get_space_index(space_ID);
-                    if (space_index < 0) {
+                    for (int i = 0; i < MS->obtain_space_count(); ++i) {
+                        if (MS->get_space_ID(i) == space_ID) {
+                            spaceFound = true;
+                            int space_index = MS->get_space_index(space_ID);
+                            break;
+                        }
+                    }
+                    if (!spaceFound) {
                         // Handle space not found gracefully
                         std::cout << "Error: Space with ID " << space_ID << " not found." << std::endl;
                         validInput = false;
+                        DrawInvalidInput = true;
                     }
                 }
             }
@@ -1395,50 +1534,64 @@ void keyboard(unsigned char key, int x, int y) {
                     // Handle invalid location format gracefully
                     std::cout << "Error: Invalid location format." << std::endl;
                     validInput = false;
+                    DrawInvalidInput = true;
                 }
             }
             else {
                 // Handle empty location input gracefully
                 std::cout << "Error: Location input is empty." << std::endl;
                 validInput = false;
+                DrawInvalidInput = true;
             }
 
             if (validInput) {
-                std::vector<int> sizes = parseValues(opinionTF19.text, ',');
-                int width = sizes[0];
-                int depth = sizes[1];
-                int height = sizes[2];
+                DrawInvalidInput = false;
+                if (modificationCount < 7) { // Check if modification count is less than 7
+                    std::vector<int> sizes = parseValues(opinionTF19.text, ',');
+                    int width4 = sizes[0] * 1000;
+                    int depth4 = sizes[1] * 1000;
+                    int height4 = sizes[2] * 1000;
 
-                // Delete the space at the specified index
-                std::stringstream ss(opinionTF18.text);
-                int space_ID;
-                ss >> space_ID;
+                    // Delete the space at the specified index
+                    std::stringstream ss(opinionTF18.text);
+                    int space_ID;
+                    ss >> space_ID;
 
-                int space_index = MS->get_space_index(space_ID);
-                MS->delete_space(space_index);
+                    int space_index = MS->get_space_index(space_ID);
+                    //current sizes of the space
+                    BSO::Spatial_Design::MS_Space space = msBuilding->obtain_space(space_index);
+                    std::cout << "Width: " << space.width << ", Depth: " << space.depth << ", Height: " << space.height << std::endl;
 
-                //current sizes of the space
-                BSO::Spatial_Design::MS_Space space = msBuilding->obtain_space(space_index);
-                std::cout << "Width: " << space.width << ", Depth: " << space.depth << ", Height: " << space.height << std::endl;
+                    MS->delete_space(space_index);
 
-                // Create a new space object with the parsed properties
-                new_space.ID = space_ID;
-                new_space.x = space.x; //existing x
-                new_space.y = space.y; //existing y
-                new_space.z = space.z; //existing z
-                new_space.width = width;
-                new_space.depth = depth;
-                new_space.height = height;
-                // Set other space properties as needed...
-                std::cout << "Resized space " << new_space.ID << " to location: (" << new_space.width << ", " << new_space.depth << ", " << new_space.height << ")" << std::endl;
-                // Add the space to the building
-                MS->add_space(new_space);
+                    // Create a new space object with the parsed properties
+                    BSO::Spatial_Design::MS_Space new_space;
+                    new_space.ID = space_ID;
+                    new_space.x = space.x; //existing x
+                    new_space.y = space.y; //existing y
+                    new_space.z = space.z; //existing z
+                    new_space.width = width4;
+                    new_space.depth = depth4;
+                    new_space.height = height4;
+                    // Set other space properties as needed...
+                    std::cout << "Resized space " << new_space.ID << " to location: (" << new_space.width << ", " << new_space.depth << ", " << new_space.height << ")" << std::endl;
+                    // Add the space to the building
+                    MS->add_space(new_space);
 
-                // Clear the input strings after processing
-                opinionTF18.text = "";
-                opinionTF19.text = "";
-                // Change the screen after processing both text fields
-                changeScreen(5);
+                    // Clear the input strings after processing
+                    opinionTF18.text = "";
+                    opinionTF19.text = "";
+                    // Change the screen after processing both text fields
+                    changeScreen(5);
+                    modificationCount++;
+
+                    if (modificationCount == 7) {
+                        // If modification count reaches 7, change the message on screen3d
+                    }
+                }
+                else {
+                    // If modification count is already 7, display the message on screen3d
+                }
             }
         }
         else if (key == '\t') { // Tab key
@@ -1483,12 +1636,12 @@ void drawButton(const char *text, float x, float y, float width, float height, B
 
     // Centered text within the button with margin
     float centerX = x + width / 2;
-    float centerY = y + height / 2;
+    float centerY = y + (height - 11) / 2;
     float textWidth = width - 2 * MARGIN_PERCENT; // Text width considering margin
 
     // Set text color to black
     glColor3f(0.0, 0.0, 0.0);
-    drawText(text, centerX, centerY, textWidth);
+    drawTextCentered(text, centerX, centerY, textWidth);
 
     Button button = {x, y, width, height, callback, text, variable};
     buttons.push_back(button);
@@ -1527,18 +1680,22 @@ void drawButtonWithBackgroundColor(const char* text, float x, float y, float wid
 
     // Centered text within the button with margin
     float centerX = x + width / 2;
-    float centerY = y + height / 2;
+    float centerY = y + (height - 11) / 2;
     float textWidth = width - 2 * MARGIN_PERCENT; // Text width considering margin
 
     // Set text color to black
     glColor3f(0.0, 0.0, 0.0);
-    drawText(text, centerX, centerY, textWidth);
+    drawTextCentered(text, centerX, centerY, textWidth);
 
     Button button = { x, y, width, height, callback, text, variable };
     buttons.push_back(button);
 }
 
 void drawTextField(int x, int y, int width, int height, TextField& textfield) {
+    textfield.x = x;
+    textfield.y = y;
+    textfield.width = width;
+    textfield.height = height;
     float borderWidth = 2.0;
 
     // Calculate the adjusted width and height considering padding
@@ -1617,9 +1774,19 @@ void drawTextField(int x, int y, int width, int height, TextField& textfield) {
         int cursorY = startY; // Use the same starting Y coordinate as the text
         glColor3f(0.0, 0.0, 0.0); // black cursor
         glBegin(GL_LINES);
-        glVertex2f(cursorX, cursorY - 18); // Adjust the Y coordinate to draw the cursor above the text
-        glVertex2f(cursorX, cursorY - 3);  // Adjust the Y coordinate to draw the cursor above the text
+        glVertex2f(cursorX + 2, cursorY + 18); // Adjust the Y coordinate to draw the cursor above the text
+        glVertex2f(cursorX + 2, cursorY - 3);  // Adjust the Y coordinate to draw the cursor above the text
         glEnd();
+    }
+}
+
+void checkTextFieldClick(TextField& textField, float mouseX, float mouseY) {
+    if (mouseX >= textField.x && mouseX <= textField.x + textField.width &&
+        mouseY >= textField.y && mouseY <= textField.y + textField.height) {
+        textField.isActive = true; // Activate the clicked text field
+    }
+    else {
+        textField.isActive = false; // Deactivate the text field if not clicked
     }
 }
 
@@ -1627,6 +1794,29 @@ void onMouseClick(int button, int state, int x, int y) {
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
         float mouseY = screenHeight - static_cast<float>(y);
         float mouseX = static_cast<float>(x);
+
+        // Check each text field individually
+        checkTextFieldClick(opinionTF, mouseX, mouseY);
+        checkTextFieldClick(opinionTF2, mouseX, mouseY);
+        checkTextFieldClick(opinionTF3, mouseX, mouseY);
+        checkTextFieldClick(opinionTF4, mouseX, mouseY);
+        checkTextFieldClick(opinionTF5, mouseX, mouseY);
+        checkTextFieldClick(opinionTF6, mouseX, mouseY);
+        checkTextFieldClick(opinionTF7, mouseX, mouseY);
+        checkTextFieldClick(opinionTF8, mouseX, mouseY);
+        checkTextFieldClick(opinionTF13, mouseX, mouseY);
+        checkTextFieldClick(opinionTF14, mouseX, mouseY);
+        checkTextFieldClick(opinionTF15, mouseX, mouseY);
+        checkTextFieldClick(opinionTF16, mouseX, mouseY);
+        checkTextFieldClick(opinionTF17, mouseX, mouseY);
+        checkTextFieldClick(opinionTF18, mouseX, mouseY);
+        checkTextFieldClick(opinionTF19, mouseX, mouseY);
+        checkTextFieldClick(opinionTF24, mouseX, mouseY);
+        checkTextFieldClick(opinionTF25, mouseX, mouseY);
+        checkTextFieldClick(opinionTF26, mouseX, mouseY);
+        checkTextFieldClick(opinionTF27, mouseX, mouseY);
+
+        // Check for button clicks
 
         for (const auto& btn : buttons) {
             if (mouseX >= btn.x && mouseX <= btn.x + btn.width &&
@@ -1671,7 +1861,7 @@ void mainScreen() {
 }
 
 void assignmentDescriptionScreen() {
-    drawText("Selected Assignment: 2 'Human-AI zoning assignment'​", 900, 740, 400);
+    drawText("Selected Assignment: 3 'Human-AI zoning assignment'​", 900, 740, 400);
     drawText("Expected duration: 25 minutes​", 900, 710, 400);
     drawText("Read the following instructions carefully:​", 900, 650, 400);
     drawText("You will in a moment go through a design task. You are asked to perform this task in the way you are used to go about a commission in your daily practice. It is important that you say aloud everything that you think or do in designing. ​So, in every step, explain what you do and why you do it. Try to keep speaking constantly and not be silent for longer than 20 seconds. ​Please speak English. Good luck!​",
@@ -1735,6 +1925,20 @@ void ReadInstructions3() {
     glVertex2f(1678.0, 843.0);
     glVertex2f(1432.0, 825.0);
     glVertex2f(1485.0, 825.0);
+    glEnd();
+}
+
+void ReadInstructions4() {
+    //Message to summarize most important information and to refer to the full information in the instructions
+    drawText("Please refer to the information sheet for more information about zoning and SD.  ", 1550, screenHeight - 220, 250);
+    //underline INSTRUCTIONS
+    glLineWidth(1.4);
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(1582.0, 778.0);
+    glVertex2f(1678.0, 778.0);
+    glVertex2f(1432.0, 760.0);
+    glVertex2f(1485.0, 760.0);
     glEnd();
 }
 
@@ -1823,21 +2027,40 @@ void screen3d() {
     LineDivisionScreen();
 
     // Draw counter area
-    drawText("Modifications: 0/7", 1300, screenHeight - 100, 200);
+    //drawText("Modifications: 0/7", 1300, screenHeight - 100, 200);
+    std::string modificationCountStr = "Modifications: " + std::to_string(modificationCount) + "/7";
+    drawText(modificationCountStr.c_str(), 1300, screenHeight - 100, 200);
+    
+    //draw a message when input is invalid. it is handled in the keyboard function
+    if (DrawInvalidInput == true) {
+        drawText("Invalid input.", 1645, 170, 200);
+    }
 
-    // Draw control buttons (right side)
-    drawButton("Add space", screenWidth - 310, 610, 200, 50, changeScreen, 18);
-    drawButton("Delete space", screenWidth - 310, 550, 200, 50, changeScreen, 19);
-    drawButton("Move space", screenWidth - 310, 490, 200, 50, changeScreen, 20);
-    drawButton("Resize space", screenWidth - 310, 430, 200, 50, changeScreen, 21);
+    // Draw the buttons, they work until the modification count reaches 7
+    if (modificationCount == 7) {
+        // If modification count reaches 7, change the message on screen3d
+        drawText("7/7 modifications reached", 1590, 300, 200);
+        // Draw control buttons without them working
+        drawButton("Add space", screenWidth - 310, 610, 200, 50, buttonClicked, 1);
+        drawButton("Delete space", screenWidth - 310, 550, 200, 50, buttonClicked, 1);
+        drawButton("Move space", screenWidth - 310, 490, 200, 50, buttonClicked, 1);
+        drawButton("Resize space", screenWidth - 310, 430, 200, 50, buttonClicked, 1);
+    }
+    else {
+        // Draw control buttons (right side) only if modification count is less than 7
+        drawButton("Add space", screenWidth - 310, 610, 200, 50, changeScreen, 18);
+        drawButton("Delete space", screenWidth - 310, 550, 200, 50, changeScreen, 19);
+        drawButton("Move space", screenWidth - 310, 490, 200, 50, changeScreen, 20);
+        drawButton("Resize space", screenWidth - 310, 430, 200, 50, changeScreen, 21);
+    }
 
     // Draw the message at the bottom of the structure illustration
-    drawBoldText("Step 4: Implement max. seven modifications to adapt the initial BSD, creating a new BSD you desire. Keep the function of the building in mind, as well as the resulting zoned and structural designs. Say aloud everything you think and do.", 1550, screenHeight - 50, 250, 1);
+    drawBoldText("Step 4: Adapt the BSD to create a new BSD you desire, with max. seven modifications. You can do this by adding, deleting, moving, and resizing spaces. In the next step, AI will create zoned designs for your new BSD. Say aloud everything you think and do.", 1550, screenHeight - 50, 250, 1);
 
     //step vs steps to go as a time indication for the user
     drawText("Step 4/8", screenWidth, screenHeight - 25, 180);
 
-    ReadInstructions2();
+    ReadInstructions4();
 
     // Draw the "Next step" button in the bottom right corner
     drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 29);
@@ -1872,12 +2095,12 @@ void screen3d() {
         // Obtain the space at the current index
         BSO::Spatial_Design::MS_Space space = msBuilding->obtain_space(i);
 
-        int width_int = static_cast<int>(space.width);
-        int depth_int = static_cast<int>(space.depth);
-        int height_int = static_cast<int>(space.height);
-        int x_int = static_cast<int>(space.x);
-        int y_int = static_cast<int>(space.y);
-        int z_int = static_cast<int>(space.z);
+        int width_int = static_cast<int>(space.width) /1000;
+        int depth_int = static_cast<int>(space.depth) /1000;
+        int height_int = static_cast<int>(space.height) /1000;
+        int x_int = static_cast<int>(space.x) /1000;
+        int y_int = static_cast<int>(space.y) /1000;
+        int z_int = static_cast<int>(space.z) /1000;
 
         // Draw space ID
         drawText2((std::to_string(space.ID)).c_str(), 1190, y, 180);
@@ -1909,7 +2132,7 @@ void screen3e() {
     //drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 1565, 740, 275);
 
     // Draw the message at the top of the structure illustration
-    drawBoldText("Step 5: The top screens shows your new BSD. The bottom screen shows the two most diverse zoned designs that AI found. Pick one zoned design you would like to continue with. Say aloud what you think.", 1550, screenHeight - 50, 250, 1);
+    drawBoldText("Step 5: The top screens shows your new BSD. AI found all zoned designs. In the bottom screen only the two most diverse zoned designs are shown. Pick one zoned design you would like to continue with. Say aloud what you think.", 1550, screenHeight - 50, 250, 1);
 
     ReadInstructions2();
 

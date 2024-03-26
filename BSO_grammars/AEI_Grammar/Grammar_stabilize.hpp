@@ -692,7 +692,8 @@ namespace BSO { namespace Grammar
 		
 		void SD_grammar_stabilize(Structural_Design::SD_Analysis_Vars* SD, Spatial_Design::MS_Conformal* CF)
 		{
-	        std::cout << "Commencing Stabilization" << std::endl << std::endl;
+			#ifdef AUTOSTABILIZE
+	        std::cout << "Commencing Stabilization..." << std::endl << std::endl;
 			std::map<Components::Point*, std::vector<unsigned int> > free_dofs = SD->get_points_with_free_dofs(singular);
 			unsigned int free_dof_points = free_dofs.size();
 			unsigned int free_nodes = 0;
@@ -780,6 +781,7 @@ namespace BSO { namespace Grammar
 				m_added_volume.push_back(sd_results.m_struct_volume - initial_volume);
 				BSO::Visualisation::visualise(SD, 1);
 			}
+			#endif // AUTOSTABILIZE
 		} // SD_grammar_stabilize()
 		
 	

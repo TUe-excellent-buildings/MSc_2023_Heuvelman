@@ -128,6 +128,9 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 		void get_floor_point();
 		void check_floating_zones();
 
+		std::pair<Components::Point*, Components::Point*> getBoundaryPoints(int ID);
+		void create_manual_truss(std::pair<Components::Point*, Components::Point*> dof_key);
+
 		// Output:
 		void show_free_dofs();
 		void show_singulars();
@@ -2834,6 +2837,25 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 		}
 	} // add_truss()
 
+	void Stabilize::create_manual_truss(std::pair<Components::Point*, Components::Point*> dof_key) {
+		std::cout << m_SD->get_component_count() << std::endl;
+		Truss_Props props = m_SD->m_truss_props[0];
+		m_SD->m_components.push_back( new Components::Truss(props.m_E, props.m_A, dof_key.first, dof_key.second));
+		m_SD->m_components.back()->set_mesh_switch(false);
+		std::cout << m_SD->get_component_count() << std::endl;
+	}
+
+	void Stabilize::create_manual_beam(Components::Point* p1, Components::Point* p2) {
+		Beam_Props props = m_SD->m_beam_props[0];
+        m_SD->m_components.push_back(new Components::Beam(props.m_b, props.m_h, props.m_E, props.m_v, p1, p2));
+        m_SD->m_components.back()->set_mesh_switch(false);
+		std::pair<Components::Point*, Components::Point*> temp_pair;
+		temp_pair = std::make_pair(p1, p2);
+		added_beams.push_back(temp_pair);
+		temp_pair = std::make_pair(p2, p1);
+		added_beams.push_back(temp_pair);
+	}
+
 	void Stabilize::add_truss(Spatial_Design::Geometry::Rectangle* temp_rectangle)
 	{
 		std::map<Spatial_Design::Geometry::Rectangle*, std::vector<Components::Point*> >::iterator it_1; // rectangle_points
@@ -3328,6 +3350,26 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
             << it->first.first->get_coords()[2] << ") dof: " << it->first.second << " singular value: " << it->second << std::endl;
         }
     } // show_singulars()
+
+	std::pair<Components::Point*, Components::Point*> Stabilize::getBoundaryPoints(int ID) {
+		if(ID >= m_SD->get_component_count()) throw std::invalid_argument("That ID does not exist!");
+		auto* comp = m_SD->get_component_ptr(ID);
+		if(comp->is_ghost_component() || comp->is_flat_shell()) throw std::invalid_argument("Not a truss or beam!");
+		std::vector<Eigen::Vector3d> coords = comp->get_vis_points();
+
+		Eigen::Vector3d minPoint = coords.front();
+		Eigen::Vector3d maxPoint = coords.front();
+
+		for (const auto& point : coords) {
+			minPoint = minPoint.cwiseMin(point);
+			maxPoint = maxPoint.cwiseMax(point);
+		}
+
+		Components::Point* smallest = new Components::Point(minPoint.x(), minPoint.y(), minPoint.z());
+		Components::Point* largest = new Components::Point(maxPoint.x(), maxPoint.y(), maxPoint.z());
+
+		return {smallest, largest};
+	}
 
 } // namespace Stabilization
 } // namespace Structural_Design

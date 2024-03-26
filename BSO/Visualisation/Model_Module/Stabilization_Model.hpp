@@ -26,19 +26,22 @@ namespace BSO { namespace Visualisation
         void render(const camera &cam) const;
         const std::string get_description();
 
+        vertex calculateCoordAverage(const std::vector<Eigen::Vector3d>& coords);
+
         bool key_pressed(int key);
 
     protected:
 
     private:
         std::list<polygon*> polygons;
+        std::list<label*>   labels;
 
         polygon_props  colprops, trussprops, shellprops, colprops_t, trussprops_t, shellprops_t;
         std::vector<polygon_props> cluster_props;
         std::vector<line_props> cluster_lprops;
 
         line_props     lprops, lprops_t;
-//        label_props    lbprops;
+        label_props    lbprops;
         random_bsp     *pbsp;
     };
 
@@ -154,9 +157,33 @@ namespace BSO { namespace Visualisation
                     create_column_Juan(polygons, cprop_ptr,  lprop_ptr,
                                        vis_coords[0], vis_coords[1], thickness);
                 }
+
+                vertex v = calculateCoordAverage(coords);
+                lbprops.textcolor.v[0] = 0.0f;
+                lbprops.textcolor.v[1] = 0.0f;
+                lbprops.textcolor.v[2] = 0.0f;
+                lbprops.textcolor.v[3] = 1.0f;
+
+                labels.push_back(create_label(&lbprops, std::to_string(i), v));
+
+                // Leave this
                 coords.clear();
                 vis_coords.clear();
             }
+
+            // for(unsigned int i = 0; i < SDA->get_points().size(); i++)
+            // {
+            //     Structural_Design::Components::Point* point = SDA->get_points()[i];
+            //     // std::cout << "point: " << point->get_coords() << std::endl;
+
+            //     vertex v(point->get_coords().x() + 0.1f, point->get_coords().z() + 0.1f, -point->get_coords().y() - 0.1f);
+            //     lbprops.textcolor.v[0] = 0.0f;
+            //     lbprops.textcolor.v[1] = 0.0f;
+            //     lbprops.textcolor.v[2] = 0.0f;
+            //     lbprops.textcolor.v[3] = 1.0f;
+
+            //     labels.push_back(create_label(&lbprops, std::to_string(i), v));
+            // }
         }
 
         else
@@ -194,11 +221,11 @@ namespace BSO { namespace Visualisation
         glDisable(GL_DEPTH_TEST);
 
         pbsp->render_btf(cam);
-/*
+
         std::list<label*>::const_iterator lbit;
         for (lbit = labels.begin(); lbit != labels.end(); lbit++)
             (*lbit)->render();
-*/
+
         glPopAttrib();
     }
 
@@ -244,6 +271,25 @@ namespace BSO { namespace Visualisation
         }
 
 	return false;
+    }
+
+    vertex Stabilization_Model::calculateCoordAverage(const std::vector<Eigen::Vector3d>& coords) {
+        if (coords.empty()) {
+            return vertex(0, 0, 0); // Return a default vertex if the input is empty
+        }
+
+        float sumX = 0.0f, sumY = 0.0f, sumZ = 0.0f;
+        for (Eigen::Vector3d point : coords) {
+            sumX += point(0);
+            sumY += point(1);
+            sumZ += point(2);
+        }
+
+        float avgX = sumX / coords.size();
+        float avgY = sumY / coords.size();
+        float avgZ = sumZ / coords.size();
+
+        return vertex(avgX + 250.0f, avgZ + 250.0f, -avgY - 250.0f);
     }
 
 } // namespace Visualisation

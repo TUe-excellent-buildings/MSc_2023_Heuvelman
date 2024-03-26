@@ -20,6 +20,7 @@
 std::shared_ptr <BSO::Spatial_Design::MS_Building> MS = nullptr;
 std::shared_ptr <BSO::Spatial_Design::MS_Conformal> CF = nullptr;
 std::shared_ptr <BSO::Structural_Design::SD_Analysis_Vars> SD_Building = nullptr;
+std::shared_ptr <BSO::Structural_Design::Stabilization::Stabilize> Stab_model = nullptr;
 
 // Global variables for visualisation
 bool visualisationActive = false; // Flag to control when to activate visualisation
@@ -147,6 +148,7 @@ void setup_pointers() {
     CF = std::make_shared<BSO::Spatial_Design::MS_Conformal>(*MS, BSO::Grammar::grammar_stabilize);
     (*CF).make_conformal();
     SD_Building = std::make_shared<BSO::Structural_Design::SD_Analysis>(*CF);
+    Stab_model = std::make_shared<BSO::Structural_Design::Stabilization::Stabilize>(SD_Building.get(), CF.get());
 }
 
 void checkGLError(const char* action) {
@@ -571,6 +573,16 @@ void reshape(int width, int height) {
     glLoadIdentity();
 }
 
+std::string clean_str(const std::string& input) {
+    std::string result;
+    for (char ch : input) {
+        if (isdigit(ch)) {
+            result += ch;
+        }
+    }
+    return result;
+}
+
 void keyboard(unsigned char key, int x, int y) {
     
     GLenum err;
@@ -659,21 +671,35 @@ void keyboard(unsigned char key, int x, int y) {
             }
         }
         else if (key == 13) { // Enter key
+            std::pair<BSO::Structural_Design::Components::Point*, BSO::Structural_Design::Components::Point*> p1;
+            std::pair<BSO::Structural_Design::Components::Point*, BSO::Structural_Design::Components::Point*> p2;
+            std::pair<BSO::Structural_Design::Components::Point*, BSO::Structural_Design::Components::Point*> p3;
+            bool TF7 = 0;
+            bool TF8 = 0;
             if (!opinionTF7.text.empty()) {
                 // Print the entered text from opinionTF7 to the terminal
                 std::cout << "Entered text (opinionTF7): " << opinionTF7.text << std::endl;
+                p1 = Stab_model->getBoundaryPoints(std::stoi(clean_str(opinionTF7.text)));
                 // Write the entered text from opinionTF7 to the process file
                 writeToProcessFile("process2.csv", "Add diagonal: member 1", opinionTF7.text);
                 // Clear the input string of opinionTF7 after processing
                 opinionTF7.text = "";
+                TF7 = true;
             }
             if (!opinionTF8.text.empty()) {
                 // Print the entered text from opinionTF8 to the terminal
-                std::cout << "Entered text (opinionTF14): " << opinionTF8.text << std::endl;
+                std::cout << "Entered text (opinionTF8): " << opinionTF8.text << std::endl;
+                p2 = Stab_model->getBoundaryPoints(std::stoi(clean_str(opinionTF8.text)));
                 // Write the entered text from opinionTF8 to the process file
                 writeToProcessFile("process2.csv", "Add diagonal: member 2", opinionTF8.text);
                 // Clear the input string of opinionTF8 after processing
                 opinionTF8.text = "";
+                TF8 = true;
+            }
+            if(TF7 && TF8) {
+                p3.first = p1.first;
+                p3.second = p2.second;
+                Stab_model->create_manual_truss(p3);
             }
             // Change the screen after processing both text fields
             changeScreen(2);
@@ -1035,18 +1061,7 @@ void LineDivisionScreen() {
 
 // ID 2: Screen 3
 void screen3() {
-    // Draw structural design illustration placeholder (left side)
-    // visualise(MS);
-
-    
-
     LineDivisionScreen();
-    //glColor3f(0.0, 0.0, 0.0);
-    //glBegin(GL_LINES);
-    //glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
-    //glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
-    //glEnd();
-
 
     // Draw the counter area
     drawText("Number of diagonals: 0", 1200, screenHeight - 100, 200);

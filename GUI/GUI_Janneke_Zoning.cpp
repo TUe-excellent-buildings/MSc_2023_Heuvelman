@@ -165,17 +165,17 @@ void setup_models();
 
 void visualise(BSO::Spatial_Design::MS_Building& ms_building)
 {
-    vpmanager_local.addviewport(new BSO::Visualisation::viewport(new BSO::Visualisation::MS_Model(ms_building)));
+    vpmanager_local.addviewportzoning(new BSO::Visualisation::viewport(new BSO::Visualisation::MS_Model(ms_building)));
 }
 
 void visualise(BSO::Spatial_Design::MS_Conformal& cf_building, std::string type)
 {
-    vpmanager_local.addviewport(new BSO::Visualisation::viewport(new BSO::Visualisation::Conformal_Model(cf_building, type)));
+    vpmanager_local.addviewportzoning(new BSO::Visualisation::viewport(new BSO::Visualisation::Conformal_Model(cf_building, type)));
 }
 
 void visualise(BSO::Spatial_Design::MS_Conformal& cf_building, std::string type, unsigned int i)
 {
-    vpmanager_local.addviewport(new BSO::Visualisation::viewport(new BSO::Visualisation::Zoning_Model(cf_building, type, i)));
+    vpmanager_local.addviewportzoning(new BSO::Visualisation::viewport(new BSO::Visualisation::Zoning_Model(cf_building, type, i)));
 }
 
 void setup_pointers() {
@@ -377,6 +377,7 @@ void changeScreen(int screen) {
         if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
             setup_pointers();
         }
+        vpmanager_local.clearviewports();
         visualiseZones(2);
         visualise(*MS);
         // visualise(&SD, 1);
@@ -389,6 +390,7 @@ void changeScreen(int screen) {
         if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
             setup_pointers();
         }
+        vpmanager_local.clearviewports();
         visualiseZones();
         //visualise(*MS);
         // visualise(&SD, 1);
@@ -401,6 +403,7 @@ void changeScreen(int screen) {
         if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
 			setup_pointers();
 		}
+        vpmanager_local.clearviewports();
 		visualiseZones();
 		//visualise(*MS);
 		// visualise(&SD, 1);
@@ -413,6 +416,7 @@ void changeScreen(int screen) {
         if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
             setup_pointers();
         }
+        vpmanager_local.clearviewports();
         visualiseZones();
         //visualise(*MS);
         // visualise(&SD, 1);
@@ -425,6 +429,7 @@ void changeScreen(int screen) {
         if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
             setup_pointers();
         }
+        vpmanager_local.clearviewports();
         visualiseZones();
         //visualise(*MS);
         // visualise(&SD, 1);
@@ -437,6 +442,7 @@ void changeScreen(int screen) {
         if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
             setup_pointers();
         }
+        vpmanager_local.clearviewports();
         //visualiseZones();
         visualise(*MS);
         // visualise(&SD, 1);
@@ -449,6 +455,7 @@ void changeScreen(int screen) {
         if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
             setup_pointers();
         }
+        vpmanager_local.clearviewports();
         //visualiseZones();
         visualise(*MS);
         // visualise(&SD, 1);
@@ -461,6 +468,7 @@ void changeScreen(int screen) {
         if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
             setup_pointers();
         }
+        vpmanager_local.clearviewports();
         visualiseZones();
         //visualise(*MS);
         // visualise(&SD, 1);
@@ -473,6 +481,7 @@ void changeScreen(int screen) {
         if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
             setup_pointers();
         }
+        vpmanager_local.clearviewports();
         visualiseZones();
         //visualise(*MS);
         // visualise(&SD, 1);
@@ -704,50 +713,21 @@ void setup2D() {
 }
 
 
-void setup3D(GLfloat widthRatio, GLfloat heightRatio, GLfloat gridyorig) {
-    GLint viewportWidth = screenWidth * widthRatio;
-    GLint viewportHeight = screenHeight * heightRatio;
+void setup3D() {
+    GLint viewportWidth = screenWidth / 1.7;
+    GLint viewportHeight = screenHeight;
 
     vpmanager_local.resize(viewportWidth, viewportHeight);
 
     // Set the viewport to cover the left part of the screen
-    glViewport(0, gridyorig, viewportWidth, viewportHeight);
+    glViewport(0, 0, viewportWidth, viewportHeight);
 
     // Setup the projection matrix for 3D rendering
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
     // Adjust the perspective projection to match the new aspect ratio
-    GLfloat aspectRatio = static_cast<float>(viewportWidth) / static_cast<float>(viewportHeight);
-    gluPerspective(45.0, aspectRatio, 0.1f, 1000.0f);
-
-    // Switch back to modelview matrix mode
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    // Enable depth testing, required for 3D rendering
-    glEnable(GL_DEPTH_TEST);
-
-    // Enable lighting if your visualization uses it
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-}
-
-void setup3D2(GLfloat widthRatio2, GLfloat heightRatio2, GLfloat viewportY2) {
-    GLint viewportWidth = screenWidth * widthRatio2;
-    GLint viewportHeight = screenHeight * heightRatio2;
-
-    vpmanager_local.resize(viewportWidth, viewportHeight);
-
-    // Set the viewport to cover the left part of the screen
-    glViewport(0, viewportY2, viewportWidth, viewportHeight);
-
-    // Setup the projection matrix for 3D rendering
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-
-    // Adjust the perspective projection to match the new aspect ratio
-    GLfloat aspectRatio = static_cast<float>(viewportWidth) / static_cast<float>(viewportHeight);
+    GLfloat aspectRatio = (GLfloat)viewportWidth / (GLfloat)viewportHeight;
     gluPerspective(45.0, aspectRatio, 0.1f, 1000.0f);
 
     // Switch back to modelview matrix mode
@@ -781,115 +761,13 @@ void display() {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    if (visualisationActive_3a) {
+    bool active = visualisationActive_3a || visualisationActive_3b || visualisationActive_3c || visualisationActive_3d || visualisationActive_3e || visualisationActive_3a2 || visualisationActive_3e2 || visualisationActive_3a3 || visualisationActive_3e3;
+
+    if (active) {
         // Set viewport for the left half of the screen
-        setup3D(0.6, 0.7, 300.0);
-
-        // Render the visualization
-        vpmanager_local.render(cam_local);
-        checkGLError("render");
-
-        // Reset the viewport to full window size for the rest of your GUI, if necessary
-        setup2D();
-        checkGLError("setup2D");
-    }
-
-    if (visualisationActive_3b) {
-		// Set viewport for the left half of the screen
-		setup3D2(0.777777778, 0.2, 0);
-
-		// Render the visualization
-		vpmanager_local.render(cam_local);
-		checkGLError("render");
-
-		// Reset the viewport to full window size for the rest of your GUI, if necessary
-		setup2D();
-		checkGLError("setup2D");
-	}
-
-    if (visualisationActive_3c) {
-		// Set viewport for the left half of the screen
-		setup3D(0.7777777778, 0.2, 0);
-
-		// Render the visualization
-		vpmanager_local.render(cam_local);
-		checkGLError("render");
-
-		// Reset the viewport to full window size for the rest of your GUI, if necessary
-		setup2D();
-		checkGLError("setup2D");
-	}
-
-    if (visualisationActive_3d) {
-        // Set viewport for the left half of the screen
-        setup3D(0.6, 1.0, 0);
-
-        // Render the visualization
-        vpmanager_local.render(cam_local);
-        checkGLError("render");
-
-        // Reset the viewport to full window size for the rest of your GUI, if necessary
-        setup2D();
-        checkGLError("setup2D");
-    }
-
-    if (visualisationActive_3e) {
-        // Set viewport for the left half of the screen
-        setup3D(0.6, 0.7, 300);
-
-        // Render the visualization
-        vpmanager_local.render(cam_local);
-        checkGLError("render");
-
-        // Reset the viewport to full window size for the rest of your GUI, if necessary
-        setup2D();
-        checkGLError("setup2D");
-    }
-
-    if (visualisationActive_3a2) {
-        // Set viewport for the left half of the screen
-        setup3D2(0.6, 0.1, 200);
-
-        // Render the visualization
-        vpmanager_local.render(cam_local2);
-        checkGLError("render");
-
-        // Reset the viewport to full window size for the rest of your GUI, if necessary
-        setup2D();
-        checkGLError("setup2D");
-    }
-
-    if (visualisationActive_3e2) {
-        // Set viewport for the left half of the screen
-        setup3D(0.6, 0.1, 200);
-
-        // Render the visualization
-        vpmanager_local.render(cam_local);
-        checkGLError("render");
-
-        // Reset the viewport to full window size for the rest of your GUI, if necessary
-        setup2D();
-        checkGLError("setup2D");
-    }
-
-    if (visualisationActive_3a3) {
-        // Set viewport for the left half of the screen
-        setup3D(0.6, 0.2, 0);
-
-        // Render the visualization
-        vpmanager_local.render(cam_local);
-        checkGLError("render");
-
-        // Reset the viewport to full window size for the rest of your GUI, if necessary
-        setup2D();
-        checkGLError("setup2D");
-    }
-
-    if (visualisationActive_3e3) {
-        // Set viewport for the left half of the screen
-        setup3D(0.6, 0.2, 0);
-
-        // Render the visualization
+        setup3D();
+        
+        // Render the visualisation
         vpmanager_local.render(cam_local);
         checkGLError("render");
 

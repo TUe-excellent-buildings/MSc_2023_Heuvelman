@@ -250,8 +250,20 @@ void changeScreen(int screen) {
         AISuggestionCount++;
     }
     
-    //process the input of the previous screen
+    if (screen == 1) {
+        //write the starting time to be able to have a total time measurement
+        writeToProcessFile("process4.csv", "Starting time, assignment chosen", "");
+    }
+
     if (screen == 4) {
+        //write the number of added trusses and beams as measurement
+        std::string TrussCountStr = std::to_string(TrussCount);
+        writeToOutputFile("output4.csv", "Truss count:", TrussCountStr.c_str(), "");
+        std::string BeamCountStr = std::to_string(BeamCount);
+        writeToOutputFile("output4.csv", "Beam count:", BeamCountStr.c_str(), "");
+        std::string AISuggestionCountStr = std::to_string(TrussCount);
+        writeToOutputFile("output4.csv", "AI suggestions count:", AISuggestionCountStr.c_str(), "");
+        //write the ansers to the questions
         writeToOutputFile("output4.csv", "1..", getSelectedButtonLabel(), opinionTF.text);
     }
     if (screen == 5) {

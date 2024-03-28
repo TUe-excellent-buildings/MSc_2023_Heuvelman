@@ -134,6 +134,7 @@ void setup2D();
 void setup3D();
 void setup_models();
 
+
 void visualise(BSO::Spatial_Design::MS_Building& ms_building)
 {
     vpmanager_local.addviewport(new BSO::Visualisation::viewport(new BSO::Visualisation::MS_Model(ms_building)));
@@ -163,6 +164,16 @@ void checkGLError(const char* action) {
         std::cout << "OpenGL error after " << action << ": " << gluErrorString(err) << std::endl;
     }
 }
+
+//void performStructuralAnalysis() {
+  //  SD_Building->analyse(); // Initiate structural analysis
+  //BSO::Structural_Design::SD_Building_Results sd_results = SD_Building->get_results(); // Retrieve results
+    // Display results as needed (e.g., print to console, show in GUI)
+  //std::cout << std::endl << "Total compliance: " << sd_results.m_total_compliance
+  //    << std::endl << "Structural volume: " << sd_results.m_struct_volume << std::endl;
+    // Visualize structural analysis results in the GUI
+  // BSO::Visualisation::visualise(SD_Building.get(), 1);
+//}
 
 //declare outputfile at global scope
 std::ofstream outputFile;
@@ -290,7 +301,21 @@ void changeScreen(int screen) {
         vpmanager_local.clearviewports();
     }
 
+    if (screen == 1) {
+        //write the starting time to be able to have a total time measurement
+        writeToProcessFile("process2.csv", "Starting time, assignment chosen", "");
+    }
+
     if (screen == 4) {
+        //write the number of added trusses and beams as measurement
+        std::string TrussCountStr = std::to_string(TrussCount);
+        writeToOutputFile("output2.csv", "Truss count:", TrussCountStr.c_str(), "");
+        std::string BeamCountStr = std::to_string(BeamCount);
+        writeToOutputFile("output2.csv", "Beam count:", BeamCountStr.c_str(), "");
+        //Analyse the structure
+        //performStructuralAnalysis(); // Call the function to perform structural analysis
+
+        //write the ansers to the questions
         writeToOutputFile("output2.csv", "1..", getSelectedButtonLabel(), opinionTF.text);
     }
     if (screen == 5) {

@@ -1895,8 +1895,8 @@ void ReadInstructions() {
     glBegin(GL_LINES);
     glVertex2f(1582.0, 868.0);
     glVertex2f(1678.0, 868.0);
-    glVertex2f(1432.0, 850.0);
-    glVertex2f(1485.0, 850.0);
+    glVertex2f(1428.0, 850.0);
+    glVertex2f(1481.0, 850.0);
     glEnd();
 }
 
@@ -1909,8 +1909,8 @@ void ReadInstructions2() {
     glBegin(GL_LINES);
     glVertex2f(1582.0, 798.0);
     glVertex2f(1678.0, 798.0);
-    glVertex2f(1432.0, 780.0);
-    glVertex2f(1485.0, 780.0);
+    glVertex2f(1428.0, 780.0);
+    glVertex2f(1481.0, 780.0);
     glEnd();
 }
 
@@ -1923,8 +1923,8 @@ void ReadInstructions3() {
     glBegin(GL_LINES);
     glVertex2f(1582.0, 843.0);
     glVertex2f(1678.0, 843.0);
-    glVertex2f(1432.0, 825.0);
-    glVertex2f(1485.0, 825.0);
+    glVertex2f(1428.0, 825.0);
+    glVertex2f(1481.0, 825.0);
     glEnd();
 }
 
@@ -1937,8 +1937,8 @@ void ReadInstructions4() {
     glBegin(GL_LINES);
     glVertex2f(1582.0, 778.0);
     glVertex2f(1678.0, 778.0);
-    glVertex2f(1432.0, 760.0);
-    glVertex2f(1485.0, 760.0);
+    glVertex2f(1428.0, 760.0);
+    glVertex2f(1481.0, 760.0);
     glEnd();
 }
 
@@ -2133,6 +2133,13 @@ void screen3e() {
 
     // Draw the message at the top of the structure illustration
     drawBoldText("Step 5: The top screens shows your new BSD. AI found all zoned designs. In the bottom screen only the two most diverse zoned designs are shown. Pick one zoned design you would like to continue with. Say aloud what you think.", 1550, screenHeight - 50, 250, 1);
+    //underline two
+    glLineWidth(2.0);
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(1501.0f, 895.0f);
+    glVertex2f(1535.0f, 895.0f);
+    glEnd();
 
     ReadInstructions2();
 
@@ -2156,7 +2163,14 @@ void screen3f() {
     //drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 1565, 740, 275);
 
     // Draw the message at the top of the structure illustration
-    drawBoldText("Step 6: The top screens shows your new BSD. The bottom screen shows ALL zoned designs that AI found. Again, pick one zoned design you would like to continue with. Say aloud what you think.", 1550, screenHeight - 50, 250, 1);
+    drawBoldText("Step 6: The top screens shows your new BSD. The bottom screen shows all zoned designs that AI found. Again, pick one zoned design you would like to continue with. Say aloud what you think.", 1550, screenHeight - 50, 250, 1);
+    //underline ALL
+    glLineWidth(2.0);
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(1487.0f, 914.0f);
+    glVertex2f(1509.0f, 914.0f);
+    glEnd();
 
     ReadInstructions2();
 
@@ -2399,7 +2413,7 @@ void screenAddSpace() {
     drawText("Location (x,y,z):", 1680, 320, 150);
     drawTextField(screenWidth - 355, 250, 150, 50, opinionTF13);
     drawTextField(screenWidth - 195, 250, 150, 50, opinionTF14);
-    drawText("Use the 'Tab' key to swith input fields", screenWidth - 110, 390, 500);
+    //drawText("Use the 'Tab' key to swith input fields", screenWidth - 110, 390, 500);
     drawText("Press enter to submit", screenWidth - 60, 370, 500);
 
     //draw lines around it
@@ -2432,7 +2446,7 @@ void screenMoveSpace() {
     drawText("New location (x,y,z):", 1680, 320, 150);
     drawTextField(screenWidth - 355, 250, 150, 50, opinionTF16);
     drawTextField(screenWidth - 195, 250, 150, 50, opinionTF17);
-    drawText("Use the 'Tab' key to swith input fields", screenWidth - 110, 390, 500);
+    //drawText("Use the 'Tab' key to swith input fields", screenWidth - 110, 390, 500);
     drawText("Press enter to submit", screenWidth - 60, 370, 500);
 
     //draw lines around it
@@ -2450,7 +2464,7 @@ void screenResizeSpace() {
     drawText("New size (x,y,z):", 1680, 320, 150);
     drawTextField(screenWidth - 355, 250, 150, 50, opinionTF18);
     drawTextField(screenWidth - 195, 250, 150, 50, opinionTF19);
-    drawText("Use the 'Tab' key to swith input fields", screenWidth - 110, 390, 500);
+    //drawText("Use the 'Tab' key to swith input fields", screenWidth - 110, 390, 500);
     drawText("Press enter to submit", screenWidth - 60, 370, 500);
 
     //draw lines around it

@@ -35,6 +35,17 @@ namespace BSO { namespace Visualisation
         ~MS_Model();
         void render(const camera &cam) const;
         const std::string get_description();
+
+        // Method to draw a line between two points, used for the GUI JH
+        void drawLine(float x, float y, float z, float x1, float y1, float z1) const {
+            glLineWidth(2.0);
+            glColor3f(1.0, 0.0, 0.0);
+            glBegin(GL_LINES);
+            glVertex3f(x, y, z);
+            glVertex3f(x1, y1, z1);
+            glEnd();
+        }
+
     private:
         std::list<polygon*> polygons;
         std::list<label*>   labels;
@@ -357,6 +368,31 @@ namespace BSO { namespace Visualisation
         std::list<label*>::const_iterator lbit;
         for (lbit = labels.begin(); lbit != labels.end(); lbit++)
             (*lbit)->render();
+
+        // Draw the lines in for the GUI JH, to create axis x,y,z
+        // x axis
+        drawLine(2000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+        drawLine(2000.0f, 0.0f, 0.0f, 1700.0f, 0.0f, -300.0f);
+        drawLine(2000.0f, 0.0f, 0.0f, 1700.0f, 0.0f, 300.0f);
+        // draw letter x
+        drawLine(1300.0f, 0.0f, 500.0f, 700.0f, 0.0f, 1100.0f);
+        drawLine(700.0f, 0.0f, 500.0f, 1300.0f, 0.0f, 1100.0f);
+        // y axis (z in the model)
+        drawLine(0.0f, 2000.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+        drawLine(0.0f, 2000.0f, 0.0f, 0.0f, 1700.0f, -300.0f);
+        drawLine(0.0f, 2000.0f, 0.0f, 0.0f, 1700.0f, 300.0f);
+        // draw letter z
+        drawLine(0.0f, 600.0f, 500.0f, 0.0f, 600.0f, 1000.0f);
+        drawLine(0.0f, 1200.0f, 500.0f, 0.0f, 1200.0f, 1000.0f);
+        drawLine(0.0f, 600.0f, 500.0f, 0.0f, 1200.0f, 1000.0f);
+        // z axis (y in the model)
+        drawLine(0.0f, 0.0f, -2000.0f, 0.0f, 0.0f, 0.0f);
+        drawLine(0.0f, 0.0f, -2000.0f, -300.0f, 0.0f, -1700.0f);
+        drawLine(0.0f, 0.0f, -2000.0f, 300.0f, 0.0f, -1700.0f);
+        // draw letter y
+        drawLine(-500.0f, 0.0f, -1500.0f, -1000.0f, 0.0f, -500.0f);
+        drawLine(-1000.0f, 0.0f, -1500.0f, -750.0f, 0.0f, -1000.0f);
+
 
         glPopAttrib();
     }

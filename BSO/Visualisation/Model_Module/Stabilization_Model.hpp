@@ -30,6 +30,22 @@ namespace BSO { namespace Visualisation
 
         bool key_pressed(int key);
 
+        void drawCone(float radius, float height, int numSegments, float x, float y, float z) const {
+            glPushMatrix();
+            glTranslatef(x, y, z); // Translate to the specified position
+            glColor3f(0.0, 0.0, 0.0);
+            glBegin(GL_TRIANGLE_FAN);
+            glVertex3f(0.0f, height, 0.0f); // Apex of the cone
+            for (int i = 0; i <= numSegments; ++i) {
+                float theta = (2.0f * M_PI * i) / numSegments;
+                float xx = radius * cos(theta);
+                float zz = radius * sin(theta);
+                glVertex3f(xx, 0.0f, zz); // Base vertices
+            }
+            glEnd();
+            glPopMatrix();
+        }
+
     protected:
 
     private:
@@ -225,6 +241,23 @@ namespace BSO { namespace Visualisation
         std::list<label*>::const_iterator lbit;
         for (lbit = labels.begin(); lbit != labels.end(); lbit++)
             (*lbit)->render();
+
+        // Draw the hinges for the GUI JH
+        drawCone(250.0f, 400.0f, 30, 0.0f, 0.0f, 0.0f);
+        drawCone(250.0f, 400.0f, 30, 6000.0f, 0.0f, 0.0f);
+        drawCone(250.0f, 400.0f, 30, 12000.0f, 0.0f, 0.0f);
+        drawCone(250.0f, 400.0f, 30, 24000.0f, 0.0f, 0.0f);
+        drawCone(250.0f, 400.0f, 30, 0.0f, 0.0f, -6000.0f);
+        drawCone(250.0f, 400.0f, 30, 6000.0f, 0.0f, -6000.0f);
+        drawCone(250.0f, 400.0f, 30, 24000.0f, 0.0f, -6000.0f);
+        drawCone(250.0f, 400.0f, 30, 0.0f, 0.0f, -12000.0f);
+        drawCone(250.0f, 400.0f, 30, 6000.0f, 0.0f, -12000.0f);
+        drawCone(250.0f, 400.0f, 30, 12000.0f, 0.0f, -12000.0f);
+        drawCone(250.0f, 400.0f, 30, 24000.0f, 0.0f, -12000.0f);
+        drawCone(250.0f, 400.0f, 30, 0.0f, 0.0f, -24000.0f);
+        drawCone(250.0f, 400.0f, 30, 6000.0f, 0.0f, -24000.0f);
+        drawCone(250.0f, 400.0f, 30, 12000.0f, 0.0f, -24000.0f);
+        drawCone(250.0f, 400.0f, 30, 24000.0f, 0.0f, -24000.0f);
 
         glPopAttrib();
     }

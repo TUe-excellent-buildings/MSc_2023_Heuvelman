@@ -39,6 +39,7 @@ namespace BSO { namespace Visualisation
             lmousestate(GLUT_UP), lclicktime(0) { }
 
         void addviewport(viewport *pviewport);
+        void addviewportzoning(viewport *pviewport);
         void clearviewports();
 
         //event handlers
@@ -90,6 +91,12 @@ namespace BSO { namespace Visualisation
             }
             update_viewport_sizes();
         }
+    }
+
+    void viewportmanager::addviewportzoning(viewport *pviewport)
+    {
+        viewports.push_back(pviewport);
+        update_viewport_sizes();
     }
 
     void viewportmanager::clearviewports()

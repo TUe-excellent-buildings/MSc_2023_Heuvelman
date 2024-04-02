@@ -156,20 +156,18 @@ void setup_models();
 
 void visualise(BSO::Spatial_Design::MS_Building& ms_building)
 {
-    vpmanager_local.addviewport(new BSO::Visualisation::viewport(new BSO::Visualisation::MS_Model(ms_building)));
+    vpmanager_local.addviewportzoning(new BSO::Visualisation::viewport(new BSO::Visualisation::MS_Model(ms_building)));
 }
 
 void visualise(BSO::Spatial_Design::MS_Conformal& cf_building, std::string type)
 {
-    vpmanager_local.addviewport(new BSO::Visualisation::viewport(new BSO::Visualisation::Conformal_Model(cf_building, type)));
+    vpmanager_local.addviewportzoning(new BSO::Visualisation::viewport(new BSO::Visualisation::Conformal_Model(cf_building, type)));
 }
 
 void visualise(BSO::Spatial_Design::MS_Conformal& cf_building, std::string type, unsigned int i)
 {
-    vpmanager_local.addviewport(new BSO::Visualisation::viewport(new BSO::Visualisation::Zoning_Model(cf_building, type, i)));
+    vpmanager_local.addviewportzoning(new BSO::Visualisation::viewport(new BSO::Visualisation::Zoning_Model(cf_building, type, i)));
 }
-
-
 
 void setup_pointers() {
     MS = std::make_shared<BSO::Spatial_Design::MS_Building>("JH_Zoning_Assignment_GUI/MS_Input.txt");
@@ -325,10 +323,17 @@ void initializeScreen() {
     opinionTF19.isActive = false;
 }
 
-void visualiseZones(){
-    for (unsigned int i = 0; i < Zoned->get_designs().size(); i++)
-    {
-        visualise(*CF,"zones", i);
+//Function to visualize zoned designs, which one can be chosen with the index. 
+void visualiseZones(unsigned int indexToVisualize = -1) {
+    std::cout << "Total designs in Zoned: " << Zoned->get_designs().size() << std::endl;
+    unsigned int designsCount = Zoned->get_designs().size();
+    if (indexToVisualize < designsCount) {
+        visualise(*CF, "zones", indexToVisualize);
+    }
+    else {
+        for (unsigned int i = 0; i < designsCount; i++) {
+            visualise(*CF, "zones", i);
+        }
     }
 }
 
@@ -338,9 +343,6 @@ bool visualisationActive_3c = false;
 bool visualisationActive_3d = false;
 bool visualisationActive_3e = false;
 bool visualisationActive_3f = false;
-bool visualisationActive_3a2 = false;
-bool visualisationActive_3e2 = false;
-bool visualisationActive_3f2 = false;
 
 void changeScreen(int screen) {
     currentScreen = screen;
@@ -356,157 +358,91 @@ void changeScreen(int screen) {
     visualisationActive_3d = false;
     visualisationActive_3e = false;
     visualisationActive_3f = false;
-    visualisationActive_3a2 = false;
-    visualisationActive_3e2 = false;
-    visualisationActive_3f2 = false;
 
     if (screen == 2 || (screen >= 14 && screen <= 17) || (screen == 26)) {
-        //Screens first time zoning (screen 3a and pop ups)
-        visualisationActive_3a = true;
-        visualisationActive_3a2 = true;
+        visualisationActive_3a = true; //Screens first time zoning (screen 3a and pop ups)
     }
     else if (screen == 3 || (screen == 27)) {
-		//Screens second time zoning (screen 3b and pop ups)
-		visualisationActive_3b = true;
-	}
+        visualisationActive_3b = true; //Screens second time zoning (screen 3b and pop ups)
+    }
     else if (screen == 4 || (screen == 28)) {
-		//Screens changing the SD (screen 3c and pop ups)
-		visualisationActive_3c = true;
-	}
+        visualisationActive_3c = true; 	//Screens changing the SD (screen 3c and pop ups)
+    }
     else if ((screen == 5) || (screen >= 18 && screen <= 21) || (screen == 29)) {
-        //Screens changing the BSD (screen 3d and pop ups)
-        visualisationActive_3d = true;
+        visualisationActive_3d = true; //Screens changing the BSD (screen 3d and pop ups)
     }
     else if (screen == 6 || (screen >= 22 && screen <= 25) || screen == 30) {
-        //Screens second time zoning (screen 3e and pop ups)
-        visualisationActive_3e = true;
-        visualisationActive_3e2 = true;
+        visualisationActive_3e = true; //Screens second time zoning (screen 3e and pop ups)
     }
     else if (screen == 32 || screen == 33) {
-        //Screens second time zoning (screen 3f and pop ups)
-        visualisationActive_3f = true;
-        visualisationActive_3f2 = true;
+        visualisationActive_3f = true; //Screens second time zoning (screen 3f and pop ups)
     }
+
     // Based on the flags, activate/deactivate visualization for each group
     if (visualisationActive_3a) {
         // Activate visualization for group 3a
         if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
             setup_pointers();
         }
-        //visualiseZones();
+        vpmanager_local.clearviewports();
         visualise(*MS);
+        visualiseZones(2);
         // visualise(&SD, 1);
         // visualise(CF, "rectangles");
         // visualise(*SD_Building, 4);
-        //visualisationActive = true; // Set overall visualization flag
-    }
-    else if (visualisationActive_3a2) {
-        // Activate visualization for group 3a
-        if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
-            setup_pointers();
-        }
-        visualiseZones();
-        //visualise(*MS);
-        // visualise(&SD, 1);
-        // visualise(CF, "rectangles");
-        // visualise(*SD_Building, 4);
-        //visualisationActive = true; // Set overall visualization flag
     }
     else if (visualisationActive_3b) {
         // Activate visualization for group 3a
         if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
             setup_pointers();
         }
+        vpmanager_local.clearviewports();
         visualiseZones();
-        //visualise(*MS);
-        // visualise(&SD, 1);
-        // visualise(CF, "rectangles");
-        // visualise(*SD_Building, 4);
-        //visualisationActive = true; // Set overall visualization flag
     }
     else if (visualisationActive_3c) {
         // Activate visualization for group 3a
         if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
             setup_pointers();
         }
+        vpmanager_local.clearviewports();
         visualiseZones();
-        //visualise(*MS);
-        // visualise(&SD, 1);
-        // visualise(CF, "rectangles");
-        // visualise(*SD_Building, 4);
-        //visualisationActive = true; // Set overall visualization flag
     }
     else if (visualisationActive_3d) {
         // Activate visualization for group 3a
         if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
             setup_pointers();
         }
-        //visualiseZones();
+        vpmanager_local.clearviewports();
         visualise(*MS);
-        // visualise(&SD, 1);
-        // visualise(CF, "rectangles");
-        // visualise(*SD_Building, 4);
-        //visualisationActive = true; // Set overall visualization flag
     }
     else if (visualisationActive_3e) {
         // Activate visualization for group 3a
         if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
             setup_pointers();
         }
-        //visualiseZones();
+        vpmanager_local.clearviewports();
         visualise(*MS);
-        // visualise(&SD, 1);
-        // visualise(CF, "rectangles");
-        // visualise(*SD_Building, 4);
-        //visualisationActive = true; // Set overall visualization flag
-    }
-    else if (visualisationActive_3e2) {
-        // Activate visualization for group 3a
-        if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
-            setup_pointers();
-        }
-        visualiseZones();
-        //visualise(*MS);
-        // visualise(&SD, 1);
-        // visualise(CF, "rectangles");
-        // visualise(*SD_Building, 4);
-        //visualisationActive = true; // Set overall visualization flag
+        visualiseZones(); //should become only the most diverse 2
     }
     else if (visualisationActive_3f) {
         // Activate visualization for group 3a
         if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
             setup_pointers();
         }
-        //visualiseZones();
+        vpmanager_local.clearviewports();
         visualise(*MS);
-        // visualise(&SD, 1);
-        // visualise(CF, "rectangles");
-        // visualise(*SD_Building, 4);
-        //visualisationActive = true; // Set overall visualization flag
-    }
-    else if (visualisationActive_3f2) {
-        // Activate visualization for group 3a
-        if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
-            setup_pointers();
-        }
-        visualiseZones();
-        //visualise(*MS);
-        // visualise(&SD, 1);
-        // visualise(CF, "rectangles");
-        // visualise(*SD_Building, 4);
-        //visualisationActive = true; // Set overall visualization flag
+        visualiseZones(); //should be all, but based on the new BSD
     }
     else {
         vpmanager_local.clearviewports(); // Deactivate visualization if none of the groups match
-        visualisationActive = false; // Set overall visualization flag
         visualisationActive_3a = false;
         visualisationActive_3b = false;
         visualisationActive_3c = false;
         visualisationActive_3d = false;
         visualisationActive_3e = false;
-        visualisationActive_3a2 = false;
-        visualisationActive_3e2 = false;
+        visualisationActive_3f = false;
     }
+
 
     if (screen == 4) {
         writeToOutputFile("output3.csv", "Step 2: Pick one zoned design you would like to continue with and explain why.", "", opinionTF.text);
@@ -725,50 +661,21 @@ void setup2D() {
 }
 
 
-void setup3D(GLfloat widthRatio, GLfloat heightRatio, GLfloat viewportY) {
-    GLint viewportWidth = screenWidth * widthRatio;
-    GLint viewportHeight = screenHeight * heightRatio;
+void setup3D() {
+    GLint viewportWidth = screenWidth / 1.7;
+    GLint viewportHeight = screenHeight;
 
     vpmanager_local.resize(viewportWidth, viewportHeight);
 
     // Set the viewport to cover the left part of the screen
-    glViewport(0, viewportY, viewportWidth, viewportHeight);
+    glViewport(0, 0, viewportWidth, viewportHeight);
 
     // Setup the projection matrix for 3D rendering
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
     // Adjust the perspective projection to match the new aspect ratio
-    GLfloat aspectRatio = static_cast<float>(viewportWidth) / static_cast<float>(viewportHeight);
-    gluPerspective(45.0, aspectRatio, 0.1f, 1000.0f);
-
-    // Switch back to modelview matrix mode
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    // Enable depth testing, required for 3D rendering
-    glEnable(GL_DEPTH_TEST);
-
-    // Enable lighting if your visualization uses it
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-}
-
-void setup3D2(GLfloat widthRatio2, GLfloat heightRatio2, GLfloat viewportY2) {
-    GLint viewportWidth = screenWidth * widthRatio2;
-    GLint viewportHeight = screenHeight * heightRatio2;
-
-    vpmanager_local.resize(viewportWidth, viewportHeight);
-
-    // Set the viewport to cover the left part of the screen
-    glViewport(0, viewportY2, viewportWidth, viewportHeight);
-
-    // Setup the projection matrix for 3D rendering
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-
-    // Adjust the perspective projection to match the new aspect ratio
-    GLfloat aspectRatio = static_cast<float>(viewportWidth) / static_cast<float>(viewportHeight);
+    GLfloat aspectRatio = (GLfloat)viewportWidth / (GLfloat)viewportHeight;
     gluPerspective(45.0, aspectRatio, 0.1f, 1000.0f);
 
     // Switch back to modelview matrix mode
@@ -802,115 +709,13 @@ void display() {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    if (visualisationActive_3a) {
+    bool active = visualisationActive_3a || visualisationActive_3b || visualisationActive_3c || visualisationActive_3d || visualisationActive_3e || visualisationActive_3f;
+
+    if (active) {
         // Set viewport for the left half of the screen
-        setup3D(0.6, 0.8, 300.0);
+        setup3D();
 
-        // Render the visualization
-        vpmanager_local.render(cam_local);
-        checkGLError("render");
-
-        // Reset the viewport to full window size for the rest of your GUI, if necessary
-        setup2D();
-        checkGLError("setup2D");
-    }
-
-    if (visualisationActive_3b) {
-		// Set viewport for the left half of the screen
-		setup3D2(0.777777778, 0.2, 0);
-
-		// Render the visualization
-		vpmanager_local.render(cam_local);
-		checkGLError("render");
-
-		// Reset the viewport to full window size for the rest of your GUI, if necessary
-		setup2D();
-		checkGLError("setup2D");
-	}
-
-    if (visualisationActive_3c) {
-		// Set viewport for the left half of the screen
-		setup3D(0.7777777778, 0.2, 0);
-
-		// Render the visualization
-		vpmanager_local.render(cam_local);
-		checkGLError("render");
-
-		// Reset the viewport to full window size for the rest of your GUI, if necessary
-		setup2D();
-		checkGLError("setup2D");
-	}
-
-    if (visualisationActive_3d) {
-        // Set viewport for the left half of the screen
-        setup3D(0.6, 1.0, 0);
-
-        // Render the visualization
-        vpmanager_local.render(cam_local);
-        checkGLError("render");
-
-        // Reset the viewport to full window size for the rest of your GUI, if necessary
-        setup2D();
-        checkGLError("setup2D");
-    }
-
-    if (visualisationActive_3e) {
-        // Set viewport for the left half of the screen
-        setup3D(0.6, 0.8, 300);
-
-        // Render the visualization
-        vpmanager_local.render(cam_local);
-        checkGLError("render");
-
-        // Reset the viewport to full window size for the rest of your GUI, if necessary
-        setup2D();
-        checkGLError("setup2D");
-    }
-
-    if (visualisationActive_3f) {
-        // Set viewport for the left half of the screen
-        setup3D(0.6, 0.8, 200);
-
-        // Render the visualization
-        vpmanager_local.render(cam_local);
-        checkGLError("render");
-
-        // Reset the viewport to full window size for the rest of your GUI, if necessary
-        setup2D();
-        checkGLError("setup2D");
-    }
-
-    if (visualisationActive_3a2) {
-        // Set viewport for the left half of the screen
-        setup3D2(0.6, 0.2, 200);
-
-        // Render the visualization
-        vpmanager_local.render(cam_local2);
-        checkGLError("render");
-
-        // Reset the viewport to full window size for the rest of your GUI, if necessary
-        setup2D();
-        checkGLError("setup2D");
-    }
-
-    if (visualisationActive_3e2) {
-        // Set viewport for the left half of the screen
-        setup3D(0.6, 0.2, 200);
-
-        // Render the visualization
-        vpmanager_local.render(cam_local);
-        checkGLError("render");
-
-        // Reset the viewport to full window size for the rest of your GUI, if necessary
-        setup2D();
-        checkGLError("setup2D");
-    }
-
-    if (visualisationActive_3f2) {
-        // Set viewport for the left half of the screen
-        setup3D(0.6, 0.2, 200);
-
-        // Render the visualization
+        // Render the visualisation
         vpmanager_local.render(cam_local);
         checkGLError("render");
 
@@ -1957,7 +1762,7 @@ void screen3a() {
     // Draw the bottom area where zones and zoned designs are displayed
     std::string number_zones = std::string("Zones: ") + std::to_string(Zoned->get_designs().size());
     drawText(number_zones.c_str(), 100, 300, 200);
-    drawText("Zoned designs: 0", 100, 150, 200);
+    //drawText("Zoned designs: 0", 100, 150, 200);
 
     // Draw the message at the top of the structure illustration
     drawBoldText("Step 1: The top screens shows a BSD. The bottom screen shows the zoned designs that AI found. You can continue to the next step.", 1550, screenHeight - 50, 250, 1);
@@ -1977,12 +1782,12 @@ void screen3b() {
     LineDivisionScreen();
 
     // Draw the bottom area where zones and zoned designs are displayed
-    drawText("Zoned designs:", 100, 150, 200);
+    //drawText("Zoned designs:", 100, 150, 200);
 
     //Draw text and a textfield(textbox)
-    drawText("Zoned design:", screenWidth - 180, 660, 200);
+    //drawText("Zoned design:", screenWidth - 180, 660, 200);
     drawTextField(1510, 600, 150, 50, opinionTF);
-    //drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 1570, 750, 275);
+    drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 1570, 750, 275);
 
     // Draw the message at the bottom of the structure illustration
     drawBoldText("Step 2: Pick one zoned design you would like to continue with. Say aloud what you think.", 1550, screenHeight - 50, 250, 1);
@@ -2002,7 +1807,7 @@ void screen3c() {
     LineDivisionScreen();
 
     // Draw the bottom area where zones and zoned designs are displayed
-    drawText("Zoned designs:", 100, 150, 200);
+    //drawText("Zoned designs:", 100, 150, 200);
 
     //Draw text and a textfield(textbox)
     drawText("Zoned design:", screenWidth - 180, 660, 200);

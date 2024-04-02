@@ -23,7 +23,6 @@ std::shared_ptr <BSO::Spatial_Design::MS_Space> MS_Space = nullptr;
 std::shared_ptr <BSO::Spatial_Design::Zoning::Zone> zone = nullptr;
 
 // Global variables for visualisation
-bool visualisationActive = false; // Flag to control when to activate visualisation
 BSO::Visualisation::viewportmanager vpmanager_local;
 BSO::Visualisation::orbitalcamera   cam_local;
 BSO::Visualisation::orbitalcamera   cam_local2;
@@ -323,10 +322,6 @@ bool visualisationActive_3b = false;
 bool visualisationActive_3c = false;
 bool visualisationActive_3d = false;
 bool visualisationActive_3e = false;
-bool visualisationActive_3a2 = false;
-bool visualisationActive_3e2 = false;
-bool visualisationActive_3a3 = false;
-bool visualisationActive_3e3 = false;
 
 void changeScreen(int screen) {
     currentScreen = screen;
@@ -341,34 +336,21 @@ void changeScreen(int screen) {
     visualisationActive_3c = false;
     visualisationActive_3d = false;
     visualisationActive_3e = false;
-    visualisationActive_3a2 = false;
-    visualisationActive_3e2 = false;
-    visualisationActive_3a3 = false;
-    visualisationActive_3e3 = false;
 
     if (screen == 2 || (screen >= 14 && screen <= 17) || (screen == 26)) {
-        //Screens first time zoning (screen 3a and pop ups)
-        visualisationActive_3a = true;
-        visualisationActive_3a2 = true;
-        visualisationActive_3a3 = true;
+        visualisationActive_3a = true; //Screens first time zoning (screen 3a and pop ups)
     }
     else if (screen == 3 || (screen == 27)) {
-		//Screens second time zoning (screen 3b and pop ups)
-		visualisationActive_3b = true;
+		visualisationActive_3b = true; //Screens second time zoning (screen 3b and pop ups)
 	}
     else if (screen == 4 || (screen == 28)) {
-		//Screens changing the SD (screen 3c and pop ups)
-		visualisationActive_3c = true;
+		visualisationActive_3c = true; 	//Screens changing the SD (screen 3c and pop ups)
 	}
     else if ((screen == 5) || (screen >= 18 && screen <= 21) || (screen == 29)) {
-        //Screens changing the BSD (screen 3d and pop ups)
-        visualisationActive_3d = true;
+        visualisationActive_3d = true; //Screens changing the BSD (screen 3d and pop ups)
     }
     else if (screen == 6 || (screen >= 22 && screen <= 25) || screen == 30) {
-        //Screens second time zoning (screen 3e and pop ups)
-        visualisationActive_3e = true;
-        visualisationActive_3e2 = true;
-        visualisationActive_3e3 = true;
+        visualisationActive_3e = true; //Screens second time zoning (screen 3e and pop ups)
     }
 
     // Based on the flags, activate/deactivate visualization for each group
@@ -378,38 +360,11 @@ void changeScreen(int screen) {
             setup_pointers();
         }
         vpmanager_local.clearviewports();
-        visualiseZones(2);
         visualise(*MS);
+        visualiseZones(2);
         // visualise(&SD, 1);
         // visualise(CF, "rectangles");
         // visualise(*SD_Building, 4);
-        //visualisationActive = true; // Set overall visualization flag
-    }
-    else if (visualisationActive_3a2) {
-        // Activate visualization for group 3a
-        if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
-            setup_pointers();
-        }
-        vpmanager_local.clearviewports();
-        visualiseZones();
-        //visualise(*MS);
-        // visualise(&SD, 1);
-        // visualise(CF, "rectangles");
-        // visualise(*SD_Building, 4);
-        //visualisationActive = true; // Set overall visualization flag
-    }
-    else if (visualisationActive_3a3) {
-		// Activate visualization for group 3a
-        if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
-			setup_pointers();
-		}
-        vpmanager_local.clearviewports();
-		visualiseZones();
-		//visualise(*MS);
-		// visualise(&SD, 1);
-		//visualise(CF, "rectangles");
-		// visualise(*SD_Building, 4);
-        //visualisationActive = true; // Set overall visualization flag
     }
     else if (visualisationActive_3b) {
         // Activate visualization for group 3a
@@ -418,11 +373,6 @@ void changeScreen(int screen) {
         }
         vpmanager_local.clearviewports();
         visualiseZones();
-        //visualise(*MS);
-        // visualise(&SD, 1);
-        // visualise(CF, "rectangles");
-        // visualise(*SD_Building, 4);
-        //visualisationActive = true; // Set overall visualization flag
     }
     else if (visualisationActive_3c) {
         // Activate visualization for group 3a
@@ -431,11 +381,6 @@ void changeScreen(int screen) {
         }
         vpmanager_local.clearviewports();
         visualiseZones();
-        //visualise(*MS);
-        // visualise(&SD, 1);
-        // visualise(CF, "rectangles");
-        // visualise(*SD_Building, 4);
-        //visualisationActive = true; // Set overall visualization flag
     }
     else if (visualisationActive_3d) {
         // Activate visualization for group 3a
@@ -443,12 +388,7 @@ void changeScreen(int screen) {
             setup_pointers();
         }
         vpmanager_local.clearviewports();
-        //visualiseZones();
         visualise(*MS);
-        // visualise(&SD, 1);
-        // visualise(CF, "rectangles");
-        // visualise(*SD_Building, 4);
-        //visualisationActive = true; // Set overall visualization flag
     }
     else if (visualisationActive_3e) {
         // Activate visualization for group 3a
@@ -456,51 +396,16 @@ void changeScreen(int screen) {
             setup_pointers();
         }
         vpmanager_local.clearviewports();
-        //visualiseZones();
         visualise(*MS);
-        // visualise(&SD, 1);
-        // visualise(CF, "rectangles");
-        // visualise(*SD_Building, 4);
-        //visualisationActive = true; // Set overall visualization flag
-    }
-    else if (visualisationActive_3e2) {
-        // Activate visualization for group 3a
-        if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
-            setup_pointers();
-        }
-        vpmanager_local.clearviewports();
         visualiseZones();
-        //visualise(*MS);
-        // visualise(&SD, 1);
-        // visualise(CF, "rectangles");
-        // visualise(*SD_Building, 4);
-        //visualisationActive = true; // Set overall visualization flag
-    }
-    else if (visualisationActive_3e3) {
-        // Activate visualization for group 3a
-        if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
-            setup_pointers();
-        }
-        vpmanager_local.clearviewports();
-        visualiseZones();
-        //visualise(*MS);
-        // visualise(&SD, 1);
-        // visualise(CF, "rectangles");
-        // visualise(*SD_Building, 4);
-        //visualisationActive = true; // Set overall visualization flag
     }
     else {
         vpmanager_local.clearviewports(); // Deactivate visualization if none of the groups match
-        visualisationActive = false; // Set overall visualization flag
         visualisationActive_3a = false;
         visualisationActive_3b = false;
         visualisationActive_3c = false;
         visualisationActive_3d = false;
         visualisationActive_3e = false;
-        visualisationActive_3a2 = false;
-        visualisationActive_3e2 = false;
-        visualisationActive_3a3 = false;
-        visualisationActive_3e3 = false;
     }
 
     if (screen == 4) {
@@ -761,7 +666,7 @@ void display() {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    bool active = visualisationActive_3a || visualisationActive_3b || visualisationActive_3c || visualisationActive_3d || visualisationActive_3e || visualisationActive_3a2 || visualisationActive_3e2 || visualisationActive_3a3 || visualisationActive_3e3;
+    bool active = visualisationActive_3a || visualisationActive_3b || visualisationActive_3c || visualisationActive_3d || visualisationActive_3e;
 
     if (active) {
         // Set viewport for the left half of the screen

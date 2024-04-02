@@ -379,6 +379,35 @@ void drawText(const char* text, float centerX, float centerY, float textWidth) {
     }
 }
 
+void drawTextRed(const char* text, float centerX, float centerY, float textWidth) {
+    float lineHeight = 18; // Approximate line height, adjust as needed
+    float effectiveTextWidth = textWidth - 2 * MARGIN_PERCENT; // Effective width after considering margins
+
+    // Calculate the starting position (left align within the margin)
+    float startX = centerX - effectiveTextWidth / 2.0f;
+    float currentX = startX;
+    float currentY = centerY;
+
+    for (const char* c = text; *c != '\0'; c++) {
+        // Check if we need to wrap the line
+        if ((currentX - startX > effectiveTextWidth) && (*c == ' ' || *c == '\n')) {
+            currentY -= lineHeight;
+            currentX = startX - 4;
+        }
+
+        glRasterPos2f(currentX, currentY);
+
+        // Set text color to black
+        glColor3f(1.0, 0.0, 0.0); // red color for text
+
+        // Draw the character
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
+
+        // Move to the next character position
+        currentX += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *c);
+    }
+}
+
 // Function to draw text centered within a given width, used within the draw button function. 
 void drawTextCentered(const char* text, float centerX, float centerY, float textWidth) {
     float lineHeight = 18; // Approximate line height, adjust as needed
@@ -790,6 +819,7 @@ void keyboard(unsigned char key, int x, int y) {
                 std::cout << "Invalid input. Please make sure both inputs are valid." << std::endl;
                 validInput = false;
                 DrawInvalidInput = true;
+                writeToProcessFile("process2.csv", "", "above input invalid");
             }
 
         }
@@ -866,6 +896,7 @@ void keyboard(unsigned char key, int x, int y) {
                 std::cout << "Invalid input. Please make sure both inputs are valid." << std::endl;
                 validInput = false;
                 DrawInvalidInput = true;
+                writeToProcessFile("process2.csv", "", "above input invalid");
             }
         }
     }
@@ -950,6 +981,7 @@ void keyboard(unsigned char key, int x, int y) {
                 std::cout << "Invalid input. Please make sure both inputs are valid." << std::endl;
                 validInput = false;
                 DrawInvalidInput = true;
+                writeToProcessFile("process2.csv", "", "above input invalid");
             }
         }
     }
@@ -1018,6 +1050,7 @@ void keyboard(unsigned char key, int x, int y) {
 				std::cout << "Invalid input. Please make sure both inputs are valid." << std::endl;
 				validInput = false;
 				DrawInvalidInput = true;
+                writeToProcessFile("process2.csv", "", "above input invalid");
 			}
         }
     }
@@ -1283,8 +1316,8 @@ void mainScreen() {
     drawText("Welcome to this experiment for a SED graduation project. We are glad to have you here and hope you will have a nice experience.", 930, 820, 400);
     drawText("In which assignment will you participate?", 930, 740, 400);
 
-    drawButton("Assignment 1", 800, 650, 200, 50, changeScreen, 1);
-    drawButton("Assignment 2", 800, 580, 200, 50, buttonClicked, 1);
+    drawButton("Assignment 1", 800, 650, 200, 50, buttonClicked, 1);
+    drawButton("Assignment 2", 800, 580, 200, 50, changeScreen, 1);
     drawButton("Assignment 3", 800, 510, 200, 50, buttonClicked, 1);
     drawButton("Assignment 4", 800, 440, 200, 50, buttonClicked, 1);
 
@@ -1294,7 +1327,7 @@ void mainScreen() {
 
 // ID 1: Assignment description screen
 void assignmentDescriptionScreen() {
-    drawText("Selected Assignment: 1 'Human stabilization assignment'​", 900, 740, 400);
+    drawText("Selected Assignment: 2 'Human stabilization assignment'​", 900, 740, 400);
     drawText("Expected duration: 20 minutes​", 900, 710, 400);
     drawText("Read the following instructions carefully:​", 900, 650, 400);
     drawText("You will in a moment go through a design task. You are asked to perform this task in the way you are used to go about a commission in your daily practice. It is important that you say aloud everything that you think or do in designing. ​So, in every step, explain what you do and why you do it. Try to keep speaking constantly and not be silent for longer than 20 seconds. ​Please speak English. Good luck!​",
@@ -1545,7 +1578,9 @@ void screenAddTrussDiagonally() {
     drawTextField(screenWidth - 355, 250, 150, 50, opinionTF7);
     drawTextField(screenWidth - 195, 250, 150, 50, opinionTF8);
     //drawText("Use the 'Tab' key to swith input fields", screenWidth - 110, 390, 500);
-    drawText("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(1.0, 0.0, 0.0); //red color)
+    drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(0.0, 0.0, 0.0); //back to black color
 
     //draw lines around it
     boxAroundPopUp();
@@ -1567,7 +1602,9 @@ void screenReplaceTrussByBeam() {
     //draw text and input adding a beam
     drawText("Member to replace:", 1600, 320, 350);
     drawTextField(screenWidth - 355, 250, 150, 50, opinionTF9);
-    drawText("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(1.0, 0.0, 0.0); //red color)
+    drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(0.0, 0.0, 0.0); //back to black color
 
     //draw lines around it
     boxAroundPopUp();
@@ -1583,7 +1620,9 @@ void screenDeleteDiagonalTruss() {
     //draw text and input deleting a diagonal rod element
     drawText("Member to delete:", 1600, 320, 350);
     drawTextField(screenWidth - 355, 250, 150, 50, opinionTF10);
-    drawText("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(1.0, 0.0, 0.0); //red color)
+    drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(0.0, 0.0, 0.0); //back to black color
 
     //draw lines around it
     boxAroundPopUp();
@@ -1598,7 +1637,9 @@ void screenReplaceBeamByTruss() {
     //draw text and input adding a beam
     drawText("Member to replace:", 1600, 320, 350);
     drawTextField(screenWidth - 355, 250, 150, 50, opinionTF11);
-    drawText("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(1.0, 0.0, 0.0); //red color)
+    drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(0.0, 0.0, 0.0); //back to black color
 
     //draw lines around it
     boxAroundPopUp();

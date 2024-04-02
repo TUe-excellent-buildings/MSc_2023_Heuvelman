@@ -179,6 +179,16 @@ void setup_pointers() {
     (*SD_Building).analyse();
 }
 
+// Function to recreate CF using the updated MS
+void update_CF() {
+    CF = std::make_shared<BSO::Spatial_Design::MS_Conformal>(*MS, &(BSO::Grammar::grammar_zoning));
+    (*CF).make_conformal();
+    Zoned = std::make_shared<BSO::Spatial_Design::Zoning::Zoned_Design>(CF.get());
+    (*Zoned).make_zoning();
+    SD_Building = std::make_shared<BSO::Structural_Design::SD_Analysis>(*CF);
+    (*SD_Building).analyse();
+}
+
 void checkGLError(const char* action) {
     GLenum err;
     while ((err = glGetError()) != GL_NO_ERROR) {
@@ -303,7 +313,7 @@ void buttonClicked(int variable) {
         writeToOutputFile("output3.csv", "6. What criteria did you keep in mind while performing this assignment?", "", opinionTF8.text);
     }
     if (currentScreen == 36) {
-        writeToOutputFile("output3.csv", "7. Did you prefer choosing from all options or the IQD selection?", getSelectedButtonLabel(), opinionTF26.text);
+        writeToOutputFile("output3.csv", "7.  Did you prefer choosing from the limited zoned design options or from all zoned design options?", getSelectedButtonLabel(), opinionTF26.text);
     }
 
     if (currentScreen == 35) {
@@ -386,9 +396,9 @@ void changeScreen(int screen) {
         }
         vpmanager_local.clearviewports();
         visualise(*MS);
-        visualiseZones(2);
+        //visualiseZones(2);
+        //visualiseZones();
         // visualise(&SD, 1);
-        // visualise(CF, "rectangles");
         // visualise(*SD_Building, 4);
     }
     else if (visualisationActive_3b) {
@@ -397,6 +407,7 @@ void changeScreen(int screen) {
             setup_pointers();
         }
         vpmanager_local.clearviewports();
+        visualise(*MS);
         visualiseZones();
     }
     else if (visualisationActive_3c) {
@@ -405,6 +416,7 @@ void changeScreen(int screen) {
             setup_pointers();
         }
         vpmanager_local.clearviewports();
+        visualise(*MS);
         visualiseZones();
     }
     else if (visualisationActive_3d) {
@@ -422,6 +434,8 @@ void changeScreen(int screen) {
         }
         vpmanager_local.clearviewports();
         visualise(*MS);
+        update_CF();
+        //visualise(*CF, "rectangles");
         visualiseZones(); //should become only the most diverse 2
     }
     else if (visualisationActive_3f) {
@@ -470,7 +484,7 @@ void changeScreen(int screen) {
         writeToOutputFile("output3.csv", "5..", getSelectedButtonLabel(), opinionTF7.text);
 	}
     if (screen == 36) {
-        writeToOutputFile("output3.csv", "6..", "", opinionTF8.text);
+        writeToOutputFile("output3.csv", "6. What criteria did you keep in mind while performing this assignment?", "", opinionTF8.text);
 	}
     if (screen == 13) {
         writeToOutputFile("output3.csv", "7..", getSelectedButtonLabel(), opinionTF26.text);
@@ -513,6 +527,35 @@ void drawText(const char* text, float centerX, float centerY, float textWidth) {
 
         // Set text color to black
         glColor3f(0.0, 0.0, 0.0); // black color for text
+
+        // Draw the character
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
+
+        // Move to the next character position
+        currentX += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *c);
+    }
+}
+
+void drawTextRed(const char* text, float centerX, float centerY, float textWidth) {
+    float lineHeight = 18; // Approximate line height, adjust as needed
+    float effectiveTextWidth = textWidth - 2 * MARGIN_PERCENT; // Effective width after considering margins
+
+    // Calculate the starting position (left align within the margin)
+    float startX = centerX - effectiveTextWidth / 2.0f;
+    float currentX = startX;
+    float currentY = centerY;
+
+    for (const char* c = text; *c != '\0'; c++) {
+        // Check if we need to wrap the line
+        if ((currentX - startX > effectiveTextWidth) && (*c == ' ' || *c == '\n')) {
+            currentY -= lineHeight;
+            currentX = startX - 4;
+        }
+
+        glRasterPos2f(currentX, currentY);
+
+        // Set text color to black
+        glColor3f(1.0, 0.0, 0.0); // red color for text
 
         // Draw the character
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
@@ -955,7 +998,7 @@ void keyboard(unsigned char key, int x, int y) {
                 // Print the entered text from opinionTF13 to the terminal
                 std::cout << "Entered text (opinionTF13): " << opinionTF13.text << std::endl;
                 // Write the entered text from opinionTF13 to the process file
-                writeToProcessFile("process.csv", "Add Space: size", opinionTF13.text);
+                writeToProcessFile("process3.csv", "Add Space: size", opinionTF13.text);
 
                 std::vector<int> sizes = parseValues(opinionTF13.text, ',');
                 if (sizes.size() == 3) {
@@ -974,7 +1017,7 @@ void keyboard(unsigned char key, int x, int y) {
                 // Print the entered text from opinionTF14 to the terminal
                 std::cout << "Entered text (opinionTF14): " << opinionTF14.text << std::endl;
                 // Write the entered text from opinionTF14 to the process file
-                writeToProcessFile("process.csv", "Add Space: location", opinionTF14.text);
+                writeToProcessFile("process3.csv", "Add Space: location", opinionTF14.text);
 
                 std::vector<int> location = parseValues(opinionTF14.text, ',');
                 if (location.size() == 3) {
@@ -1036,6 +1079,9 @@ void keyboard(unsigned char key, int x, int y) {
                     // If modification count is already 7, display the message on screen3d
                 }
             }
+            else {
+                writeToProcessFile("process3.csv", "", "above input invalid");
+            }
         }
         else if (key == '\t') { // Tab key
             // Toggle active state between opinionTF13 and opinionTF14
@@ -1060,7 +1106,7 @@ void keyboard(unsigned char key, int x, int y) {
                 // Print the entered text to the terminal
                 std::cout << "Entered text: " << opinionTF15.text << std::endl;
                 // Write the entered text to the process file
-                writeToProcessFile("process.csv", "Delete Space", opinionTF15.text);
+                writeToProcessFile("process3.csv", "Delete Space", opinionTF15.text);
 
                 std::stringstream ss(opinionTF15.text);
                 int space_ID;
@@ -1122,6 +1168,7 @@ void keyboard(unsigned char key, int x, int y) {
             else {
                 // Handle empty space ID input gracefully
                 std::cout << "Error: Space ID input is empty." << std::endl;
+                writeToProcessFile("process3.csv", "", "above input invalid");
             }
         }
     }
@@ -1158,7 +1205,7 @@ void keyboard(unsigned char key, int x, int y) {
                 // Print the entered text from opinionTF16 to the terminal
                 std::cout << "Entered text (opinionTF16): " << opinionTF16.text << std::endl;
                 // Write the entered text from opinionTF16 to the process file
-                writeToProcessFile("process.csv", "Move Space: space", opinionTF16.text);
+                writeToProcessFile("process3.csv", "Move Space: space", opinionTF16.text);
                 // Clear the input string of opinionTF16 after processing
 
                 std::stringstream ss(opinionTF16.text);
@@ -1192,7 +1239,7 @@ void keyboard(unsigned char key, int x, int y) {
                 // Print the entered text from opinionTF17 to the terminal
                 std::cout << "Entered text (opinionTF17): " << opinionTF17.text << std::endl;
                 // Write the entered text from opinionTF17 to the process file
-                writeToProcessFile("process.csv", "Move Space: new location", opinionTF17.text);
+                writeToProcessFile("process3.csv", "Move Space: new location", opinionTF17.text);
                 // Clear the input string of opinionTF17 after processing
 
                 std::vector<int> location = parseValues(opinionTF17.text, ',');
@@ -1259,6 +1306,9 @@ void keyboard(unsigned char key, int x, int y) {
                     // If modification count is already 7, display the message on screen3d
                 }
             }
+            else {
+                writeToProcessFile("process3.csv", "", "above input invalid");
+            }
         }
         else if (key == '\t') { // Tab key
             // Toggle active state between opinionTF16 and opinionTF17
@@ -1299,7 +1349,7 @@ void keyboard(unsigned char key, int x, int y) {
                 // Print the entered text from opinionTF18 to the terminal
                 std::cout << "Entered text (opinionTF18): " << opinionTF18.text << std::endl;
                 // Write the entered text from opinionTF18 to the process file
-                writeToProcessFile("process.csv", "Resize Space: space", opinionTF18.text);
+                writeToProcessFile("process3.csv", "Resize Space: space", opinionTF18.text);
 
                 std::stringstream ss(opinionTF18.text);
                 int space_ID;
@@ -1332,7 +1382,7 @@ void keyboard(unsigned char key, int x, int y) {
                 // Print the entered text from opinionTF19 to the terminal
                 std::cout << "Entered text (opinionTF19): " << opinionTF19.text << std::endl;
                 // Write the entered text from opinionTF19 to the process file
-                writeToProcessFile("process.csv", "Resize Space: new size", opinionTF19.text);
+                writeToProcessFile("process3.csv", "Resize Space: new size", opinionTF19.text);
 
                 std::vector<int> sizes = parseValues(opinionTF19.text, ',');
                 if (sizes.size() != 3) {
@@ -1397,6 +1447,9 @@ void keyboard(unsigned char key, int x, int y) {
                 else {
                     // If modification count is already 7, display the message on screen3d
                 }
+            }
+            else {
+                writeToProcessFile("process3.csv", "", "above input invalid");
             }
         }
         else if (key == '\t') { // Tab key
@@ -1761,11 +1814,11 @@ void screen3a() {
 
     // Draw the bottom area where zones and zoned designs are displayed
     std::string number_zones = std::string("Zones: ") + std::to_string(Zoned->get_designs().size());
-    drawText(number_zones.c_str(), 100, 300, 200);
+    //drawText(number_zones.c_str(), 100, 300, 200);
     //drawText("Zoned designs: 0", 100, 150, 200);
 
     // Draw the message at the top of the structure illustration
-    drawBoldText("Step 1: The top screens shows a BSD. The bottom screen shows the zoned designs that AI found. You can continue to the next step.", 1550, screenHeight - 50, 250, 1);
+    drawBoldText("Step 1: The visualization on the left shows a BSD. AI has found all zones and zoned designs for this BSD; you can continue to the next step.", 1550, screenHeight - 50, 250, 1);
 
     //step vs steps to go as a time indication for the user
     drawText("Step 1/8", screenWidth, screenHeight - 25, 180);
@@ -1785,9 +1838,9 @@ void screen3b() {
     //drawText("Zoned designs:", 100, 150, 200);
 
     //Draw text and a textfield(textbox)
-    //drawText("Zoned design:", screenWidth - 180, 660, 200);
+    drawText("Zoned design:", screenWidth - 180, 660, 200);
     drawTextField(1510, 600, 150, 50, opinionTF);
-    drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 1570, 750, 275);
+    //drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 1570, 750, 275);
 
     // Draw the message at the bottom of the structure illustration
     drawBoldText("Step 2: Pick one zoned design you would like to continue with. Say aloud what you think.", 1550, screenHeight - 50, 250, 1);
@@ -1929,7 +1982,7 @@ void screen3e() {
     LineDivisionScreen();
 
     // Draw the bottom area where zones and zoned designs are displayed
-    drawText("Zoned designs: 0", 100, 150, 200);
+    //drawText("Zoned designs: 0", 100, 150, 200);
 
     //Draw text and a textfield(textbox)
     drawText("Zoned design:", screenWidth - 180, 660, 200);
@@ -1960,7 +2013,7 @@ void screen3f() {
     LineDivisionScreen();
 
     // Draw the bottom area where zones and zoned designs are displayed
-    drawText("Zoned designs: 0", 100, 150, 200);
+    //drawText("Zoned designs: 0", 100, 150, 200);
 
     //Draw text and a textfield(textbox)
     drawText("Zoned design:", screenWidth - 180, 660, 200);
@@ -2219,7 +2272,9 @@ void screenAddSpace() {
     drawTextField(screenWidth - 355, 250, 150, 50, opinionTF13);
     drawTextField(screenWidth - 195, 250, 150, 50, opinionTF14);
     //drawText("Use the 'Tab' key to swith input fields", screenWidth - 110, 390, 500);
-    drawText("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(1.0, 0.0, 0.0); //red color)
+    drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(0.0, 0.0, 0.0); //back to black color
 
     //draw lines around it
     boxAroundPopUp2();
@@ -2232,9 +2287,11 @@ void screenDeleteSpace() {
     drawButtonWithBackgroundColor("Delete space", screenWidth - 310, 550, 200, 50, buttonClicked, 1);
 
     //draw text and input for deleting a space
-    drawText("Space(s) to delete:", screenWidth, 320, 600);
+    drawText("Space to delete:", screenWidth, 320, 600);
     drawTextField(screenWidth - 310, 250, 200, 50, opinionTF15);
-    drawText("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(1.0, 0.0, 0.0); //red color)
+    drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(0.0, 0.0, 0.0); //back to black color
 
     //draw lines around it
     boxAroundPopUp2();
@@ -2252,7 +2309,9 @@ void screenMoveSpace() {
     drawTextField(screenWidth - 355, 250, 150, 50, opinionTF16);
     drawTextField(screenWidth - 195, 250, 150, 50, opinionTF17);
     //drawText("Use the 'Tab' key to swith input fields", screenWidth - 110, 390, 500);
-    drawText("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(1.0, 0.0, 0.0); //red color
+    drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(0.0, 0.0, 0.0); //back to black color
 
     //draw lines around it
     boxAroundPopUp2();
@@ -2270,7 +2329,9 @@ void screenResizeSpace() {
     drawTextField(screenWidth - 355, 250, 150, 50, opinionTF18);
     drawTextField(screenWidth - 195, 250, 150, 50, opinionTF19);
     //drawText("Use the 'Tab' key to swith input fields", screenWidth - 110, 390, 500);
-    drawText("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(1.0, 0.0, 0.0); //red color
+    drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(0.0, 0.0, 0.0); //back to black color
 
     //draw lines around it
     boxAroundPopUp2();

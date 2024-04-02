@@ -248,7 +248,8 @@ void changeScreen(int screen) {
     //If AI suggestion screen is reached (so the button is pressed), increment the AI suggestion count
     if (screen == 16) {
         AISuggestionCount++;
-        Stab_model->stabilize_one_point2(3);
+        //Stab_model->stabilize_one_point3(3);
+        Stab_model->stabilize_free_dofs(0);
     }
     
     if (screen == 1) {
@@ -383,6 +384,35 @@ void drawText(const char* text, float centerX, float centerY, float textWidth) {
 
         // Set text color to black
         glColor3f(0.0, 0.0, 0.0); // black color for text
+
+        // Draw the character
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
+
+        // Move to the next character position
+        currentX += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *c);
+    }
+}
+
+void drawTextRed(const char* text, float centerX, float centerY, float textWidth) {
+    float lineHeight = 18; // Approximate line height, adjust as needed
+    float effectiveTextWidth = textWidth - 2 * MARGIN_PERCENT; // Effective width after considering margins
+
+    // Calculate the starting position (left align within the margin)
+    float startX = centerX - effectiveTextWidth / 2.0f;
+    float currentX = startX;
+    float currentY = centerY;
+
+    for (const char* c = text; *c != '\0'; c++) {
+        // Check if we need to wrap the line
+        if ((currentX - startX > effectiveTextWidth) && (*c == ' ' || *c == '\n')) {
+            currentY -= lineHeight;
+            currentX = startX - 4;
+        }
+
+        glRasterPos2f(currentX, currentY);
+
+        // Set text color to black
+        glColor3f(1.0, 0.0, 0.0); // red color for text
 
         // Draw the character
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
@@ -804,6 +834,7 @@ void keyboard(unsigned char key, int x, int y) {
                 std::cout << "Invalid input. Please make sure both inputs are valid." << std::endl;
                 validInput = false;
                 DrawInvalidInput = true;
+                writeToProcessFile("process4.csv", "", "above input invalid");
             }
 
         }
@@ -880,6 +911,7 @@ void keyboard(unsigned char key, int x, int y) {
                 std::cout << "Invalid input. Please make sure both inputs are valid." << std::endl;
                 validInput = false;
                 DrawInvalidInput = true;
+                writeToProcessFile("process4.csv", "", "above input invalid");
             }
         }
     }
@@ -964,6 +996,7 @@ void keyboard(unsigned char key, int x, int y) {
                 std::cout << "Invalid input. Please make sure both inputs are valid." << std::endl;
                 validInput = false;
                 DrawInvalidInput = true;
+                writeToProcessFile("process4.csv", "", "above input invalid");
             }
         }
     }
@@ -1032,6 +1065,7 @@ void keyboard(unsigned char key, int x, int y) {
                 std::cout << "Invalid input. Please make sure both inputs are valid." << std::endl;
                 validInput = false;
                 DrawInvalidInput = true;
+                writeToProcessFile("process4.csv", "", "above input invalid");
             }
         }
     }
@@ -1570,7 +1604,9 @@ void screenAddTrussDiagonally() {
     drawTextField(screenWidth - 355, 160, 150, 50, opinionTF7);
     drawTextField(screenWidth - 195, 160, 150, 50, opinionTF8);
     //drawText("Use the 'Tab' key to swith input fields", screenWidth - 110, 300, 500);
-    drawText("Press enter to submit", screenWidth - 60, 280, 500);
+    glColor3f(1.0, 0.0, 0.0); //red color)
+    drawTextRed("Press enter to submit", screenWidth - 60, 280, 500);
+    glColor3f(0.0, 0.0, 0.0); //back to black color
 
     //draw lines around it
     boxAroundPopUp();
@@ -1592,7 +1628,9 @@ void screenReplaceTrussByBeam() {
     //draw text and input adding a beam
     drawText("Member to replace:", 1600, 230, 350);
     drawTextField(screenWidth - 355, 160, 150, 50, opinionTF9);
-    drawText("Press enter to submit", screenWidth - 60, 280, 500);
+    glColor3f(1.0, 0.0, 0.0); //red color)
+    drawTextRed("Press enter to submit", screenWidth - 60, 280, 500);
+    glColor3f(0.0, 0.0, 0.0); //back to black color
 
     //draw lines around it
     boxAroundPopUp();
@@ -1608,7 +1646,9 @@ void screenDeleteDiagonalTruss() {
     //draw text and input deleting a diagonal rod element
     drawText("Member to delete:", 1600, 230, 350);
     drawTextField(screenWidth - 355, 160, 150, 50, opinionTF10);
-    drawText("Press enter to submit", screenWidth - 60, 280, 500);
+    glColor3f(1.0, 0.0, 0.0); //red color)
+    drawTextRed("Press enter to submit", screenWidth - 60, 280, 500);
+    glColor3f(0.0, 0.0, 0.0); //back to black color
 
     //draw lines around it
     boxAroundPopUp();
@@ -1623,7 +1663,9 @@ void screenReplaceBeamByTruss() {
     //draw text and input adding a beam
     drawText("Member to replace:", 1600, 230, 350);
     drawTextField(screenWidth - 355, 160, 150, 50, opinionTF11);
-    drawText("Press enter to submit", screenWidth - 60, 280, 500);
+    glColor3f(1.0, 0.0, 0.0); //red color)
+    drawTextRed("Press enter to submit", screenWidth - 60, 280, 500);
+    glColor3f(0.0, 0.0, 0.0); //back to black color
 
     //draw lines around it
     boxAroundPopUp();

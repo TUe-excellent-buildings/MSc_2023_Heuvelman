@@ -23,7 +23,6 @@ std::shared_ptr <BSO::Spatial_Design::MS_Space> MS_Space = nullptr;
 std::shared_ptr <BSO::Spatial_Design::Zoning::Zone> zone = nullptr;
 
 // Global variables for visualisation
-bool visualisationActive = false; // Flag to control when to activate visualisation
 BSO::Visualisation::viewportmanager vpmanager_local;
 BSO::Visualisation::orbitalcamera   cam_local;
 BSO::Visualisation::orbitalcamera   cam_local2;
@@ -188,6 +187,72 @@ void setup_pointers() {
     (*SD_Building).analyse();
 }
 
+// Function to recreate CF using the updated MS
+void update_CF() {
+    CF = std::make_shared<BSO::Spatial_Design::MS_Conformal>(*MS, &(BSO::Grammar::grammar_zoning));
+    (*CF).make_conformal();
+    Zoned = std::make_shared<BSO::Spatial_Design::Zoning::Zoned_Design>(CF.get());
+    (*Zoned).make_zoning();
+    SD_Building = std::make_shared<BSO::Structural_Design::SD_Analysis>(*CF);
+    (*SD_Building).analyse();
+}
+
+// Function to get SD related outputs 
+void retrieve_SD_results() {
+    CF = std::make_shared<BSO::Spatial_Design::MS_Conformal>(*MS, &(BSO::Grammar::grammar_zoning));
+    (*CF).make_conformal();
+    Zoned = std::make_shared<BSO::Spatial_Design::Zoning::Zoned_Design>(CF.get());
+    (*Zoned).make_zoning();
+    SD_Building = std::make_shared<BSO::Structural_Design::SD_Analysis>(*CF);
+    (*SD_Building).analyse();
+
+    // Define vectors to store compliance and volumes for all designs
+    std::vector<double> all_compliance;
+    std::vector<double> all_volume;
+
+    // SD-analysis unzoned design
+    Zoned->reset_SD_model();
+    Zoned->prepare_unzoned_SD_model();
+    (*SD_Building).analyse();
+    BSO::Structural_Design::SD_Building_Results sd_results = (*SD_Building).get_results();
+    BSO::SD_compliance_indexing(sd_results);
+    std::cout << std::endl << "Total compliance in the unzoned design: " << sd_results.m_total_compliance
+        << std::endl << "Structural volume: " << sd_results.m_struct_volume << std::endl;
+    Zoned->add_unzoned_compliance(sd_results.m_total_compliance);
+
+    // Store compliance and volume for unzoned design
+    all_compliance.push_back(sd_results.m_total_compliance);
+    all_volume.push_back(sd_results.m_struct_volume);
+
+    // SD-analysis zoned designs
+    for (unsigned int i = 0; i < Zoned->get_designs().size(); i++)
+    {
+        Zoned->reset_SD_model();
+        Zoned->prepare_zoned_SD_model(i);
+        (*SD_Building).analyse();
+        sd_results = (*SD_Building).get_results(); // Reuse existing sd_results object
+        BSO::SD_compliance_indexing(sd_results);
+        std::cout << "Total compliance in zoned design " << i + 1 << ": "
+            << sd_results.m_total_compliance << std::endl << "Structural volume: " << sd_results.m_struct_volume << std::endl;
+        Zoned->add_compliance(sd_results.m_total_compliance, i);
+        all_compliance.push_back(sd_results.m_total_compliance);
+        all_volume.push_back(sd_results.m_struct_volume);
+    }
+
+    // Output compliance and volumes for all designs
+    std::cout << std::endl << "Compliances:" << std::endl;
+    for (unsigned int i = 0; i < all_compliance.size(); i++)
+    {
+        std::cout << all_compliance[i] << std::endl;
+    }
+    std::cout << std::endl << "Volumes:" << std::endl;
+    for (unsigned int i = 0; i < all_volume.size(); i++)
+    {
+        std::cout << all_volume[i] << std::endl;
+    }
+
+}
+
 void checkGLError(const char* action) {
     GLenum err;
     while ((err = glGetError()) != GL_NO_ERROR) {
@@ -323,10 +388,6 @@ bool visualisationActive_3b = false;
 bool visualisationActive_3c = false;
 bool visualisationActive_3d = false;
 bool visualisationActive_3e = false;
-bool visualisationActive_3a2 = false;
-bool visualisationActive_3e2 = false;
-bool visualisationActive_3a3 = false;
-bool visualisationActive_3e3 = false;
 
 void changeScreen(int screen) {
     currentScreen = screen;
@@ -341,34 +402,21 @@ void changeScreen(int screen) {
     visualisationActive_3c = false;
     visualisationActive_3d = false;
     visualisationActive_3e = false;
-    visualisationActive_3a2 = false;
-    visualisationActive_3e2 = false;
-    visualisationActive_3a3 = false;
-    visualisationActive_3e3 = false;
 
     if (screen == 2 || (screen >= 14 && screen <= 17) || (screen == 26)) {
-        //Screens first time zoning (screen 3a and pop ups)
-        visualisationActive_3a = true;
-        visualisationActive_3a2 = true;
-        visualisationActive_3a3 = true;
+        visualisationActive_3a = true; //Screens first time zoning (screen 3a and pop ups)
     }
     else if (screen == 3 || (screen == 27)) {
-		//Screens second time zoning (screen 3b and pop ups)
-		visualisationActive_3b = true;
+		visualisationActive_3b = true; //Screens second time zoning (screen 3b and pop ups)
 	}
     else if (screen == 4 || (screen == 28)) {
-		//Screens changing the SD (screen 3c and pop ups)
-		visualisationActive_3c = true;
+		visualisationActive_3c = true; 	//Screens changing the SD (screen 3c and pop ups)
 	}
     else if ((screen == 5) || (screen >= 18 && screen <= 21) || (screen == 29)) {
-        //Screens changing the BSD (screen 3d and pop ups)
-        visualisationActive_3d = true;
+        visualisationActive_3d = true; //Screens changing the BSD (screen 3d and pop ups)
     }
     else if (screen == 6 || (screen >= 22 && screen <= 25) || screen == 30) {
-        //Screens second time zoning (screen 3e and pop ups)
-        visualisationActive_3e = true;
-        visualisationActive_3e2 = true;
-        visualisationActive_3e3 = true;
+        visualisationActive_3e = true; //Screens second time zoning (screen 3e and pop ups)
     }
 
     // Based on the flags, activate/deactivate visualization for each group
@@ -378,38 +426,13 @@ void changeScreen(int screen) {
             setup_pointers();
         }
         vpmanager_local.clearviewports();
-        visualiseZones(2);
         visualise(*MS);
+        // HERE CREATED ZONES AND ZONED DESIGNS NEED TO BE ADDED TO THE VISUALISATION
+        
+        //visualiseZones(2);
         // visualise(&SD, 1);
         // visualise(CF, "rectangles");
         // visualise(*SD_Building, 4);
-        //visualisationActive = true; // Set overall visualization flag
-    }
-    else if (visualisationActive_3a2) {
-        // Activate visualization for group 3a
-        if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
-            setup_pointers();
-        }
-        vpmanager_local.clearviewports();
-        visualiseZones();
-        //visualise(*MS);
-        // visualise(&SD, 1);
-        // visualise(CF, "rectangles");
-        // visualise(*SD_Building, 4);
-        //visualisationActive = true; // Set overall visualization flag
-    }
-    else if (visualisationActive_3a3) {
-		// Activate visualization for group 3a
-        if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
-			setup_pointers();
-		}
-        vpmanager_local.clearviewports();
-		visualiseZones();
-		//visualise(*MS);
-		// visualise(&SD, 1);
-		//visualise(CF, "rectangles");
-		// visualise(*SD_Building, 4);
-        //visualisationActive = true; // Set overall visualization flag
     }
     else if (visualisationActive_3b) {
         // Activate visualization for group 3a
@@ -417,12 +440,8 @@ void changeScreen(int screen) {
             setup_pointers();
         }
         vpmanager_local.clearviewports();
+        visualise(*MS);
         visualiseZones();
-        //visualise(*MS);
-        // visualise(&SD, 1);
-        // visualise(CF, "rectangles");
-        // visualise(*SD_Building, 4);
-        //visualisationActive = true; // Set overall visualization flag
     }
     else if (visualisationActive_3c) {
         // Activate visualization for group 3a
@@ -430,12 +449,8 @@ void changeScreen(int screen) {
             setup_pointers();
         }
         vpmanager_local.clearviewports();
+        visualise(*MS);
         visualiseZones();
-        //visualise(*MS);
-        // visualise(&SD, 1);
-        // visualise(CF, "rectangles");
-        // visualise(*SD_Building, 4);
-        //visualisationActive = true; // Set overall visualization flag
     }
     else if (visualisationActive_3d) {
         // Activate visualization for group 3a
@@ -443,12 +458,7 @@ void changeScreen(int screen) {
             setup_pointers();
         }
         vpmanager_local.clearviewports();
-        //visualiseZones();
         visualise(*MS);
-        // visualise(&SD, 1);
-        // visualise(CF, "rectangles");
-        // visualise(*SD_Building, 4);
-        //visualisationActive = true; // Set overall visualization flag
     }
     else if (visualisationActive_3e) {
         // Activate visualization for group 3a
@@ -456,60 +466,25 @@ void changeScreen(int screen) {
             setup_pointers();
         }
         vpmanager_local.clearviewports();
-        //visualiseZones();
         visualise(*MS);
-        // visualise(&SD, 1);
-        // visualise(CF, "rectangles");
-        // visualise(*SD_Building, 4);
-        //visualisationActive = true; // Set overall visualization flag
-    }
-    else if (visualisationActive_3e2) {
-        // Activate visualization for group 3a
-        if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
-            setup_pointers();
-        }
-        vpmanager_local.clearviewports();
+        update_CF();
         visualiseZones();
-        //visualise(*MS);
-        // visualise(&SD, 1);
-        // visualise(CF, "rectangles");
-        // visualise(*SD_Building, 4);
-        //visualisationActive = true; // Set overall visualization flag
-    }
-    else if (visualisationActive_3e3) {
-        // Activate visualization for group 3a
-        if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
-            setup_pointers();
-        }
-        vpmanager_local.clearviewports();
-        visualiseZones();
-        //visualise(*MS);
-        // visualise(&SD, 1);
-        // visualise(CF, "rectangles");
-        // visualise(*SD_Building, 4);
-        //visualisationActive = true; // Set overall visualization flag
+        //retrieve_SD_results();
     }
     else {
         vpmanager_local.clearviewports(); // Deactivate visualization if none of the groups match
-        visualisationActive = false; // Set overall visualization flag
         visualisationActive_3a = false;
         visualisationActive_3b = false;
         visualisationActive_3c = false;
         visualisationActive_3d = false;
         visualisationActive_3e = false;
-        visualisationActive_3a2 = false;
-        visualisationActive_3e2 = false;
-        visualisationActive_3a3 = false;
-        visualisationActive_3e3 = false;
     }
 
     if (screen == 4) {
         writeToOutputFile("output.csv", "Step 2: Pick one zoned design you would like to continue with and explain why.", "", opinionTF.text);
     }
-    if (screen == 5) {
-        writeToOutputFile("output.csv", "Step 3: This time pick the one of which you think its structural design has the highest stiffness. Explain your reasoning.", "", opinionTF2.text);
-    }
     if (screen == 8) {
+        writeToOutputFile("output.csv", "Step 3: This time pick the one of which you think its structural design has the highest stiffness. Explain your reasoning.", "", opinionTF2.text);
         writeToOutputFile("output.csv", "1..", getSelectedButtonLabel(), opinionTF3.text);
     }
     if (screen == 9) {
@@ -565,6 +540,35 @@ void drawText(const char* text, float centerX, float centerY, float textWidth) {
 
         // Set text color to black
         glColor3f(0.0, 0.0, 0.0); // black color for text
+
+        // Draw the character
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
+
+        // Move to the next character position
+        currentX += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *c);
+    }
+}
+
+void drawTextRed(const char* text, float centerX, float centerY, float textWidth) {
+    float lineHeight = 18; // Approximate line height, adjust as needed
+    float effectiveTextWidth = textWidth - 2 * MARGIN_PERCENT; // Effective width after considering margins
+
+    // Calculate the starting position (left align within the margin)
+    float startX = centerX - effectiveTextWidth / 2.0f;
+    float currentX = startX;
+    float currentY = centerY;
+
+    for (const char* c = text; *c != '\0'; c++) {
+        // Check if we need to wrap the line
+        if ((currentX - startX > effectiveTextWidth) && (*c == ' ' || *c == '\n')) {
+            currentY -= lineHeight;
+            currentX = startX - 4;
+        }
+
+        glRasterPos2f(currentX, currentY);
+
+        // Set text color to black
+        glColor3f(1.0, 0.0, 0.0); // red color for text
 
         // Draw the character
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
@@ -761,7 +765,7 @@ void display() {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    bool active = visualisationActive_3a || visualisationActive_3b || visualisationActive_3c || visualisationActive_3d || visualisationActive_3e || visualisationActive_3a2 || visualisationActive_3e2 || visualisationActive_3a3 || visualisationActive_3e3;
+    bool active = visualisationActive_3a || visualisationActive_3b || visualisationActive_3c || visualisationActive_3d || visualisationActive_3e;
 
     if (active) {
         // Set viewport for the left half of the screen
@@ -1205,6 +1209,9 @@ void keyboard(unsigned char key, int x, int y) {
                     // If modification count is already 7, display the message on screen3d
                 }
             }
+			else {
+				writeToProcessFile("process.csv", "", "above input invalid");
+			}
         }
         else if (key == '\t') { // Tab key
             // Toggle active state between opinionTF13 and opinionTF14
@@ -1291,6 +1298,7 @@ void keyboard(unsigned char key, int x, int y) {
             else {
                 // Handle empty space ID input gracefully
                 std::cout << "Error: Space ID input is empty." << std::endl;
+                writeToProcessFile("process.csv", "", "above input invalid");
             }
         }
     }
@@ -1427,6 +1435,9 @@ void keyboard(unsigned char key, int x, int y) {
                 else {
                     // If modification count is already 7, display the message on screen3d
                 }
+            }
+            else {
+                writeToProcessFile("process.csv", "", "above input invalid");
             }
         }
         else if (key == '\t') { // Tab key
@@ -1567,6 +1578,9 @@ void keyboard(unsigned char key, int x, int y) {
                     // If modification count is already 7, display the message on screen3d
                 }
             }
+            else {
+                writeToProcessFile("process.csv", "", "above input invalid");
+			}
         }
         else if (key == '\t') { // Tab key
             // Toggle active state between opinionTF18 and opinionTF19
@@ -1896,8 +1910,8 @@ void mainScreen() {
     drawText("Welcome to this experiment for a SED graduation project. We are glad to have you here and hope you will have a nice experience.", 930, 820, 400);
     drawText("In which assignment will you participate?", 930, 740, 400);
 
-    drawButton("Assignment 1", 800, 650, 200, 50, buttonClicked, 1);
-    drawButton("Assignment 2", 800, 580, 200, 50, changeScreen, 1);
+    drawButton("Assignment 1", 800, 650, 200, 50, changeScreen, 1);
+    drawButton("Assignment 2", 800, 580, 200, 50, buttonClicked, 1);
     drawButton("Assignment 3", 800, 510, 200, 50, buttonClicked, 1);
     drawButton("Assignment 4", 800, 440, 200, 50, buttonClicked, 1);
 
@@ -1906,7 +1920,7 @@ void mainScreen() {
 }
 
 void assignmentDescriptionScreen() {
-    drawText("Selected Assignment: 2 'Human zoning assignment'​", 900, 740, 400);
+    drawText("Selected Assignment: 1 'Human zoning assignment'​", 900, 740, 400);
     drawText("Expected duration: 40 minutes​", 900, 710, 400);
     drawText("Read the following instructions carefully:​", 900, 650, 400);
     drawText("You will in a moment go through a design task. You are asked to perform this task in the way you are used to go about a commission in your daily practice. It is important that you say aloud everything that you think or do in designing. ​So, in every step, explain what you do and why you do it. Try to keep speaking constantly and not be silent for longer than 20 seconds. ​Please speak English. Good luck!​",
@@ -1940,8 +1954,8 @@ void ReadInstructions() {
     glBegin(GL_LINES);
     glVertex2f(1582.0, 868.0);
     glVertex2f(1678.0, 868.0);
-    glVertex2f(1432.0, 850.0);
-    glVertex2f(1485.0, 850.0);
+    glVertex2f(1428.0, 850.0);
+    glVertex2f(1481.0, 850.0);
     glEnd();
 }
 
@@ -1954,8 +1968,8 @@ void ReadInstructions2() {
     glBegin(GL_LINES);
     glVertex2f(1582.0, 798.0);
     glVertex2f(1678.0, 798.0);
-    glVertex2f(1432.0, 780.0);
-    glVertex2f(1485.0, 780.0);
+    glVertex2f(1428.0, 780.0);
+    glVertex2f(1481.0, 780.0);
     glEnd();
 }
 
@@ -1968,8 +1982,8 @@ void ReadInstructions3() {
     glBegin(GL_LINES);
     glVertex2f(1582.0, 843.0);
     glVertex2f(1678.0, 843.0);
-    glVertex2f(1432.0, 825.0);
-    glVertex2f(1485.0, 825.0);
+    glVertex2f(1428.0, 825.0);
+    glVertex2f(1481.0, 825.0);
     glEnd();
 }
 
@@ -1982,8 +1996,8 @@ void ReadInstructions4() {
     glBegin(GL_LINES);
     glVertex2f(1582.0, 778.0);
     glVertex2f(1678.0, 778.0);
-    glVertex2f(1432.0, 760.0);
-    glVertex2f(1485.0, 760.0);
+    glVertex2f(1428.0, 760.0);
+    glVertex2f(1481.0, 760.0);
     glEnd();
 }
 
@@ -2001,8 +2015,8 @@ void screen3a() {
 
     // Draw the bottom area where zones and zoned designs are displayed
     std::string number_zones = std::string("Zones: ") + std::to_string(Zoned->get_designs().size());
-    drawText(number_zones.c_str(), 100, 300, 200);
-    drawText("Zoned designs: 0", 100, 150, 200);
+    //drawText(number_zones.c_str(), 100, 300, 200);
+    //drawText("Zoned designs: 0", 100, 150, 200);
 
     // Draw control buttons (right side)
     drawText("Zones", screenWidth - 150, 720, 200);
@@ -2184,8 +2198,8 @@ void screen3e() {
     LineDivisionScreen();
 
     // Draw the bottom area where zones and zoned designs are displayed
-    drawText("Zones: 0", 100, 300, 200);
-    drawText("Zoned designs: 0", 100, 150, 200);
+    //drawText("Zones: 0", 100, 300, 200);
+    //drawText("Zoned designs: 0", 100, 150, 200);
 
     // Draw control buttons (right side)
     drawText("Zones", screenWidth - 150, 720, 200);
@@ -2386,7 +2400,9 @@ void screenCreateZone() {
     //draw text and input for creating a zone
     drawText("Space(s) to include:", screenWidth, 320, 600);
 	drawTextField(screenWidth - 310, 250, 200, 50, opinionTF9);
-    drawText("Press enter to submit.", screenWidth - 60, 370, 500);
+    glColor3f(1.0, 0.0, 0.0); //red color
+    drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(0.0, 0.0, 0.0); //back to black color
 
     //draw lines around it
     boxAroundPopUp();
@@ -2401,7 +2417,9 @@ void screenDeleteZone() {
     //draw text and input for deleting a zone
     drawText("Zone to delete:", screenWidth, 320, 600);
     drawTextField(screenWidth - 310, 250, 200, 50, opinionTF10);
-    drawText("Press enter to submit.", screenWidth - 60, 370, 500);
+    glColor3f(1.0, 0.0, 0.0); //red color
+    drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(0.0, 0.0, 0.0); //back to black color
 
     //draw lines around it
     boxAroundPopUp();
@@ -2416,7 +2434,9 @@ void screenCreateZonedDesign() {
     //draw text and input for creating a zoned design
     drawText("Zone(s) to include:", screenWidth, 320, 600);
     drawTextField(screenWidth - 310, 250, 200, 50, opinionTF11);
-    drawText("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(1.0, 0.0, 0.0); //red color
+    drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(0.0, 0.0, 0.0); //back to black color
 
     //draw lines around it
     boxAroundPopUp();
@@ -2431,7 +2451,9 @@ void screenDeleteZonedDesign() {
     //draw text and input for deleting a zoned design
     drawText("Zoned design to delete:", screenWidth, 320, 600);
     drawTextField(screenWidth - 310, 250, 200, 50, opinionTF12);
-    drawText("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(1.0, 0.0, 0.0); //red color
+    drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(0.0, 0.0, 0.0); //back to black color
 
     //draw lines around it
     boxAroundPopUp();
@@ -2448,8 +2470,10 @@ void screenAddSpace() {
     drawText("Location (x,y,z):", 1680, 320, 150);
     drawTextField(screenWidth - 355, 250, 150, 50, opinionTF13);
     drawTextField(screenWidth - 195, 250, 150, 50, opinionTF14);
-    drawText("Use the 'Tab' key to swith input fields", screenWidth - 110, 390, 500);
-    drawText("Press enter to submit", screenWidth - 60, 370, 500);
+    //drawText("Use the 'Tab' key to swith input fields", screenWidth - 110, 390, 500);
+    glColor3f(1.0, 0.0, 0.0); //red color)
+    drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(0.0, 0.0, 0.0); //back to black color
 
     //draw lines around it
     boxAroundPopUp2();
@@ -2462,9 +2486,11 @@ void screenDeleteSpace() {
     drawButtonWithBackgroundColor("Delete space", screenWidth - 310, 550, 200, 50, buttonClicked, 1);
 
     //draw text and input for deleting a space
-    drawText("Space(s) to delete:", screenWidth, 320, 600);
+    drawText("Space to delete:", screenWidth, 320, 600);
     drawTextField(screenWidth - 310, 250, 200, 50, opinionTF15);
-    drawText("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(1.0, 0.0, 0.0); //red color)
+    drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(0.0, 0.0, 0.0); //back to black color
 
     //draw lines around it
     boxAroundPopUp2();
@@ -2481,8 +2507,10 @@ void screenMoveSpace() {
     drawText("New location (x,y,z):", 1680, 320, 150);
     drawTextField(screenWidth - 355, 250, 150, 50, opinionTF16);
     drawTextField(screenWidth - 195, 250, 150, 50, opinionTF17);
-    drawText("Use the 'Tab' key to swith input fields", screenWidth - 110, 390, 500);
-    drawText("Press enter to submit", screenWidth - 60, 370, 500);
+    //drawText("Use the 'Tab' key to swith input fields", screenWidth - 110, 390, 500);
+    glColor3f(1.0, 0.0, 0.0); //red color
+    drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(0.0, 0.0, 0.0); //back to black color
 
     //draw lines around it
     boxAroundPopUp2();
@@ -2499,8 +2527,10 @@ void screenResizeSpace() {
     drawText("New size (x,y,z):", 1680, 320, 150);
     drawTextField(screenWidth - 355, 250, 150, 50, opinionTF18);
     drawTextField(screenWidth - 195, 250, 150, 50, opinionTF19);
-    drawText("Use the 'Tab' key to swith input fields", screenWidth - 110, 390, 500);
-    drawText("Press enter to submit", screenWidth - 60, 370, 500);
+    //drawText("Use the 'Tab' key to swith input fields", screenWidth - 110, 390, 500);
+    glColor3f(1.0, 0.0, 0.0); //red color
+    drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(0.0, 0.0, 0.0); //back to black color
 
     //draw lines around it
     boxAroundPopUp2();
@@ -2515,7 +2545,9 @@ void screenCreateZone2() {
     //draw text and input for creating a zone
     drawText("Space(s) to include:", screenWidth, 320, 600);
     drawTextField(screenWidth - 310, 250, 200, 50, opinionTF20);
-    drawText("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(1.0, 0.0, 0.0); //red color)
+    drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(0.0, 0.0, 0.0); //back to black color
 
     //draw lines around it
     boxAroundPopUp();
@@ -2530,7 +2562,9 @@ void screenDeleteZone2() {
     //draw text and input for deleting a zone
     drawText("Zone to delete:", screenWidth, 320, 600);
     drawTextField(screenWidth - 310, 250, 200, 50, opinionTF21);
-    drawText("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(1.0, 0.0, 0.0); //red color)
+    drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(0.0, 0.0, 0.0); //back to black color
 
     //draw lines around it
     boxAroundPopUp();
@@ -2545,7 +2579,9 @@ void screenCreateZonedDesign2() {
     //draw text and input for creating a zoned design
     drawText("Zone(s) to include:", screenWidth, 320, 600);
     drawTextField(screenWidth - 310, 250, 200, 50, opinionTF22);
-    drawText("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(1.0, 0.0, 0.0); //red color
+    drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(0.0, 0.0, 0.0); //back to black color
 
     //draw lines around it
     boxAroundPopUp();
@@ -2560,7 +2596,9 @@ void screenDeleteZonedDesign2() {
     //draw text and input for deleting a zoned design
     drawText("Zoned design to delete:", screenWidth, 320, 600);
     drawTextField(screenWidth - 310, 250, 200, 50, opinionTF23);
-    drawText("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(1.0, 0.0, 0.0); //red color
+    drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
+    glColor3f(0.0, 0.0, 0.0); //back to black color
 
     //draw lines around it
     boxAroundPopUp();

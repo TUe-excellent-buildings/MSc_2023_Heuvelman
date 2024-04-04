@@ -347,6 +347,12 @@ void visualiseZones(unsigned int indexToVisualize = -1) {
     }
 }
 
+//Function to visualize a single zone
+//void visualiseZone(unsigned int indexToVisualize = 1) 
+//{
+ //       visualise(*CF, "zone", indexToVisualize);
+//}
+
 bool visualisationActive_3a = false;
 bool visualisationActive_3b = false;
 bool visualisationActive_3c = false;
@@ -1631,6 +1637,7 @@ void drawTextField(int x, int y, int width, int height, TextField& textfield) {
         int cursorX = x + borderWidth + glutBitmapLength(GLUT_BITMAP_HELVETICA_18, (const unsigned char*)textfield.text.c_str()); // Adjust for left padding
         int cursorY = startY; // Use the same starting Y coordinate as the text
         glColor3f(0.0, 0.0, 0.0); // black cursor
+        glLineWidth(1.0);
         glBegin(GL_LINES);
         glVertex2f(cursorX + 2, cursorY + 18); // Adjust the Y coordinate to draw the cursor above the text
         glVertex2f(cursorX + 2, cursorY - 3);  // Adjust the Y coordinate to draw the cursor above the text
@@ -1738,6 +1745,7 @@ void assignmentDescriptionScreen() {
 
 void LineDivisionScreen() {
     glColor3f(0.0, 0.0, 0.0);
+    glLineWidth(1.0);
     glBegin(GL_LINES);
     glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
@@ -1990,7 +1998,7 @@ void screen3e() {
     //drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 1565, 740, 275);
 
     // Draw the message at the top of the structure illustration
-    drawBoldText("Step 5: The top screens shows your new BSD. AI found all zoned designs. In the bottom screen only the two most diverse zoned designs are shown. Pick one zoned design you would like to continue with. Say aloud what you think.", 1550, screenHeight - 50, 250, 1);
+    drawBoldText("Step 5: The top screens shows your new BSD. AI found all zoned designs. In the bottom screen only the two most diverse zoned designs are shown, selected with IQD. Pick one zoned design you would like to continue with. Say aloud what you think.", 1550, screenHeight - 50, 250, 1);
     //underline two
     glLineWidth(2.0);
     glColor3f(0.0, 0.0, 0.0);
@@ -1999,7 +2007,16 @@ void screen3e() {
     glVertex2f(1535.0f, 895.0f);
     glEnd();
 
-    ReadInstructions2();
+
+    drawText("Please refer to the information sheet for more information about zoning, SD and IQD.  ", 1550, screenHeight - 200, 250);
+    glLineWidth(1.4);
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(1582.0, 798.0);
+    glVertex2f(1678.0, 798.0);
+    glVertex2f(1428.0, 780.0);
+    glVertex2f(1481.0, 780.0);
+    glEnd();
 
     //step vs steps to go as a time indication for the user
     drawText("Step 5/8", screenWidth, screenHeight - 25, 180);
@@ -2275,6 +2292,7 @@ void screenAddSpace() {
     glColor3f(1.0, 0.0, 0.0); //red color)
     drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
     glColor3f(0.0, 0.0, 0.0); //back to black color
+    drawText("Warning: make sure that spaces do not overlap and are not detached.", 1550, 175, 250);
 
     //draw lines around it
     boxAroundPopUp2();
@@ -2292,6 +2310,7 @@ void screenDeleteSpace() {
     glColor3f(1.0, 0.0, 0.0); //red color)
     drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
     glColor3f(0.0, 0.0, 0.0); //back to black color
+    drawText("Warning: make sure that spaces do not overlap and are not detached.", 1550, 175, 250);
 
     //draw lines around it
     boxAroundPopUp2();
@@ -2312,6 +2331,7 @@ void screenMoveSpace() {
     glColor3f(1.0, 0.0, 0.0); //red color
     drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
     glColor3f(0.0, 0.0, 0.0); //back to black color
+    drawText("Warning: make sure that spaces do not overlap and are not detached.", 1550, 175, 250);
 
     //draw lines around it
     boxAroundPopUp2();
@@ -2332,6 +2352,7 @@ void screenResizeSpace() {
     glColor3f(1.0, 0.0, 0.0); //red color
     drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
     glColor3f(0.0, 0.0, 0.0); //back to black color
+    drawText("Warning: make sure that spaces do not overlap and are not detached.", 1550, 175, 250);
 
     //draw lines around it
     boxAroundPopUp2();

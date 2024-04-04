@@ -88,6 +88,7 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 		void stabilize_free_dofs_zoned(unsigned int);
 		void stabilize_one_point();
 		void stabilize_one_point2(unsigned int);
+		bool stabilize_one_point3(unsigned int);
 
 		// Geometrical keypoints:
 		std::vector<Components::Point*> search_keypoints_truss(std::pair<Components::Point*, unsigned int>);
@@ -4010,6 +4011,574 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 			exit(1);
 		} // switch (method)
 	}
+
+
+	bool Stabilize::stabilize_one_point3(unsigned int method)
+	{
+		bool stabilization_possible = true;
+		bool dof_stabilized = false; // Flag to track if a DOF has been stabilized
+
+		std::vector<vector<vector<coord*>>>::iterator it_x; // grid-location x
+		std::vector<vector<coord*>>::iterator it_y; // grid-location y
+		std::vector<coord*>::iterator it_z; // grid-location z
+		std::map<std::vector<unsigned int>, Components::Point*>::iterator it_1; // grid_points
+		std::map<Components::Point*, std::vector<unsigned int> >::iterator it_2; // free_dofs
+		std::map<Components::Point*, std::vector<unsigned int> >::iterator it_3; // points_grid
+		Components::Point* point;
+		unsigned int dof;
+		std::vector<unsigned int> point_grid;
+		std::pair<Components::Point*, unsigned int> point_dof;
+		std::vector<Components::Point*> keypoints;
+		std::pair<Components::Point*, Components::Point*> dof_key;
+		bool found = false;
+		switch (method)
+		{
+		case 0:
+			// Debug statement for the chosen method
+			std::cout << "Using method 0 for stabilization..." << std::endl;
+			/*
+			Sequence:
+			grid: x,y,z -> Dof: uX,uY,uZ
+
+			Structure:
+			Rod addition, Beam addition/substitution
+			*/
+		{
+			for (it_x = grid.begin(); it_x != grid.end(); it_x++)
+			{
+				for (it_y = it_x->begin(); it_y != it_x->end(); it_y++)
+				{
+					for (it_z = it_y->begin(); it_z != it_y->end(); it_z++)
+					{
+						point_grid.clear();
+						point_grid.push_back(std::distance(grid.begin(), it_x));
+						point_grid.push_back(std::distance(it_x->begin(), it_y));
+						point_grid.push_back(std::distance(it_y->begin(), it_z));
+						it_1 = grid_points.find(point_grid);
+						it_2 = free_dofs.find(it_1->second);
+						if (it_2 != free_dofs.end())
+						{
+							point = it_1->second;
+
+							for (unsigned int i = 0; i < it_2->second.size(); i++)
+							{
+								dof = it_2->second[i];
+								point_dof = std::make_pair(point, dof);
+								keypoints = Stabilize::search_keypoints_truss(point_dof);
+								if (keypoints.size() > 0)
+								{
+									// delete and order keypoints:
+									//keypoints = Stabilize::delete_unzoned_keypoints(point, keypoints);
+									keypoints = Stabilize::delete_intersecting_keypoints(point, keypoints);
+									keypoints = Stabilize::delete_external_keypoints(point, keypoints);
+									keypoints = Stabilize::delete_free_dof_keypoints(point, dof, keypoints);
+									keypoints = Stabilize::delete_structural_keypoints(point, keypoints);
+
+									if (keypoints.size() > 0)
+									{
+										found = true;
+										dof_key = std::make_pair(point, keypoints.front());
+									}
+								}
+								if (found == true)
+									break;
+							}
+						}
+						if (found == true)
+							break;
+					}
+					if (found == true)
+						break;
+				}
+				if (found == true)
+					break;
+			}
+			if (found == true)
+			{
+				Stabilize::add_truss(dof_key);
+				dof_stabilized = true; // Set the flag to true indicating that a DOF is stabilized
+				break; // Break out of the loops
+			}
+
+			else // Structure cannot be stabilized by truss addition; delete trusses/add beams
+			{
+				for (it_x = grid.begin(); it_x != grid.end(); it_x++)
+				{
+					for (it_y = it_x->begin(); it_y != it_x->end(); it_y++)
+					{
+						for (it_z = it_y->begin(); it_z != it_y->end(); it_z++)
+						{
+							point_grid.clear();
+							point_grid.push_back(std::distance(grid.begin(), it_x));
+							point_grid.push_back(std::distance(it_x->begin(), it_y));
+							point_grid.push_back(std::distance(it_y->begin(), it_z));
+							it_1 = grid_points.find(point_grid);
+							it_2 = free_dofs.find(it_1->second);
+							if (it_2 != free_dofs.end())
+							{
+								point = it_1->second;
+
+								for (unsigned int i = 0; i < it_2->second.size(); i++)
+								{
+									dof = it_2->second[i];
+									point_dof = std::make_pair(point, dof);
+									keypoints = Stabilize::search_keypoints_beam(point_dof);
+									if (keypoints.size() > 0)
+									{
+										// delete and order keypoints:
+										//keypoints = Stabilize::delete_free_dof_keypoints(point, dof, keypoints);
+										keypoints = Stabilize::delete_used_keypoints_beam(point, keypoints);
+										//keypoints = Stabilize::delete_unzoned_keypoints_beam(point, keypoints);
+
+										if (keypoints.size() > 0)
+										{
+											found = true;
+											break;
+										}
+									}
+									if (found == true)
+										break;
+								}
+							}
+							if (found == true)
+								break;
+						}
+						if (found == true)
+							break;
+					}
+					if (found == true)
+						break;
+				}
+				if (found == true)
+				{
+					Stabilize::add_beams(point, keypoints);
+					dof_stabilized = true; // Set the flag to true indicating that a DOF is stabilized
+					break; // Break out of the loops
+				}
+				else
+				{
+					std::cout << "Structure can not be stabilized..." << std::endl;
+					stabilization_possible = false;
+				}
+				if (remove_superfluous_trusses == true)
+					Stabilize::delete_superfluous_trusses();
+			}
+			break;
+		} // case 0
+
+		case 1:
+			// Debug statement for the chosen method
+			std::cout << "Using method 1 for stabilization..." << std::endl;
+			/*
+			Sequence:
+			grid: zmin,x,y -> Dof: uX,uY,uZ
+
+			Structure:
+			Truss addition, Beam addition/substitution
+			*/
+		{
+			//Stabilize::delete_primary_zone_dofs();
+			for (unsigned int n = 0; n < z_size; n++)
+			{
+				for (unsigned int l = 0; l < x_size; l++)
+				{
+					for (unsigned int m = 0; m < y_size; m++)
+					{
+						//unsigned int n = N;
+						point_grid = { l, m, n };
+						it_1 = grid_points.find(point_grid);
+						it_2 = free_dofs.find(it_1->second);
+						if (it_2 != free_dofs.end())
+						{
+							point = it_1->second;
+
+							for (unsigned int i = 0; i < it_2->second.size(); i++)
+							{
+								dof = it_2->second[i];
+								point_dof = std::make_pair(point, dof);
+								keypoints = Stabilize::search_keypoints_truss(point_dof);
+								if (keypoints.size() > 0)
+								{
+									// delete and order keypoints:
+									keypoints = Stabilize::delete_unzoned_keypoints(point, keypoints);
+									//keypoints = Stabilize::delete_intersecting_keypoints(point, keypoints);
+									//keypoints = Stabilize::delete_external_keypoints(point, keypoints);
+									keypoints = Stabilize::delete_free_dof_keypoints(point, dof, keypoints);
+									keypoints = Stabilize::delete_structural_keypoints(point, keypoints);
+
+									if (keypoints.size() > 0)
+									{
+										found = true;
+										dof_key = std::make_pair(point, keypoints.front());
+									}
+								}
+								if (found == true)
+									break;
+							}
+						}
+						if (found == true)
+							break;
+					}
+					if (found == true)
+						break;
+				}
+				if (found == true)
+					break;
+			}
+			if (found == true)
+			{
+				Stabilize::add_truss(dof_key);
+				dof_stabilized = true; // Set the flag to true indicating that a DOF is stabilized
+				break; // Break out of the loops
+
+			}
+
+			else // Structure cannot be stabilized by truss addition; delete trusses/add beams
+			{
+				for (int N = z_size - 1; N >= 0; N--)
+				{
+					for (unsigned int l = 0; l < x_size; l++)
+					{
+						for (unsigned int m = 0; m < y_size; m++)
+						{
+							unsigned int n = N;
+							point_grid = { m, l, n };
+							it_1 = grid_points.find(point_grid);
+							it_2 = free_dofs.find(it_1->second);
+							if (it_2 != free_dofs.end())
+							{
+								point = it_1->second;
+
+								for (unsigned int i = 0; i < it_2->second.size(); i++)
+								{
+									dof = it_2->second[i];
+									point_dof = std::make_pair(point, dof);
+									keypoints = Stabilize::search_keypoints_beam(point_dof);
+									if (keypoints.size() > 0)
+									{
+										// delete and order keypoints:
+										//keypoints = Stabilize::delete_free_dof_keypoints(point, dof, keypoints);
+										keypoints = Stabilize::delete_used_keypoints_beam(point, keypoints);
+										keypoints = Stabilize::delete_unzoned_keypoints_beam(point, keypoints);
+
+										if (keypoints.size() > 0)
+										{
+											found = true;
+											break;
+										}
+									}
+									if (found == true)
+										break;
+								}
+							}
+							if (found == true)
+								break;
+						}
+						if (found == true)
+							break;
+					}
+					if (found == true)
+						break;
+				}
+				if (found == true)
+				{
+					Stabilize::add_beams(point, keypoints);
+					dof_stabilized = true; // Set the flag to true indicating that a DOF is stabilized
+					break; // Break out of the loops
+				}
+				else
+				{
+					stabilization_possible = false;
+					std::cout << "Zones can not be stabilized (end of zone point iteration)" << std::endl;
+				}
+				if (remove_superfluous_trusses == true)
+					Stabilize::delete_superfluous_trusses();
+			}
+			break;
+		} // case 1
+
+		case 2:
+			// Debug statement for the chosen method
+			std::cout << "Using method 2 for stabilization..." << std::endl;
+			/*
+			Sequence:
+			grid: zmax,x,y -> Dof: uX,uY,uZ
+
+			Structure:
+			Truss addition, Beam addition/substitution
+			*/
+		{
+			//Stabilize::delete_primary_zone_dofs();
+			for (int N = z_size - 1; N >= 0; N--)
+			{
+				for (unsigned int l = 0; l < x_size; l++)
+				{
+					for (unsigned int m = 0; m < y_size; m++)
+					{
+						unsigned int n = N;
+						point_grid = { l, m, n };
+						it_1 = grid_points.find(point_grid);
+						it_2 = free_dofs.find(it_1->second);
+						if (it_2 != free_dofs.end())
+						{
+							point = it_1->second;
+
+							for (unsigned int i = 0; i < it_2->second.size(); i++)
+							{
+								dof = it_2->second[i];
+								point_dof = std::make_pair(point, dof);
+								keypoints = Stabilize::search_keypoints_truss(point_dof);
+								if (keypoints.size() > 0)
+								{
+									// delete and order keypoints:
+									keypoints = Stabilize::delete_unzoned_keypoints(point, keypoints);
+									//keypoints = Stabilize::delete_intersecting_keypoints(point, keypoints);
+									//keypoints = Stabilize::delete_external_keypoints(point, keypoints);
+									keypoints = Stabilize::delete_free_dof_keypoints(point, dof, keypoints);
+									keypoints = Stabilize::delete_structural_keypoints(point, keypoints);
+
+									if (keypoints.size() > 0)
+									{
+										found = true;
+										dof_key = std::make_pair(point, keypoints.front());
+									}
+								}
+								if (found == true)
+									break;
+							}
+						}
+						if (found == true)
+							break;
+					}
+					if (found == true)
+						break;
+				}
+				if (found == true)
+					break;
+			}
+			if (found == true)
+			{
+				Stabilize::add_truss(dof_key);
+				dof_stabilized = true; // Set the flag to true indicating that a DOF is stabilized
+				break; // Break out of the loops
+			}
+
+			else // Structure cannot be stabilized by truss addition; delete trusses/add beams
+			{
+				for (int N = z_size - 1; N >= 0; N--)
+				{
+					for (unsigned int l = 0; l < x_size; l++)
+					{
+						for (unsigned int m = 0; m < y_size; m++)
+						{
+							unsigned int n = N;
+							point_grid = { m, l, n };
+							it_1 = grid_points.find(point_grid);
+							it_2 = free_dofs.find(it_1->second);
+							if (it_2 != free_dofs.end())
+							{
+								point = it_1->second;
+
+								for (unsigned int i = 0; i < it_2->second.size(); i++)
+								{
+									dof = it_2->second[i];
+									point_dof = std::make_pair(point, dof);
+									keypoints = Stabilize::search_keypoints_beam(point_dof);
+									if (keypoints.size() > 0)
+									{
+										// delete and order keypoints:
+										//keypoints = Stabilize::delete_free_dof_keypoints(point, dof, keypoints);
+										keypoints = Stabilize::delete_used_keypoints_beam(point, keypoints);
+										keypoints = Stabilize::delete_unzoned_keypoints_beam(point, keypoints);
+
+										if (keypoints.size() > 0)
+										{
+											found = true;
+											break;
+										}
+									}
+									if (found == true)
+										break;
+								}
+							}
+							if (found == true)
+								break;
+						}
+						if (found == true)
+							break;
+					}
+					if (found == true)
+						break;
+				}
+				if (found == true)
+				{
+					Stabilize::add_beams(point, keypoints);
+					dof_stabilized = true; // Set the flag to true indicating that a DOF is stabilized
+					break; // Break out of the loops
+				}
+				else
+				{
+					stabilization_possible = false;
+					std::cout << "Zones can not be stabilized (end of zone point iteration)" << std::endl;
+				}
+				if (remove_superfluous_trusses == true)
+					Stabilize::delete_superfluous_trusses();
+			}
+			break;
+		} // case 2
+
+		case 3:
+			// Debug statement for the chosen method
+			std::cout << "Using method 3 for stabilization..." << std::endl;
+			/*
+			Sequence:
+			grid: x,y,z -> Dof: uX,uY,uZ
+
+			Structure:
+			Rod addition, Beam addition/substitution
+			*/
+		{
+			for (it_x = grid.begin(); it_x != grid.end(); it_x++)
+			{
+				for (it_y = it_x->begin(); it_y != it_x->end(); it_y++)
+				{
+					for (it_z = it_y->begin(); it_z != it_y->end(); it_z++)
+					{
+						point_grid.clear();
+						point_grid.push_back(std::distance(grid.begin(), it_x));
+						point_grid.push_back(std::distance(it_x->begin(), it_y));
+						point_grid.push_back(std::distance(it_y->begin(), it_z));
+						it_1 = grid_points.find(point_grid);
+						it_2 = free_dofs.find(it_1->second);
+						if (it_2 != free_dofs.end())
+						{
+							point = it_1->second;
+
+							for (unsigned int i = 0; i < it_2->second.size(); i++)
+							{
+								dof = it_2->second[i];
+								point_dof = std::make_pair(point, dof);
+								keypoints = Stabilize::search_keypoints_truss(point_dof);
+								if (keypoints.size() > 0)
+								{
+									// delete and order keypoints:
+									keypoints = Stabilize::delete_unzoned_keypoints(point, keypoints);
+									//keypoints = Stabilize::delete_intersecting_keypoints(point, keypoints);
+									keypoints = Stabilize::delete_external_keypoints(point, keypoints);
+									keypoints = Stabilize::delete_free_dof_keypoints(point, dof, keypoints);
+									keypoints = Stabilize::delete_structural_keypoints(point, keypoints);
+
+									if (keypoints.size() > 0)
+									{
+										found = true;
+										dof_key = std::make_pair(point, keypoints.front());
+									}
+								}
+								if (found == true)
+									break;
+							}
+						}
+						if (found == true)
+							break;
+					}
+					if (found == true)
+						break;
+				}
+				if (found == true)
+					break;
+			}
+			if (found == true)
+			{
+				Stabilize::add_truss(dof_key);
+				dof_stabilized = true; // Set the flag to true indicating that a DOF is stabilized
+				break; // Break out of the loops
+			}
+
+			else // Structure cannot be stabilized by truss addition; delete trusses/add beams
+			{
+				for (it_x = grid.begin(); it_x != grid.end(); it_x++)
+				{
+					for (it_y = it_x->begin(); it_y != it_x->end(); it_y++)
+					{
+						for (it_z = it_y->begin(); it_z != it_y->end(); it_z++)
+						{
+							point_grid.clear();
+							point_grid.push_back(std::distance(grid.begin(), it_x));
+							point_grid.push_back(std::distance(it_x->begin(), it_y));
+							point_grid.push_back(std::distance(it_y->begin(), it_z));
+							it_1 = grid_points.find(point_grid);
+							it_2 = free_dofs.find(it_1->second);
+							if (it_2 != free_dofs.end())
+							{
+								point = it_1->second;
+
+								for (unsigned int i = 0; i < it_2->second.size(); i++)
+								{
+									dof = it_2->second[i];
+									point_dof = std::make_pair(point, dof);
+									keypoints = Stabilize::search_keypoints_beam(point_dof);
+									if (keypoints.size() > 0)
+									{
+										// delete and order keypoints:
+										//keypoints = Stabilize::delete_free_dof_keypoints(point, dof, keypoints);
+										keypoints = Stabilize::delete_used_keypoints_beam(point, keypoints);
+										//keypoints = Stabilize::delete_unzoned_keypoints_beam(point, keypoints);
+
+										if (keypoints.size() > 0)
+										{
+											found = true;
+											break;
+										}
+									}
+									if (found == true)
+										break;
+								}
+							}
+							if (found == true)
+								break;
+						}
+						if (found == true)
+							break;
+					}
+					if (found == true)
+						break;
+				}
+				if (found == true)
+				{
+					Stabilize::add_beams(point, keypoints);
+					dof_stabilized = true; // Set the flag to true indicating that a DOF is stabilized
+					break; // Break out of the loops
+				}
+				else
+				{
+					std::cout << "Structure can not be stabilized..." << std::endl;
+					stabilization_possible = false;
+				}
+				if (remove_superfluous_trusses == true)
+					Stabilize::delete_superfluous_trusses();
+			}
+			break;
+		} // case 3
+
+		default:
+			std::cerr << "No method for stabilization sequence chosen, exiting now..." << std::endl;
+			exit(1);
+		} // switch (method)
+		
+			// Debug statement to indicate the end of the function
+		std::cout << "Exiting stabilize_one_point3 function..." << std::endl;
+
+		if (dof_stabilized)
+		{
+			return stabilization_possible; // Return from the function
+		}
+		else
+		{
+			return false; // Return from the function
+		}
+
+	} // stabilize_free_dofs()
+
 
 } // namespace Stabilization
 } // namespace Structural_Design

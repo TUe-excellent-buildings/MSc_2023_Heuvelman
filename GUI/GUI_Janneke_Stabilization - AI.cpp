@@ -1607,6 +1607,7 @@ void screenAddTrussDiagonally() {
     glColor3f(1.0, 0.0, 0.0); //red color)
     drawTextRed("Press enter to submit", screenWidth - 60, 280, 500);
     glColor3f(0.0, 0.0, 0.0); //back to black color
+    drawText("Reminder: diagonals should not span through a space nor more than one increment.", 1200, 185, 200);
 
     //draw lines around it
     boxAroundPopUp();

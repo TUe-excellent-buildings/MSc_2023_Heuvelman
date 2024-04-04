@@ -1828,6 +1828,7 @@ void drawTextField(int x, int y, int width, int height, TextField& textfield) {
         int cursorX = x + borderWidth + glutBitmapLength(GLUT_BITMAP_HELVETICA_18, (const unsigned char*)textfield.text.c_str()); // Adjust for left padding
         int cursorY = startY; // Use the same starting Y coordinate as the text
         glColor3f(0.0, 0.0, 0.0); // black cursor
+        glLineWidth(1.0);
         glBegin(GL_LINES);
         glVertex2f(cursorX +2, cursorY +18); // Adjust the Y coordinate to draw the cursor above the text
         glVertex2f(cursorX +2, cursorY -3);  // Adjust the Y coordinate to draw the cursor above the text
@@ -1939,6 +1940,7 @@ void assignmentDescriptionScreen() {
 
 void LineDivisionScreen() {
     glColor3f(0.0, 0.0, 0.0);
+    glLineWidth(1.0);
     glBegin(GL_LINES);
     glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
@@ -2474,6 +2476,7 @@ void screenAddSpace() {
     glColor3f(1.0, 0.0, 0.0); //red color)
     drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
     glColor3f(0.0, 0.0, 0.0); //back to black color
+    drawText("Warning: make sure that spaces do not overlap and are not detached.", 1550, 175, 250);
 
     //draw lines around it
     boxAroundPopUp2();
@@ -2491,6 +2494,7 @@ void screenDeleteSpace() {
     glColor3f(1.0, 0.0, 0.0); //red color)
     drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
     glColor3f(0.0, 0.0, 0.0); //back to black color
+    drawText("Warning: make sure that spaces do not overlap and are not detached.", 1550, 175, 250);
 
     //draw lines around it
     boxAroundPopUp2();
@@ -2511,6 +2515,7 @@ void screenMoveSpace() {
     glColor3f(1.0, 0.0, 0.0); //red color
     drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
     glColor3f(0.0, 0.0, 0.0); //back to black color
+    drawText("Warning: make sure that spaces do not overlap and are not detached.", 1550, 175, 250);
 
     //draw lines around it
     boxAroundPopUp2();
@@ -2531,6 +2536,7 @@ void screenResizeSpace() {
     glColor3f(1.0, 0.0, 0.0); //red color
     drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
     glColor3f(0.0, 0.0, 0.0); //back to black color
+    drawText("Warning: make sure that spaces do not overlap and are not detached.", 1550, 175, 250);
 
     //draw lines around it
     boxAroundPopUp2();

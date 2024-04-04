@@ -38,13 +38,22 @@ namespace BSO { namespace Visualisation
 
         // Method to draw a line between two points, used for the GUI JH
         void drawLine(float x, float y, float z, float x1, float y1, float z1) const {
-            glLineWidth(2.0);
+            glLineWidth(2.5);
             glColor3f(1.0, 0.0, 0.0);
             glBegin(GL_LINES);
             glVertex3f(x, y, z);
             glVertex3f(x1, y1, z1);
             glEnd();
         }
+        void drawLineThick(float x, float y, float z, float x1, float y1, float z1) const {
+            glLineWidth(4.0);
+            glColor3f(1.0, 0.0, 0.0);
+            glBegin(GL_LINES);
+            glVertex3f(x, y, z);
+            glVertex3f(x1, y1, z1);
+            glEnd();
+        }
+
 
     private:
         std::list<polygon*> polygons;
@@ -371,24 +380,24 @@ namespace BSO { namespace Visualisation
 
         // Draw the lines in for the GUI JH, to create axis x,y,z
         // x axis
-        drawLine(2000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-        drawLine(2000.0f, 0.0f, 0.0f, 1700.0f, 0.0f, -300.0f);
-        drawLine(2000.0f, 0.0f, 0.0f, 1700.0f, 0.0f, 300.0f);
+        drawLineThick(3000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+        drawLineThick(3000.0f, 0.0f, 0.0f, 2700.0f, 0.0f, -300.0f);
+        drawLineThick(3000.0f, 0.0f, 0.0f, 2700.0f, 0.0f, 300.0f);
         // draw letter x
         drawLine(1300.0f, 0.0f, 500.0f, 700.0f, 0.0f, 1100.0f);
         drawLine(700.0f, 0.0f, 500.0f, 1300.0f, 0.0f, 1100.0f);
         // y axis (z in the model)
-        drawLine(0.0f, 2000.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-        drawLine(0.0f, 2000.0f, 0.0f, 0.0f, 1700.0f, -300.0f);
-        drawLine(0.0f, 2000.0f, 0.0f, 0.0f, 1700.0f, 300.0f);
+        drawLineThick(0.0f, 3000.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+        drawLineThick(0.0f, 3000.0f, 0.0f, 0.0f, 2700.0f, -300.0f);
+        drawLineThick(0.0f, 3000.0f, 0.0f, 0.0f, 2700.0f, 300.0f);
         // draw letter z
-        drawLine(0.0f, 600.0f, 500.0f, 0.0f, 600.0f, 1000.0f);
-        drawLine(0.0f, 1200.0f, 500.0f, 0.0f, 1200.0f, 1000.0f);
-        drawLine(0.0f, 600.0f, 500.0f, 0.0f, 1200.0f, 1000.0f);
+        drawLine(0.0f, 1600.0f, 500.0f, 0.0f, 1600.0f, 1000.0f);
+        drawLine(0.0f, 2200.0f, 500.0f, 0.0f, 2200.0f, 1000.0f);
+        drawLine(0.0f, 1600.0f, 500.0f, 0.0f, 2200.0f, 1000.0f);
         // z axis (y in the model)
-        drawLine(0.0f, 0.0f, -2000.0f, 0.0f, 0.0f, 0.0f);
-        drawLine(0.0f, 0.0f, -2000.0f, -300.0f, 0.0f, -1700.0f);
-        drawLine(0.0f, 0.0f, -2000.0f, 300.0f, 0.0f, -1700.0f);
+        drawLineThick(0.0f, 0.0f, -3000.0f, 0.0f, 0.0f, 0.0f);
+        drawLineThick(0.0f, 0.0f, -3000.0f, -300.0f, 0.0f, -2700.0f);
+        drawLineThick(0.0f, 0.0f, -3000.0f, 300.0f, 0.0f, -2700.0f);
         // draw letter y
         drawLine(-500.0f, 0.0f, -1500.0f, -1000.0f, 0.0f, -500.0f);
         drawLine(-1000.0f, 0.0f, -1500.0f, -750.0f, 0.0f, -1000.0f);

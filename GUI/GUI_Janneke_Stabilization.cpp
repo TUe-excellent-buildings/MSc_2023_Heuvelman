@@ -306,6 +306,13 @@ void changeScreen(int screen) {
         writeToProcessFile("process2.csv", "Starting time, assignment chosen", "");
     }
 
+    if (screen == 3){
+        BSO::Structural_Design::SD_Building_Results& SD_results = SD_Building.get()->get_results();
+        SD_results.obtain_results();
+        std::cout << "Total compliance: " << SD_results.m_total_ghost_compliance << SD_results.m_struct_volume << SD_results.m_struct_ghost_volume << std::endl;
+        writeToOutputFile("output2.csv", "Total compliance:", std::to_string(SD_results.m_total_compliance), "");
+    }
+
     if (screen == 4) {
         //write the number of added trusses and beams as measurement
         std::string TrussCountStr = std::to_string(TrussCount);
@@ -313,8 +320,7 @@ void changeScreen(int screen) {
         std::string BeamCountStr = std::to_string(BeamCount);
         writeToOutputFile("output2.csv", "Beam count:", BeamCountStr.c_str(), "");
         //Analyse the structure
-        //performStructuralAnalysis(); // Call the function to perform structural analysis
-
+        // performStructuralAnalysis(); // Call the function to perform structural analysis
         //write the ansers to the questions
         writeToOutputFile("output2.csv", "1..", getSelectedButtonLabel(), opinionTF.text);
     }

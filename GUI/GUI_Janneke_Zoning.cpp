@@ -177,6 +177,12 @@ void visualise(BSO::Spatial_Design::MS_Conformal& cf_building, std::string type,
     vpmanager_local.addviewportzoning(new BSO::Visualisation::viewport(new BSO::Visualisation::Zoning_Model(cf_building, type, i)));
 }
 
+void visualise(BSO::Spatial_Design::MS_Conformal& cf_building, unsigned int i, int zone_ID)
+{
+    vpmanager_local.addviewportzoning(new BSO::Visualisation::viewport(new BSO::Visualisation::Zoning_Model(cf_building, i, zone_ID)));
+}
+
+
 void setup_pointers() {
     MS = std::make_shared<BSO::Spatial_Design::MS_Building>("JH_Zoning_Assignment_GUI/MS_Input.txt");
     CF = std::make_shared<BSO::Spatial_Design::MS_Conformal>(*MS, &(BSO::Grammar::grammar_zoning));
@@ -373,6 +379,7 @@ void initializeScreen() {
 void visualiseZones(unsigned int indexToVisualize = -1) {
     std::cout << "Total designs in Zoned: " << Zoned->get_designs().size() << std::endl;
     unsigned int designsCount = Zoned->get_designs().size();
+    visualise(*CF, 1, 1);
     if (indexToVisualize < designsCount) {
         visualise(*CF, "zones", indexToVisualize);
     }

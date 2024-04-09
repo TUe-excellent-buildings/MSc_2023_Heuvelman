@@ -6,6 +6,7 @@
 #include <ctime>
 #include <cstdlib> // for exit()
 
+// #define AUTOSTABILIZE
 
 #include <BSO/Spatial_Design/Movable_Sizable.hpp>
 #include <BSO/Spatial_Design/Conformation.hpp>
@@ -21,6 +22,8 @@ std::shared_ptr <BSO::Spatial_Design::MS_Building> MS = nullptr;
 std::shared_ptr <BSO::Spatial_Design::MS_Conformal> CF = nullptr;
 std::shared_ptr <BSO::Structural_Design::SD_Analysis_Vars> SD_Building = nullptr;
 std::shared_ptr <BSO::Structural_Design::Stabilization::Stabilize> Stab_model = nullptr;
+
+float initial_volume = 0;
 
 // Global variables for visualisation
 bool visualisationActive = false; // Flag to control when to activate visualisation
@@ -156,6 +159,10 @@ void setup_pointers() {
     (*CF).make_conformal();
     SD_Building = std::make_shared<BSO::Structural_Design::SD_Analysis>(*CF);
     Stab_model = std::make_shared<BSO::Structural_Design::Stabilization::Stabilize>(SD_Building.get(), CF.get());
+    
+    BSO::Structural_Design::SD_Building_Results& SD_results = SD_Building.get()->get_results();
+    SD_results.obtain_results();
+    initial_volume = SD_results.m_struct_volume;
 }
 
 void checkGLError(const char* action) {
@@ -307,9 +314,15 @@ void changeScreen(int screen) {
     }
 
     if (screen == 3){
+        std::cout << "Got here" << std::endl;
+        // SD_Building.get()->remesh();
+        SD_Building.get()->analyse();
         BSO::Structural_Design::SD_Building_Results& SD_results = SD_Building.get()->get_results();
+        BSO::SD_compliance_indexing(SD_results);
         SD_results.obtain_results();
-        std::cout << "Total compliance: " << SD_results.m_total_ghost_compliance << SD_results.m_struct_volume << SD_results.m_struct_ghost_volume << std::endl;
+        std::cout << "Total compliance: " << SD_results.m_total_compliance << std::endl;
+        std::cout << "Added volume: " << SD_results.m_struct_volume - initial_volume << std::endl;
+        std::cout << "Free DOF's: " <<  SD_Building->get_points_with_free_dofs(1).size() << std::endl;
         writeToOutputFile("output2.csv", "Total compliance:", std::to_string(SD_results.m_total_compliance), "");
     }
 

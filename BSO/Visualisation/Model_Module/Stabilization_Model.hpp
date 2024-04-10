@@ -30,6 +30,7 @@ namespace BSO { namespace Visualisation
 
         bool key_pressed(int key);
 
+        // Method to draw a cone, used for the GUI JH (hinges)
         void drawCone(float radius, float height, int numSegments, float x, float y, float z) const {
             glPushMatrix();
             glTranslatef(x, y, z); // Translate to the specified position
@@ -44,6 +45,16 @@ namespace BSO { namespace Visualisation
             }
             glEnd();
             glPopMatrix();
+        }
+
+        // Method to draw a line between two points, used for the GUI JH (axes)
+        void drawLine(float x, float y, float z, float x1, float y1, float z1) const {
+            glLineWidth(2.5);
+            glColor3f(1.0, 0.0, 0.0);
+            glBegin(GL_LINES);
+            glVertex3f(x, y, z);
+            glVertex3f(x1, y1, z1);
+            glEnd();
         }
 
     protected:
@@ -258,6 +269,30 @@ namespace BSO { namespace Visualisation
         drawCone(250.0f, 400.0f, 30, 6000.0f, 0.0f, -24000.0f);
         drawCone(250.0f, 400.0f, 30, 12000.0f, 0.0f, -24000.0f);
         drawCone(250.0f, 400.0f, 30, 24000.0f, 0.0f, -24000.0f);
+
+        // Draw axes in for the GUI JH
+        // x axis
+        drawLine(2500.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+        drawLine(2500.0f, 0.0f, 0.0f, 2200.0f, 0.0f, -300.0f);
+        drawLine(2500.0f, 0.0f, 0.0f, 2200.0f, 0.0f, 300.0f);
+        // draw letter x
+        drawLine(1300.0f, 0.0f, 500.0f, 700.0f, 0.0f, 1100.0f);
+        drawLine(700.0f, 0.0f, 500.0f, 1300.0f, 0.0f, 1100.0f);
+        // y axis (z in the model)
+        drawLine(0.0f, 2500.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+        drawLine(0.0f, 2500.0f, 0.0f, 0.0f, 2200.0f, -300.0f);
+        drawLine(0.0f, 2500.0f, 0.0f, 0.0f, 2200.0f, 300.0f);
+        // draw letter z
+        drawLine(0.0f, 1600.0f, 500.0f, 0.0f, 1600.0f, 1000.0f);
+        drawLine(0.0f, 2200.0f, 500.0f, 0.0f, 2200.0f, 1000.0f);
+        drawLine(0.0f, 1600.0f, 500.0f, 0.0f, 2200.0f, 1000.0f);
+        // z axis (y in the model)
+        drawLine(0.0f, 0.0f, -2500.0f, 0.0f, 0.0f, 0.0f);
+        drawLine(0.0f, 0.0f, -2500.0f, -300.0f, 0.0f, -2200.0f);
+        drawLine(0.0f, 0.0f, -2500.0f, 300.0f, 0.0f, -2200.0f);
+        // draw letter y
+        drawLine(-500.0f, 0.0f, -1500.0f, -1000.0f, 0.0f, -500.0f);
+        drawLine(-1000.0f, 0.0f, -1500.0f, -750.0f, 0.0f, -1000.0f);
 
         glPopAttrib();
     }

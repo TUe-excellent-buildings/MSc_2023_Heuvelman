@@ -324,6 +324,8 @@ void changeScreen(int screen) {
         std::cout << "Added volume: " << SD_results.m_struct_volume - initial_volume << std::endl;
         std::cout << "Free DOF's: " <<  SD_Building->get_points_with_free_dofs(1).size() << std::endl;
         writeToOutputFile("output2.csv", "Total compliance:", std::to_string(SD_results.m_total_compliance), "");
+        writeToOutputFile("output2.csv", "Structural volume:", std::to_string(SD_results.m_struct_volume), "");
+        writeToOutputFile("output2.csv", "Ghost volume:", std::to_string(SD_results.m_struct_ghost_volume), "");
     }
 
     if (screen == 4) {
@@ -497,17 +499,22 @@ void drawBoldText(const char* text, float centerX, float centerY, float textWidt
     drawText(text, centerX + boldnessOffset, centerY + boldnessOffset, textWidth);
 }
 
-
 void motion(int x, int y)
 {
-    double dx = prevx-x,
-            dy = prevy-y;
+    // Calculate the boundary of the 3D view area
+    float viewWidth = screenWidth / 1.7;
 
-    cam_local.setrotation(cam_local.getrotation() + (dx*0.5));
-    cam_local.setelevation(cam_local.getelevation() + (dy*0.5));
+    // Only perform rotation if the mouse is within the 3D view area
+    if (x <= viewWidth) {
+        double dx = prevx - x;
+        double dy = prevy - y;
 
-    prevx = x;
-    prevy = y;
+        cam_local.setrotation(cam_local.getrotation() + (dx * 0.5));
+        cam_local.setelevation(cam_local.getelevation() + (dy * 0.5));
+
+        prevx = x;
+        prevy = y;
+    }
 
     vpmanager_local.mousemove_event(x, y);
 
@@ -1170,8 +1177,8 @@ void drawTextField(int x, int y, int width, int height, TextField& textfield) {
     float borderWidth = 2.0;
 
     // Calculate the adjusted width and height considering padding
-    int adjustedWidth = width - 2 * borderWidth;
-    int adjustedHeight = height - 2 * borderWidth;
+    int adjustedWidth = width - 4 * borderWidth;
+    int adjustedHeight = height - 4 * borderWidth;
 
     glColor3f(0.0, 0.0, 0.0); // Black color for border
     glBegin(GL_QUADS);
@@ -1204,7 +1211,7 @@ void drawTextField(int x, int y, int width, int height, TextField& textfield) {
 
     // Implement text wrapping within the width of the text field
     // This is a simplistic approach and might need adjustment for different font widths
-    int maxWidth = adjustedWidth; // maximum width for text before wrapping
+    int maxWidth = adjustedWidth - 4.0; // maximum width for text before wrapping
     int currentWidth = 0;
     std::string line;
     std::vector<std::string> lines;
@@ -1239,16 +1246,19 @@ void drawTextField(int x, int y, int width, int height, TextField& textfield) {
         }
     }
 
-    // Draw the cursor if the text field is active
-    if (textfield.isActive) {
-        int cursorX = x + borderWidth + glutBitmapLength(GLUT_BITMAP_HELVETICA_18, (const unsigned char*)textfield.text.c_str()); // Adjust for left padding
-        int cursorY = startY; // Use the same starting Y coordinate as the text
-        glColor3f(0.0, 0.0, 0.0); // black cursor
-        glBegin(GL_LINES);
-        glVertex2f(cursorX + 2, cursorY + 18); // Adjust the Y coordinate to draw the cursor above the text
-        glVertex2f(cursorX + 2, cursorY - 3);  // Adjust the Y coordinate to draw the cursor above the text
-        glEnd();
-    }
+    /*
+        // Draw the cursor if the text field is active
+        if (textfield.isActive) {
+            int cursorX = x + borderWidth + glutBitmapLength(GLUT_BITMAP_HELVETICA_18, (const unsigned char*)textfield.text.c_str()); // Adjust for left padding
+            int cursorY = startY; // Use the same starting Y coordinate as the text
+            glColor3f(0.0, 0.0, 0.0); // black cursor
+            glLineWidth(1.0);
+            glBegin(GL_LINES);
+            glVertex2f(cursorX + 2, cursorY + 18); // Adjust the Y coordinate to draw the cursor above the text
+            glVertex2f(cursorX + 2, cursorY - 3);  // Adjust the Y coordinate to draw the cursor above the text
+            glEnd();
+        }
+    */
 }
 
 void checkTextFieldClick(TextField& textField, float mouseX, float mouseY) {
@@ -1365,6 +1375,7 @@ void assignmentDescriptionScreen() {
 
 void LineDivisionScreen() {
     glColor3f(0.0, 0.0, 0.0);
+    glLineWidth(1.0);
     glBegin(GL_LINES);
     glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
@@ -1415,7 +1426,7 @@ void screen3() {
     glEnd();
 
     // Draw the "Next step" button in the bottom right corner
-    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 14);
+    drawButton("-> | Finished", 1590, 50, 200, 50, changeScreen, 14);
 }
 
 // ID 3: Screen 4a

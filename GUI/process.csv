@@ -1,0 +1,94 @@
+Action,User input,Time
+Add Space: size,1,1,1,16:02:02
+Add Space: location,1,1,1,16:02:02
+Delete Space,11,16:02:05
+Resize Space: space,10,16:02:09
+Resize Space: new size,1,1,1,16:02:09
+Move Space: space,3,16:02:20
+Move Space: new location,-6,-6,10,16:02:20
+Action,User input,Time
+Delete Space,10,11:47:05
+Delete Space,3,11:47:08
+Action,User input,Time
+Delete Space,10,14:15:01
+Move Space: space,1,14:15:09
+Move Space: new location,1,1,1,14:15:09
+Action,User input,Time
+Add Space: size,1,1,1,14:29:17
+Add Space: location,1,1,1,14:29:17
+Delete Space,3,14:29:22
+Move Space: space,11,14:29:30
+Move Space: new location,0,0,0,14:29:30
+Resize Space: space,3,14:29:42
+Resize Space: new size,432423,14:29:42
+Resize Space: space,9,14:29:48
+Resize Space: new size,432423,14:29:48
+Resize Space: space,9,14:29:51
+Resize Space: new size,1,2,3,14:29:51
+Action,User input,Time
+Delete Space,10,15:05:21
+Delete Space,10000,15:05:24
+input invalid,,15:05:24
+Add Space: size,10000,15:05:31
+Add Space: location,10000,15:05:31
+input invalid,,15:05:31
+Move Space: space,1111,15:05:34
+input invalid,,15:05:34
+Resize Space: space,867867,15:05:36
+input invalid,,15:05:36
+Action,User input,Time
+Delete Space,1,10:26:20
+Delete Space,2,10:26:22
+Delete Space,3,10:26:24
+Delete Space,4,10:26:25
+,above input invalid,10:26:27
+Delete Space,5,10:26:31
+Delete Space,6,10:26:33
+Delete Space,7,10:26:35
+Delete Space,10,10:26:40
+Delete Space,56,10:26:42
+,above input invalid,10:26:42
+Move Space: space,fdaf,10:26:50
+,above input invalid,10:26:50
+Action,User input,Time
+Move Space: space,1,10:30:23
+,above input invalid,10:30:23
+Add Space: size,dsa,10:31:40
+,above input invalid,10:31:40
+Action,User input,Time
+Delete Space,10,10:33:20
+Action,User input,Time
+Add Space: size,fdas,10:51:29
+,above input invalid,10:51:29
+Add Space: location,dfsa,10:51:32
+,above input invalid,10:51:32
+Delete Space,fda,10:51:35
+,above input invalid,10:51:35
+Move Space: space,fdddsf,10:51:36
+,above input invalid,10:51:36
+Resize Space: space,hgfhgdfhg,10:51:38
+,above input invalid,10:51:38
+Action,User input,Time
+,above input invalid,11:01:12
+Add Space: size,fdafda,11:01:15
+Add Space: location,gfsdgsdf,11:01:15
+,above input invalid,11:01:15
+Action,User input,Time
+Delete Space,10,12:51:55
+Action,User input,Time
+Delete Space,10,13:26:33
+Action,User input,Time
+Add Space: size,1,1,1,13:34:34
+Add Space: location,-1,-1,1,13:34:34
+Resize Space: space,11,13:34:48
+Resize Space: new size,10,10,10,13:34:48
+Move Space: space,11,13:35:06
+Move Space: new location,-10,0,0,13:35:06
+Add Space: size,120,60,30,13:35:41
+Add Space: location,120,-60,60,13:35:41
+Add Space: size,120,60,30,13:36:01
+Add Space: location,120,-60,30,13:36:01
+Action,User input,Time
+Delete Space,10,09:54:43
+Action,User input,Time
+Delete Space,10,20:54:38

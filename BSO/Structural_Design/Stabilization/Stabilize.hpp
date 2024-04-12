@@ -2869,15 +2869,39 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 		BSO::Structural_Design::Components::Point p3(dof_key.second->get_coords()[0], dof_key.first->get_coords()[1], dof_key.first->get_coords()[2]);
 		std::cout << dof_key.first->get_coords() << " " << dof_key.second->get_coords() << " " << std::endl;
 
-		if (Stabilize::find_rectangle(dof_key.first, dof_key.second) == true)
+		Components::Point* p1 = dof_key.first;
+		Components::Point* p2 = dof_key.second;
+
+		// Get the pointers of the points with the same values as dof_key.first and dof_key.second
+		for (unsigned int i = 0; i < m_SD->get_points().size(); i++)
+		{
+			Components::Point* temp_point = m_SD->get_points()[i];
+			if (temp_point->get_coords()[0] == dof_key.first->get_coords()[0] && temp_point->get_coords()[1] == dof_key.first->get_coords()[1] && temp_point->get_coords()[2] == dof_key.first->get_coords()[2])
+			{
+				p1 = m_SD->get_points()[i];
+				std::cout<<"Point replaced";
+			}
+			if (temp_point->get_coords()[0] == dof_key.second->get_coords()[0] && temp_point->get_coords()[1] == dof_key.second->get_coords()[1] && temp_point->get_coords()[2] == dof_key.second->get_coords()[2])
+			{
+				p2 = m_SD->get_points()[i];
+				std::cout<<"Point replaced";
+			}
+		}
+
+		std::cout << "Got the points" << std::endl;
+
+
+		if (Stabilize::find_rectangle(p1, p2) == true)
 		{
 			std::cout << "Rectangle found" << std::endl;
 		}
-		Spatial_Design::Geometry::Rectangle* temp_rectangle = Stabilize::get_rectangle(dof_key.first, dof_key.second);
+
+		Spatial_Design::Geometry::Rectangle* temp_rectangle = Stabilize::get_rectangle(p1, p2);
+
 		std::cout << m_SD->get_component_count() << std::endl;
+
 		Truss_Props props = m_SD->m_truss_props[0];
-		m_SD->m_components.push_back( new Components::Truss(props.m_E, props.m_A, dof_key.first, dof_key.second));
-		//m_SD->m_trusses.push_back(new Components::Truss(props.m_E, props.m_A, dof_key.first, dof_key.second));
+		m_SD->m_components.push_back( new Components::Truss(props.m_E, props.m_A, p1, p2));
 		m_SD->m_components.back()->set_mesh_switch(false);
 		std::cout << m_SD->get_component_count() << std::endl;
 		temp_rectangle->make_structural();
@@ -3110,6 +3134,7 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 			if (std::find(temp_points.begin(), temp_points.end(), p2) != temp_points.end())
 			{
 				found = true;
+				std::cout << "Rectangle found";
 				break;
 			}
 		}

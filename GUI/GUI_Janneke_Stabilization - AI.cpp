@@ -248,10 +248,10 @@ void changeScreen(int screen) {
     //If AI suggestion screen is reached (so the button is pressed), increment the AI suggestion count
     if (screen == 16) {
         AISuggestionCount++;
-        //Stab_model->stabilize_one_point3(0);
-        //Stab_model->stabilize_free_dofs(0);
+        Stab_model->SD_grammar_stabilize3(SD_Building.get(), CF.get());
+        visualise(SD_Building.get(), 1);
     }
-    
+
     if (screen == 1) {
         //write the starting time to be able to have a total time measurement
         writeToProcessFile("process4.csv", "Starting time, assignment chosen", "");
@@ -324,7 +324,7 @@ void buttonClicked(int variable) {
         selectedButtonLabel = "Accept";
 		break;
     case 10:
-		selectedButtonLabel = "Discard"; 
+		selectedButtonLabel = "Discard";
         break;
     }
 
@@ -422,7 +422,7 @@ void drawTextRed(const char* text, float centerX, float centerY, float textWidth
     }
 }
 
-// Function to draw text centered within a given width, used within the draw button function. 
+// Function to draw text centered within a given width, used within the draw button function.
 void drawTextCentered(const char* text, float centerX, float centerY, float textWidth) {
     float lineHeight = 18; // Approximate line height, adjust as needed
     float effectiveTextWidth = textWidth - 2 * MARGIN_PERCENT; // Effective width after considering margins
@@ -568,7 +568,7 @@ void display() {
     if (!windowOpen) {
         return; // Don't render anything if the window is closed
     }
-    
+
     // Clear the window with white background
     //glClearColor(1.0f, 1.0f, 1.0f, 1.0f); //white
     glClearColor(0.95f, 0.95f, 0.95f, 1.0f); //very light gray
@@ -585,7 +585,7 @@ void display() {
     if (visualisationActive) {
         // Set viewport for the left half of the screen
         setup3D();
-        
+
         // Render the visualisation
         vpmanager_local.render(cam_local);
         checkGLError("render");
@@ -665,7 +665,7 @@ std::string clean_str(const std::string& input) {
 }
 
 void keyboard(unsigned char key, int x, int y) {
-    
+
     GLenum err;
     while ((err = glGetError()) != GL_NO_ERROR) {
         std::cerr << "OpenGL error: " << gluErrorString(err) << std::endl;
@@ -787,6 +787,12 @@ void keyboard(unsigned char key, int x, int y) {
                     DrawInvalidInput = true;
                 }
             }
+            else {
+				// Handle invalid input gracefully
+				std::cout << "Invalid input. Please make sure both inputs are valid." << std::endl;
+				validInput = false;
+				DrawInvalidInput = true;
+			}
 
             if (!opinionTF8.text.empty()) {
                 // Print the entered text from opinionTF8 to the terminal
@@ -812,6 +818,10 @@ void keyboard(unsigned char key, int x, int y) {
                     DrawInvalidInput = true;
                 }
             }
+            else {
+                validInput = false;
+                DrawInvalidInput = true;
+            }
 
             if (validInput && TF7 && TF8) {
                 double p1_first_x = p1.first->get_coords()(0);
@@ -825,9 +835,10 @@ void keyboard(unsigned char key, int x, int y) {
                     (p1_first_y != p2_second_y && p1_first_z != p2_second_z) ||
                     (p1_first_x != p2_second_x && p1_first_z != p2_second_z))) {
 
-                    p3.first = p1.first;
-                    p3.second = p2.second;
+                    p3.first = p1.second;
+                    p3.second = p2.first;
                     Stab_model->create_manual_truss(p3);
+                    Stab_model = std::make_shared<BSO::Structural_Design::Stabilization::Stabilize>(SD_Building.get(), CF.get());
                     opinionTF7.text = ""; // Clear the input string of opinionTF7
                     opinionTF8.text = ""; // Clear the input string of opinionTF8
                     // Change the screen after processing both text fields
@@ -884,6 +895,10 @@ void keyboard(unsigned char key, int x, int y) {
                     DrawInvalidInput = true;
                 }
             }
+            else {
+				validInput = false;
+				DrawInvalidInput = true;
+			}
 
             if (validInput) {
                 int elementIndex = std::stoi(clean_str(opinionTF9.text));
@@ -957,6 +972,10 @@ void keyboard(unsigned char key, int x, int y) {
                     DrawInvalidInput = true;
                 }
             }
+            else {
+				validInput = false;
+				DrawInvalidInput = true;
+			}
 
             if (validInput) {
                 int elementIndex = std::stoi(clean_str(opinionTF10.text));
@@ -1039,6 +1058,10 @@ void keyboard(unsigned char key, int x, int y) {
                     validInput = false;
                     DrawInvalidInput = true;
                 }
+            }
+            else {
+                validInput = false;
+                DrawInvalidInput = true;
             }
 
             if (validInput) {
@@ -1389,7 +1412,7 @@ void screen3() {
 
     // Draw the counter area
     std::string AISuggestionCountStr = "AI suggestions: " + std::to_string(AISuggestionCount) + "/7";
-    drawText(AISuggestionCountStr.c_str(), 1200, screenHeight - 60, 200);  
+    drawText(AISuggestionCountStr.c_str(), 1200, screenHeight - 60, 200);
     std::string TrussCountStr = "Number of diagonals: " + std::to_string(TrussCount);
     drawText(TrussCountStr.c_str(), 1200, screenHeight - 100, 200);
     std::string BeamCountStr = "Number of beams: " + std::to_string(BeamCount);
@@ -1403,7 +1426,7 @@ void screen3() {
     drawButton("Delete diagonal rod", screenWidth - 310, 490, 200, 50, changeScreen, 12);
     drawButton("Replace beam by rod", screenWidth - 310, 430, 200, 50, changeScreen, 13);
 
-    if (AISuggestionCount == 7) {
+    if (AISuggestionCount == 30) {
     drawText("7/7 AI suggestions reached", 1570, 395, 200);
     drawButton("AI suggestion", screenWidth - 310, 330, 200, 50, buttonClicked, 1);
 	}
@@ -1647,7 +1670,7 @@ void screenReplaceTrussByBeam() {
     boxAroundPopUp();
 }
 
-// ID 12: screenDeleteDiagonalTruss 
+// ID 12: screenDeleteDiagonalTruss
 void screenDeleteDiagonalTruss() {
     screen3();
 
@@ -1701,38 +1724,38 @@ void screenAISuggestion() {
 
 void screenCheckNext() {
     glColor3f(1.0f, 1.0f, 1.0f); // Set color to white
-    glRectf(750.0f, 500.0f, 1050.0f, 650.0f); // Draw rectangle covering the entire screen
+    glRectf(750.0f, 450.0f, 1050.0f, 650.0f); // Draw rectangle covering the entire screen
 
     //draw box of lines
     glColor3f(0.0, 0.0, 0.0);
     glBegin(GL_LINES);
     glVertex2f(750.0f, 650.0f);
-    glVertex2f(750.0f, 500.0f);
+    glVertex2f(750.0f, 450.0f);
     glVertex2f(750.0f, 650.0f);
     glVertex2f(1050.0f, 650.0f);
     glVertex2f(1050.0f, 650.0f);
-    glVertex2f(1050.0f, 500.0f);
-    glVertex2f(1050.0f, 500.0f);
-    glVertex2f(750.0f, 500.0f);
+    glVertex2f(1050.0f, 450.0f);
+    glVertex2f(1050.0f, 450.0f);
+    glVertex2f(750.0f, 450.0f);
     glEnd();
 
     //draw text within the box
     glColor3f(0.0, 0.0, 0.0);
-    drawText("Are you sure you want to continue? Once you continue to the next step, you cannot go back to this step.", 880, 620, 200);
+    drawText("Are you sure you want to continue? Once you continue to the next step, you cannot go back to this step.      Continuing can take a few seconds.", 880, 620, 200);
 }
 
 void screenCheckNext1() {
     screen3();
     screenCheckNext();
-    drawButton("Yes", 790, 510, 100, 30, changeScreen, 3);
-    drawButton("No", 910, 510, 100, 30, changeScreen, 2);
+    drawButton("Yes", 790, 460, 100, 30, changeScreen, 3);
+    drawButton("No", 910, 460, 100, 30, changeScreen, 2);
 }
 
 void screenCheckNext2() {
     assignmentDescriptionScreen();
-	screenCheckNext();
-	drawButton("Yes", 790, 510, 100, 30, changeScreen, 2);
-	drawButton("No", 910, 510, 100, 30, changeScreen, 1);
+    screenCheckNext();
+    drawButton("Yes", 790, 460, 100, 30, changeScreen, 2);
+    drawButton("No", 910, 460, 100, 30, changeScreen, 1);
 }
 
 int main(int argc, char** argv) {
@@ -1759,7 +1782,7 @@ int main(int argc, char** argv) {
     // Main loop
     glutMainLoop();
     //return 0;
-    
+
     // At this point, the window is closed, so you can exit the application
     exit(EXIT_SUCCESS);
 }

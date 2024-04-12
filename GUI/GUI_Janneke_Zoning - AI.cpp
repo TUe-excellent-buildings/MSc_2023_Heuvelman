@@ -2395,6 +2395,28 @@ void screenCheckNext() {
     drawText("Are you sure you want to continue? Once you continue to the next step, you cannot go back to this step.", 880, 620, 200);
 }
 
+void screenCheckNextLonger() {
+    glColor3f(1.0f, 1.0f, 1.0f); // Set color to white
+    glRectf(750.0f, 450.0f, 1050.0f, 650.0f); // Draw rectangle covering the entire screen
+
+    //draw box of lines
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(750.0f, 650.0f);
+    glVertex2f(750.0f, 450.0f);
+    glVertex2f(750.0f, 650.0f);
+    glVertex2f(1050.0f, 650.0f);
+    glVertex2f(1050.0f, 650.0f);
+    glVertex2f(1050.0f, 450.0f);
+    glVertex2f(1050.0f, 450.0f);
+    glVertex2f(750.0f, 450.0f);
+    glEnd();
+
+    //draw text within the box
+    glColor3f(0.0, 0.0, 0.0);
+    drawText("Are you sure you want to continue? Once you continue to the next step, you cannot go back to this step.      Continuing can take a minute.", 880, 620, 200);
+}
+
 void screenCheckNext1() {
     screen3a();
     screenCheckNext();
@@ -2418,9 +2440,9 @@ void screenCheckNext3() {
 
 void screenCheckNext4() {
     screen3d();
-	screenCheckNext();
-	drawButton("Yes", 790, 510, 100, 30, changeScreen, 6);
-	drawButton("No", 910, 510, 100, 30, changeScreen, 5);
+	screenCheckNextLonger();
+	drawButton("Yes", 790, 460, 100, 30, changeScreen, 6);
+	drawButton("No", 910, 460, 100, 30, changeScreen, 5);
 }
 
 void screenCheckNext5() {

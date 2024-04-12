@@ -202,61 +202,6 @@ void update_CF() {
     (*SD_Building).analyse();
 }
 
-// Function to get SD related outputs from the toolbox
-void retrieve_SD_results() {
-    CF = std::make_shared<BSO::Spatial_Design::MS_Conformal>(*MS, &(BSO::Grammar::grammar_zoning));
-    (*CF).make_conformal();
-    Zoned = std::make_shared<BSO::Spatial_Design::Zoning::Zoned_Design>(CF.get());
-    (*Zoned).make_zoning();
-
-    // Define vectors to store compliance and volumes for all designs
-    std::vector<double> all_compliance;
-    std::vector<double> all_volume;
-
-    // SD-analysis unzoned design
-    Zoned->reset_SD_model();
-    Zoned->prepare_unzoned_SD_model();
-    SD_Building = std::make_shared<BSO::Structural_Design::SD_Analysis>(*CF);
-    (*SD_Building).analyse();
-    BSO::Structural_Design::SD_Building_Results sd_results = (*SD_Building).get_results();
-    BSO::SD_compliance_indexing(sd_results);
-    std::cout << std::endl << "Total compliance in the unzoned design: " << sd_results.m_total_compliance
-        << std::endl << "Structural volume: " << sd_results.m_struct_volume << std::endl;
-    Zoned->add_unzoned_compliance(sd_results.m_total_compliance);
-
-    // SD-analysis zoned designs
-    std::vector<double> m_compliance;
-    std::vector<double> m_volume;
-
-    Zoned = std::make_shared<BSO::Spatial_Design::Zoning::Zoned_Design>(CF.get());
-    (*Zoned).make_zoning();
-    for (unsigned int i = 0; i < Zoned->get_designs().size(); i++)
-    {
-        Zoned->reset_SD_model();
-        Zoned->prepare_zoned_SD_model(i);
-        SD_Building = std::make_shared<BSO::Structural_Design::SD_Analysis>(*CF);
-        (*SD_Building).analyse();
-        sd_results = (*SD_Building).get_results(); // Reuse existing sd_results object
-        BSO::SD_compliance_indexing(sd_results);
-        std::cout << "Total compliance in zoned design " << i + 1 << ": "
-            << sd_results.m_total_compliance << std::endl << "Structural volume: " << sd_results.m_struct_volume << std::endl;
-        Zoned->add_compliance(sd_results.m_total_compliance, i);
-        m_compliance.push_back(sd_results.m_total_compliance);
-        m_volume.push_back(sd_results.m_struct_volume);
-    }
-    std::cout << std::endl << "Compliances:" << std::endl;
-    for (unsigned int i = 0; i < m_compliance.size(); i++)
-    {
-        std::cout << m_compliance[i] << std::endl;
-    }
-    std::cout << std::endl << "Volumes:" << std::endl;
-    for (unsigned int i = 0; i < m_volume.size(); i++)
-    {
-        std::cout << m_volume[i] << std::endl;
-    }
-
-}
-
 void checkGLError(const char* action) {
     GLenum err;
     while ((err = glGetError()) != GL_NO_ERROR) {
@@ -303,6 +248,68 @@ void writeToProcessFile(std::string processFileName, std::string action, std::st
 
     processFile << action << "," << userInput << "," << timeString << "\n";
     processFile.close();
+}
+
+// Function to get SD related outputs from the toolbox
+void retrieve_SD_results() {
+    CF = std::make_shared<BSO::Spatial_Design::MS_Conformal>(*MS, &(BSO::Grammar::grammar_zoning));
+    (*CF).make_conformal();
+    Zoned = std::make_shared<BSO::Spatial_Design::Zoning::Zoned_Design>(CF.get());
+    (*Zoned).make_zoning();
+
+    // Define vectors to store compliance and volumes for all designs
+    std::vector<double> all_compliance;
+    std::vector<double> all_volume;
+
+    // SD-analysis unzoned design
+    Zoned->reset_SD_model();
+    Zoned->prepare_unzoned_SD_model();
+    SD_Building = std::make_shared<BSO::Structural_Design::SD_Analysis>(*CF);
+    (*SD_Building).analyse();
+    BSO::Structural_Design::SD_Building_Results sd_results = (*SD_Building).get_results();
+    BSO::SD_compliance_indexing(sd_results);
+    std::cout << std::endl << "Total compliance in the unzoned design: " << sd_results.m_total_compliance
+        << std::endl << "Structural volume: " << sd_results.m_struct_volume << std::endl;
+    Zoned->add_unzoned_compliance(sd_results.m_total_compliance);
+
+    //outputs to excel:
+    writeToOutputFile("output.csv", "Total compliance in the unzoned design:", std::to_string(sd_results.m_total_compliance), "");
+    writeToOutputFile("output.csv", "Structural volume in the unzoned design:", std::to_string(sd_results.m_struct_volume), "");
+
+    // SD-analysis zoned designs
+    std::vector<double> m_compliance;
+    std::vector<double> m_volume;
+
+    Zoned = std::make_shared<BSO::Spatial_Design::Zoning::Zoned_Design>(CF.get());
+    (*Zoned).make_zoning();
+    for (unsigned int i = 0; i < Zoned->get_designs().size(); i++)
+    {
+        Zoned->reset_SD_model();
+        Zoned->prepare_zoned_SD_model(i);
+        SD_Building = std::make_shared<BSO::Structural_Design::SD_Analysis>(*CF);
+        (*SD_Building).analyse();
+        sd_results = (*SD_Building).get_results(); // Reuse existing sd_results object
+        BSO::SD_compliance_indexing(sd_results);
+        std::cout << "Total compliance in zoned design " << i + 1 << ": "
+            << sd_results.m_total_compliance << std::endl << "Structural volume: " << sd_results.m_struct_volume << std::endl;
+        Zoned->add_compliance(sd_results.m_total_compliance, i);
+        m_compliance.push_back(sd_results.m_total_compliance);
+        m_volume.push_back(sd_results.m_struct_volume);
+    }
+    std::cout << std::endl << "Compliances:" << std::endl;
+    for (unsigned int i = 0; i < m_compliance.size(); i++)
+    {
+        std::cout << m_compliance[i] << std::endl;
+        writeToOutputFile("output.csv", "Total compliance in zoned design " + std::to_string(i + 1) + ":", std::to_string(m_compliance[i]), "");
+    }
+    std::cout << std::endl << "Volumes:" << std::endl;
+    for (unsigned int i = 0; i < m_volume.size(); i++)
+    {
+        std::cout << m_volume[i] << std::endl;
+        writeToOutputFile("output.csv", "Structural volume in zoned design " + std::to_string(i + 1) + ":", std::to_string(m_volume[i]), "");
+    }
+
+
 }
 
 //Declare a global variable to store the selected button label
@@ -377,8 +384,9 @@ void initializeScreen() {
 void visualiseZones(unsigned int indexToVisualize = -1) {
     std::cout << "Total designs in Zoned: " << Zoned->get_designs().size() << std::endl;
     unsigned int designsCount = Zoned->get_designs().size();
-    visualise(*CF, 1, 1);
+
     if (indexToVisualize < designsCount) {
+        visualise(*CF, 1, 1);
         visualise(*CF, "zones", indexToVisualize);
     }
     else {
@@ -432,6 +440,7 @@ void changeScreen(int screen) {
         }
         vpmanager_local.clearviewports();
         visualise(*MS);
+        visualiseZones(2);
         // HERE CREATED ZONES AND ZONED DESIGNS NEED TO BE ADDED TO THE VISUALISATION
         
         //visualiseZones(2);
@@ -473,7 +482,7 @@ void changeScreen(int screen) {
         vpmanager_local.clearviewports();
         visualise(*MS);
         update_CF();
-        visualiseZones();
+        visualiseZones(2);
         //retrieve_SD_results();
     }
     else {
@@ -2639,6 +2648,28 @@ void screenCheckNext() {
     drawText("Are you sure you want to continue? Once you continue to the next step, you cannot go back to this step.", 880, 620, 200);
 }
 
+void screenCheckNextLonger() {
+    glColor3f(1.0f, 1.0f, 1.0f); // Set color to white
+    glRectf(750.0f, 450.0f, 1050.0f, 650.0f); // Draw rectangle covering the entire screen
+
+    //draw box of lines
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(750.0f, 650.0f);
+    glVertex2f(750.0f, 450.0f);
+    glVertex2f(750.0f, 650.0f);
+    glVertex2f(1050.0f, 650.0f);
+    glVertex2f(1050.0f, 650.0f);
+    glVertex2f(1050.0f, 450.0f);
+    glVertex2f(1050.0f, 450.0f);
+    glVertex2f(750.0f, 450.0f);
+    glEnd();
+
+    //draw text within the box
+    glColor3f(0.0, 0.0, 0.0);
+    drawText("Are you sure you want to continue? Once you continue to the next step, you cannot go back to this step.      Continuing can take a minute.", 880, 620, 200);
+}
+
 void screenCheckNext1() {
     screen3a();
     screenCheckNext();
@@ -2662,9 +2693,9 @@ void screenCheckNext3() {
 
 void screenCheckNext4() {
     screen3d();
-	screenCheckNext();
-	drawButton("Yes", 790, 510, 100, 30, changeScreen, 6);
-	drawButton("No", 910, 510, 100, 30, changeScreen, 5);
+	screenCheckNextLonger();
+	drawButton("Yes", 790, 460, 100, 30, changeScreen, 6);
+	drawButton("No", 910, 460, 100, 30, changeScreen, 5);
 }
 
 void screenCheckNext5() {

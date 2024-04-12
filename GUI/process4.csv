@@ -1,193 +1,190 @@
 Action,User input,Time
-Starting time, assignment chosen,,18:54:01
-Add diagonal: member 1,1,18:54:10
-Add diagonal: member 2,1,18:54:10
-Add diagonal: member 1,147,18:54:57
-Add diagonal: member 2,213,18:54:57
-Replace rod by beam,146,18:55:01
-Delete diagonal rod,267,18:55:08
-Replace beam by rod,146,18:55:14
-AI suggestion,Accept,18:55:22
+Starting time, assignment chosen,,16:35:18
 Action,User input,Time
-Starting time, assignment chosen,,10:26:32
+Starting time, assignment chosen,,16:44:29
 Action,User input,Time
-Starting time, assignment chosen,,10:43:43
-Add diagonal: member 1,1,11,10:44:14
-Add diagonal: member 2,1111,10:44:14
-Add diagonal: member 1,220,10:44:31
-Add diagonal: member 2,216,10:44:31
-Delete diagonal rod,267,10:44:41
-Add diagonal: member 1,220,10:45:05
-Add diagonal: member 2,147,10:45:05
+Starting time, assignment chosen,,16:45:40
 Action,User input,Time
-Starting time, assignment chosen,,13:24:45
+Starting time, assignment chosen,,16:47:08
 Action,User input,Time
-Starting time, assignment chosen,,13:39:21
-Add diagonal: member 1,147,13:39:56
-Add diagonal: member 2,213,13:39:56
-Add diagonal: member 1,1,13:40:01
-Add diagonal: member 2,1,13:40:01
-Delete diagonal rod,157,13:40:23
-Replace beam by rod,219,13:41:17
-AI suggestion,Accept,13:42:29
-AI suggestion,Discard,13:42:30
+Starting time, assignment chosen,,16:49:50
 Action,User input,Time
-Starting time, assignment chosen,,09:27:10
-Delete diagonal rod,147,09:27:23
-Delete diagonal rod,0,09:27:27
+Starting time, assignment chosen,,16:51:51
 Action,User input,Time
-Starting time, assignment chosen,,09:28:32
+Starting time, assignment chosen,,16:58:03
+AI suggestion,Accept,16:58:48
+AI suggestion,Discard,16:58:50
+Replace rod by beam,147,16:58:58
 Action,User input,Time
-Starting time, assignment chosen,,10:07:11
-Add diagonal: member 1,158,10:07:23
-Add diagonal: member 2,258,10:07:23
-Replace rod by beam,146,10:07:29
-Replace rod by beam,213,10:07:34
-Replace rod by beam,212,10:07:37
-Delete diagonal rod,264,10:07:46
-Replace beam by rod,266,10:07:51
-Add diagonal: member 1,10000,10:08:03
-Add diagonal: member 1,10000,10:08:06
-Add diagonal: member 2,4445567,10:08:06
-AI suggestion,Accept,10:08:07
-AI suggestion,Discard,10:08:09
-AI suggestion,Accept,10:08:10
-AI suggestion,Discard,10:08:12
+Starting time, assignment chosen,,17:07:34
 Action,User input,Time
-Starting time, assignment chosen,,10:10:18
+Starting time, assignment chosen,,17:12:50
 Action,User input,Time
-Starting time, assignment chosen,,10:38:04
+Starting time, assignment chosen,,17:31:39
 Action,User input,Time
-Starting time, assignment chosen,,10:48:20
-AI suggestion,Accept,10:48:42
-AI suggestion,Discard,10:48:44
+Starting time, assignment chosen,,17:33:06
 Action,User input,Time
-Starting time, assignment chosen,,10:53:53
+Starting time, assignment chosen,,08:53:21
 Action,User input,Time
-Starting time, assignment chosen,,10:56:33
-AI suggestion,Accept,10:56:48
-AI suggestion,Discard,10:56:50
-AI suggestion,Accept,10:56:51
-AI suggestion,Discard,10:56:53
+Starting time, assignment chosen,,08:56:15
 Action,User input,Time
-Starting time, assignment chosen,,11:01:17
+Starting time, assignment chosen,,08:58:06
 Action,User input,Time
-Starting time, assignment chosen,,11:24:56
-AI suggestion,Accept,11:25:04
+Starting time, assignment chosen,,09:03:34
 Action,User input,Time
-Starting time, assignment chosen,,11:27:25
-AI suggestion,Accept,11:27:42
+Starting time, assignment chosen,,09:04:59
 Action,User input,Time
-Starting time, assignment chosen,,11:30:26
-Replace rod by beam,155,11:30:42
+Starting time, assignment chosen,,09:16:23
+AI suggestion,Accept,09:16:33
+AI suggestion,Accept,09:16:37
+AI suggestion,Accept,09:16:42
+AI suggestion,Accept,09:16:45
+AI suggestion,Accept,09:16:46
+AI suggestion,Accept,09:16:48
 Action,User input,Time
-Starting time, assignment chosen,,11:41:01
-AI suggestion,Accept,11:41:19
+Starting time, assignment chosen,,10:21:31
+Add diagonal: member 1,156,10:23:02
+Add diagonal: member 2,195,10:23:02
 Action,User input,Time
-Starting time, assignment chosen,,11:43:28
+Starting time, assignment chosen,,10:34:56
+Add diagonal: member 1,195,10:35:16
+Add diagonal: member 2,179,10:35:16
 Action,User input,Time
-Starting time, assignment chosen,,20:34:43
-Starting time, assignment chosen,,20:35:53
+Starting time, assignment chosen,,10:42:21
+AI suggestion,Accept,11:03:32
+AI suggestion,Accept,11:03:34
+AI suggestion,Accept,11:03:36
+AI suggestion,Accept,11:03:40
+AI suggestion,Accept,11:03:41
+Add diagonal: member 1,213,11:03:54
+Add diagonal: member 2,147,11:03:54
 Action,User input,Time
-Starting time, assignment chosen,,20:39:33
-Add diagonal: member 1,235,20:40:38
-Add diagonal: member 2,158,20:40:38
-Add diagonal: member 1,180,20:41:53
-Add diagonal: member 2,144,20:41:53
-Add diagonal: member 1,180,20:41:55
-Add diagonal: member 2,144,20:41:55
-Add diagonal: member 1,180,20:41:58
-Add diagonal: member 2,144,20:41:58
-Add diagonal: member 1,179,20:42:26
-Add diagonal: member 2,144,20:42:26
-Add diagonal: member 1,169,20:43:34
-Add diagonal: member 2,178,20:43:34
-AI suggestion,Accept,20:44:02
-Replace rod by beam,147,20:46:55
-Replace rod by beam,215,20:47:42
-Add diagonal: member 1,2000,20:48:15
-Add diagonal: member 1,2000,20:48:22
-Add diagonal: member 2,10000,20:48:22
-Replace beam by rod,269,20:49:06
+Starting time, assignment chosen,,11:21:48
 Action,User input,Time
-Starting time, assignment chosen,,10:18:36
+Starting time, assignment chosen,,11:29:31
 Action,User input,Time
-Starting time, assignment chosen,,12:42:47
-Add diagonal: member 1,158,12:43:01
-Add diagonal: member 2,146,12:43:01
+Starting time, assignment chosen,,11:39:28
 Action,User input,Time
-Starting time, assignment chosen,,12:45:17
+Starting time, assignment chosen,,12:00:12
 Action,User input,Time
-Starting time, assignment chosen,,13:21:04
+Starting time, assignment chosen,,12:21:37
 Action,User input,Time
-Starting time, assignment chosen,,13:27:01
+Starting time, assignment chosen,,12:27:06
 Action,User input,Time
-Starting time, assignment chosen,,13:34:16
-AI suggestion,Accept,13:34:28
-AI suggestion,Discard,13:34:30
+Starting time, assignment chosen,,12:36:51
 Action,User input,Time
-Starting time, assignment chosen,,13:40:05
+Starting time, assignment chosen,,12:38:42
 Action,User input,Time
-Starting time, assignment chosen,,15:19:44
-Add diagonal: member 1,157,15:20:11
-Add diagonal: member 2,253,15:20:11
-Add diagonal: member 1,54543,15:20:15
-,above input invalid,15:20:15
-,above input invalid,15:20:17
-AI suggestion,Discard,15:20:18
+Starting time, assignment chosen,,12:40:42
 Action,User input,Time
-Starting time, assignment chosen,,11:26:24
+Starting time, assignment chosen,,12:45:33
 Action,User input,Time
-Starting time, assignment chosen,,11:28:33
+Starting time, assignment chosen,,12:50:09
 Action,User input,Time
-Starting time, assignment chosen,,11:30:11
+Starting time, assignment chosen,,12:56:54
 Action,User input,Time
-Starting time, assignment chosen,,11:31:20
+Starting time, assignment chosen,,13:07:27
+AI suggestion,Accept,13:08:47
 Action,User input,Time
-Starting time, assignment chosen,,10:13:22
+Starting time, assignment chosen,,13:11:12
 Action,User input,Time
-Starting time, assignment chosen,,10:17:01
+Starting time, assignment chosen,,13:20:42
 Action,User input,Time
-Starting time, assignment chosen,,11:47:25
+Starting time, assignment chosen,,13:34:09
 Action,User input,Time
-Starting time, assignment chosen,,12:09:42
+Starting time, assignment chosen,,13:37:33
 Action,User input,Time
-Starting time, assignment chosen,,09:09:03
+Starting time, assignment chosen,,13:43:03
 Action,User input,Time
-Starting time, assignment chosen,,09:10:29
+Starting time, assignment chosen,,13:45:45
 Action,User input,Time
-Starting time, assignment chosen,,09:11:20
+Starting time, assignment chosen,,13:49:09
 Action,User input,Time
-Starting time, assignment chosen,,09:22:52
+Starting time, assignment chosen,,13:55:10
 Action,User input,Time
-Starting time, assignment chosen,,09:23:15
+Starting time, assignment chosen,,14:01:27
 Action,User input,Time
-Starting time, assignment chosen,,09:30:16
+Starting time, assignment chosen,,14:05:53
 Action,User input,Time
-Starting time, assignment chosen,,09:59:10
+Starting time, assignment chosen,,14:13:02
 Action,User input,Time
-Starting time, assignment chosen,,10:00:51
+Starting time, assignment chosen,,14:19:26
 Action,User input,Time
-Starting time, assignment chosen,,10:02:34
+Starting time, assignment chosen,,14:24:08
 Action,User input,Time
-Starting time, assignment chosen,,10:08:44
+Starting time, assignment chosen,,14:26:03
 Action,User input,Time
-Starting time, assignment chosen,,12:12:40
+Starting time, assignment chosen,,15:01:18
 Action,User input,Time
-Starting time, assignment chosen,,12:36:55
+Starting time, assignment chosen,,15:25:50
 Action,User input,Time
-Starting time, assignment chosen,,09:19:36
+Starting time, assignment chosen,,15:35:08
+AI suggestion,Accept,15:35:31
+AI suggestion,Accept,15:35:33
+AI suggestion,Accept,15:35:34
+AI suggestion,Accept,15:35:36
 Action,User input,Time
-Starting time, assignment chosen,,12:15:24
+Starting time, assignment chosen,,16:15:19
 Action,User input,Time
-Starting time, assignment chosen,,12:15:56
+Starting time, assignment chosen,,16:18:20
+Add diagonal: member 1,213,16:18:29
+Add diagonal: member 2,147,16:18:29
 Action,User input,Time
-Starting time, assignment chosen,,17:06:21
-Add diagonal: member 1,146,17:06:56
-Add diagonal: member 2,158,17:06:56
-Replace rod by beam,213,17:07:01
+Starting time, assignment chosen,,16:24:35
+Add diagonal: member 1,213,16:25:03
+Add diagonal: member 2,147,16:25:03
 Action,User input,Time
-Starting time, assignment chosen,,20:56:12
-Add diagonal: member 1,220,20:56:57
-Add diagonal: member 2,147,20:56:57
-Replace rod by beam,146,20:57:07
+Starting time, assignment chosen,,16:31:24
+Add diagonal: member 1,213,16:31:37
+Add diagonal: member 2,147,16:31:37
+Action,User input,Time
+Starting time, assignment chosen,,16:56:20
+Add diagonal: member 1,213,16:57:17
+Add diagonal: member 2,147,16:57:17
+Action,User input,Time
+Starting time, assignment chosen,,17:00:20
+Add diagonal: member 1,213,17:00:33
+Add diagonal: member 2,147,17:00:33
+Action,User input,Time
+Starting time, assignment chosen,,17:02:50
+Add diagonal: member 1,213,17:03:04
+Add diagonal: member 2,147,17:03:04
+Action,User input,Time
+Starting time, assignment chosen,,17:05:15
+Replace rod by beam,147,17:05:24
+Action,User input,Time
+Starting time, assignment chosen,,17:17:07
+Add diagonal: member 1,213,17:17:29
+Add diagonal: member 2,147,17:17:29
+Action,User input,Time
+Starting time, assignment chosen,,17:25:14
+Add diagonal: member 1,144,17:25:27
+Add diagonal: member 2,220,17:25:27
+Action,User input,Time
+Starting time, assignment chosen,,17:25:39
+Add diagonal: member 1,179,17:26:40
+Add diagonal: member 2,144,17:26:40
+Action,User input,Time
+Starting time, assignment chosen,,17:26:47
+Add diagonal: member 1,213,17:27:42
+Add diagonal: member 2,147,17:27:42
+Action,User input,Time
+Starting time, assignment chosen,,17:27:49
+Add diagonal: member 1,224,17:28:02
+Add diagonal: member 2,216,17:28:02
+Action,User input,Time
+Starting time, assignment chosen,,17:31:12
+Action,User input,Time
+Starting time, assignment chosen,,17:33:44
+Add diagonal: member 1,179,17:34:08
+Add diagonal: member 2,144,17:34:08
+Action,User input,Time
+Starting time, assignment chosen,,17:37:04
+Add diagonal: member 1,179,17:37:25
+Add diagonal: member 2,144,17:37:25
+Action,User input,Time
+Starting time, assignment chosen,,17:38:20
+Action,User input,Time
+Starting time, assignment chosen,,17:40:22
+Add diagonal: member 1,179,17:40:42
+Add diagonal: member 2,144,17:40:42

@@ -9,6 +9,11 @@
 #include <BSO/Structural_Design/Stabilization/Grid.hpp>
 #include <BSO/Spatial_Design/Zoning.hpp>
 
+//#include <BSO/Visualisation/Model_Module/Model.hpp>
+#include <BSO/Visualisation/Visualisation.hpp>
+#include <BSO/Performance_Indexing.hpp>
+#include <Read_Grammar_Settings.hpp>
+
 #include <Read_Stabilize_Settings.hpp>
 
 namespace BSO { namespace Structural_Design { namespace Stabilization
@@ -63,6 +68,15 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 		Grammar::Stabilize_Settings stabilize_settings;
 		bool remove_superfluous_trusses;
 		double singular;
+		//functions to implement grammar:
+		double method;
+		double point_it_unzoned;
+		double point_it_zoned;
+		double zone_it;
+		std::vector<double> m_compliance; // total compliances of each stabilised zoned design (for output)
+		std::vector<double> m_added_volume; // added volume of each stabilised zoned design (for output)
+		static int trusses_substituted; // to keep track of the number of added beams
+		static int truss_added_count; // to keep track of the number of added trusses
 
         std::map<Components::Point*, std::vector<unsigned int> > free_dofs;
 		std::vector<Components::Point*> dof_ux;
@@ -89,6 +103,9 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 		void stabilize_one_point();
 		void stabilize_one_point2(unsigned int);
 		bool stabilize_one_point3(unsigned int);
+		void SD_grammar_stabilize3(Structural_Design::SD_Analysis_Vars* SD, Spatial_Design::MS_Conformal* CF);
+		static int getTrussesSubstituted() { return trusses_substituted; }
+		static int getTrussAddedCount() { return truss_added_count; }
 
 		// Geometrical keypoints:
 		std::vector<Components::Point*> search_keypoints_truss(std::pair<Components::Point*, unsigned int>);
@@ -141,6 +158,9 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 		void show_free_dofs();
 		void show_singulars();
     }; // Stabilize
+
+	int Stabilize::trusses_substituted = 0;
+	int Stabilize::truss_added_count = 0;
 
     Stabilize::Stabilize(SD_Analysis_Vars* SD, Spatial_Design::MS_Conformal* CF)
     {
@@ -1702,7 +1722,7 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
             }
 			break;
 		} // case 1
-		
+
         case 2:
 		/*
 		Sequence:
@@ -1826,7 +1846,7 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
             }
 			break;
 		} // case 2
-		
+
         case 3:
 		/*
 		Sequence:
@@ -2787,7 +2807,8 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 		if (Stabilize::find_rectangle(dof_key.first, dof_key.second) == true)
 		{
 			Spatial_Design::Geometry::Rectangle* temp_rectangle = Stabilize::get_rectangle(dof_key.first, dof_key.second);
-			
+			std::cout << dof_key.first->get_coords() << " " << dof_key.second->get_coords() << " " << temp_rectangle->get_surface_count() << " " << temp_rectangle->get_horizontal() << std::endl;
+
 			if (temp_rectangle->get_surface_count() == 0 && temp_rectangle->get_horizontal() == false)
 			{
 				std::map<Spatial_Design::Geometry::Rectangle*, std::vector<Components::Point*> >::iterator it_1; // rectangle_points
@@ -2823,6 +2844,7 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 			}
 			else
 			{
+				truss_added_count++;
 				//std::cout << "Adding truss between points (" << dof_key.first->get_coords()[0] << "," << dof_key.first->get_coords()[1] << "," << 				dof_key.first->get_coords()[2]
 				//		<< ") and (" << dof_key.second->get_coords()[0] << "," << dof_key.second->get_coords()[1] << "," << dof_key.second->get_coords()[2] << ")" << std::endl;
 
@@ -2844,11 +2866,21 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 	} // add_truss()
 
 	void Stabilize::create_manual_truss(std::pair<Components::Point*, Components::Point*> dof_key) {
+		BSO::Structural_Design::Components::Point p3(dof_key.second->get_coords()[0], dof_key.first->get_coords()[1], dof_key.first->get_coords()[2]);
+		std::cout << dof_key.first->get_coords() << " " << dof_key.second->get_coords() << " " << std::endl;
+
+		if (Stabilize::find_rectangle(dof_key.first, dof_key.second) == true)
+		{
+			std::cout << "Rectangle found" << std::endl;
+		}
+		Spatial_Design::Geometry::Rectangle* temp_rectangle = Stabilize::get_rectangle(dof_key.first, dof_key.second);
 		std::cout << m_SD->get_component_count() << std::endl;
 		Truss_Props props = m_SD->m_truss_props[0];
 		m_SD->m_components.push_back( new Components::Truss(props.m_E, props.m_A, dof_key.first, dof_key.second));
+		//m_SD->m_trusses.push_back(new Components::Truss(props.m_E, props.m_A, dof_key.first, dof_key.second));
 		m_SD->m_components.back()->set_mesh_switch(false);
 		std::cout << m_SD->get_component_count() << std::endl;
+		temp_rectangle->make_structural();
 	}
 
 	void Stabilize::create_manual_beam(Components::Point* p1, Components::Point* p2) {
@@ -2903,6 +2935,8 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
                 {
                     if (m_SD->m_components[j]->find_points(point, keypoints[i]) == true)
                     {
+						trusses_substituted++;
+
                         //m_SD->m_components.erase(m_SD->m_components.begin() + i);
                         std::rotate(m_SD->m_components.begin() + j, m_SD->m_components.begin() + j + 1, m_SD->m_components.end());
                         m_SD->m_components.pop_back();
@@ -3416,607 +3450,12 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 		return { smallest, largest };
 	}
 
-	void Stabilize::stabilize_one_point()
-	{
-		std::map<Components::Point*, std::vector<unsigned int> >::iterator it_1; // free_dofs
-		Components::Point* point;
-		unsigned int dof;
-		std::pair<Components::Point*, unsigned int> point_dof;
-		std::vector<Components::Point*> keypoints;
-		std::pair<Components::Point*, Components::Point*> dof_key;
-
-		// Check if there are any free DOFs
-		if (free_dofs.empty())
-		{
-			std::cout << "No points with free DOFs found." << std::endl;
-			return;
-		}
-
-		// Get the first point with a free DOF
-		it_1 = free_dofs.begin();
-		point = it_1->first;
-		dof = it_1->second[0]; // Assuming there is at least one DOF
-		point_dof = std::make_pair(point, dof);
-
-		// Search for keypoints and stabilize the point
-		keypoints = search_keypoints_truss(point_dof);
-		keypoints = delete_unzoned_keypoints(point, keypoints);
-		if (keypoints.size() == 0)
-		{
-			keypoints = search_keypoints_beam(point_dof);
-			keypoints = delete_used_keypoints_beam(point, keypoints);
-			if (keypoints.size() > 0)
-			{
-				add_beams(point, keypoints);
-				if (remove_superfluous_trusses == true)
-					delete_superfluous_truss(point, keypoints);
-			}
-		}
-		else
-		{
-			dof_key = std::make_pair(point, keypoints.front());
-			add_truss(dof_key);
-		}
-
-		// Remove the stabilized DOF from the free DOFs list
-		it_1->second.erase(it_1->second.begin());
-		if (it_1->second.empty())
-		{
-			free_dofs.erase(it_1);
-		}
-
-		std::cout << "dof" << dof << std::endl;
-	}
-
-	void Stabilize::stabilize_one_point2(unsigned int method)
-	{
-		bool stabilization_possible = true;
-
-		std::vector<vector<vector<coord*>>>::iterator it_x; // grid-location x
-		std::vector<vector<coord*>>::iterator it_y; // grid-location y
-		std::vector<coord*>::iterator it_z; // grid-location z
-		std::map<std::vector<unsigned int>, Components::Point*>::iterator it_1; // grid_points
-		std::map<Components::Point*, std::vector<unsigned int> >::iterator it_2; // free_dofs
-		std::map<Components::Point*, std::vector<unsigned int> >::iterator it_3; // points_grid
-		Components::Point* point;
-		unsigned int dof;
-		std::vector<unsigned int> point_grid;
-		std::pair<Components::Point*, unsigned int> point_dof;
-		std::vector<Components::Point*> keypoints;
-		std::pair<Components::Point*, Components::Point*> dof_key;
-		bool found = false;
-		switch (method)
-		{
-		case 0:
-			/*
-			Sequence:
-			grid: x,y,z -> Dof: uX,uY,uZ
-
-			Structure:
-			Rod addition, Beam addition/substitution
-			*/
-		{
-			for (it_x = grid.begin(); it_x != grid.end(); it_x++)
-			{
-				for (it_y = it_x->begin(); it_y != it_x->end(); it_y++)
-				{
-					for (it_z = it_y->begin(); it_z != it_y->end(); it_z++)
-					{
-						point_grid.clear();
-						point_grid.push_back(std::distance(grid.begin(), it_x));
-						point_grid.push_back(std::distance(it_x->begin(), it_y));
-						point_grid.push_back(std::distance(it_y->begin(), it_z));
-						it_1 = grid_points.find(point_grid);
-						it_2 = free_dofs.find(it_1->second);
-						if (it_2 != free_dofs.end())
-						{
-							point = it_1->second;
-
-							for (unsigned int i = 0; i < it_2->second.size(); i++)
-							{
-								dof = it_2->second[i];
-								point_dof = std::make_pair(point, dof);
-								keypoints = Stabilize::search_keypoints_truss(point_dof);
-								if (keypoints.size() > 0)
-								{
-									// delete and order keypoints:
-									//keypoints = Stabilize::delete_unzoned_keypoints(point, keypoints);
-									keypoints = Stabilize::delete_intersecting_keypoints(point, keypoints);
-									keypoints = Stabilize::delete_external_keypoints(point, keypoints);
-									keypoints = Stabilize::delete_free_dof_keypoints(point, dof, keypoints);
-									keypoints = Stabilize::delete_structural_keypoints(point, keypoints);
-
-									if (keypoints.size() > 0)
-									{
-										found = true;
-										dof_key = std::make_pair(point, keypoints.front());
-										break;
-									}
-								}
-								if (found == true)
-									break;
-							}
-						}
-						if (found == true)
-							break;
-					}
-					if (found == true)
-						break;
-				}
-				if (found == true)
-					break;
-			}
-			if (found == true)
-			{
-				Stabilize::add_truss(dof_key);
-			}
-
-			else // Structure cannot be stabilized by truss addition; delete trusses/add beams
-			{
-				for (it_x = grid.begin(); it_x != grid.end(); it_x++)
-				{
-					for (it_y = it_x->begin(); it_y != it_x->end(); it_y++)
-					{
-						for (it_z = it_y->begin(); it_z != it_y->end(); it_z++)
-						{
-							point_grid.clear();
-							point_grid.push_back(std::distance(grid.begin(), it_x));
-							point_grid.push_back(std::distance(it_x->begin(), it_y));
-							point_grid.push_back(std::distance(it_y->begin(), it_z));
-							it_1 = grid_points.find(point_grid);
-							it_2 = free_dofs.find(it_1->second);
-							if (it_2 != free_dofs.end())
-							{
-								point = it_1->second;
-
-								for (unsigned int i = 0; i < it_2->second.size(); i++)
-								{
-									dof = it_2->second[i];
-									point_dof = std::make_pair(point, dof);
-									keypoints = Stabilize::search_keypoints_beam(point_dof);
-									if (keypoints.size() > 0)
-									{
-										// delete and order keypoints:
-										//keypoints = Stabilize::delete_free_dof_keypoints(point, dof, keypoints);
-										keypoints = Stabilize::delete_used_keypoints_beam(point, keypoints);
-										//keypoints = Stabilize::delete_unzoned_keypoints_beam(point, keypoints);
-										break;
-
-										if (keypoints.size() > 0)
-										{
-											found = true;
-											break;
-										}
-									}
-									if (found == true)
-										break;
-								}
-							}
-							if (found == true)
-								break;
-						}
-						if (found == true)
-							break;
-					}
-					if (found == true)
-						break;
-				}
-				if (found == true)
-				{
-					Stabilize::add_beams(point, keypoints);
-					break;
-				}
-				else
-				{
-					std::cout << "Structure can not be stabilized..." << std::endl;
-					stabilization_possible = false;
-				}
-				if (remove_superfluous_trusses == true)
-					Stabilize::delete_superfluous_trusses();
-			}
-			break;
-		} // case 0
-
-		case 1:
-			/*
-			Sequence:
-			grid: zmin,x,y -> Dof: uX,uY,uZ
-
-			Structure:
-			Truss addition, Beam addition/substitution
-			*/
-		{
-			//Stabilize::delete_primary_zone_dofs();
-			for (unsigned int n = 0; n < z_size; n++)
-			{
-				for (unsigned int l = 0; l < x_size; l++)
-				{
-					for (unsigned int m = 0; m < y_size; m++)
-					{
-						//unsigned int n = N;
-						point_grid = { l, m, n };
-						it_1 = grid_points.find(point_grid);
-						it_2 = free_dofs.find(it_1->second);
-						if (it_2 != free_dofs.end())
-						{
-							point = it_1->second;
-
-							for (unsigned int i = 0; i < it_2->second.size(); i++)
-							{
-								dof = it_2->second[i];
-								point_dof = std::make_pair(point, dof);
-								keypoints = Stabilize::search_keypoints_truss(point_dof);
-								if (keypoints.size() > 0)
-								{
-									// delete and order keypoints:
-									keypoints = Stabilize::delete_unzoned_keypoints(point, keypoints);
-									//keypoints = Stabilize::delete_intersecting_keypoints(point, keypoints);
-									//keypoints = Stabilize::delete_external_keypoints(point, keypoints);
-									keypoints = Stabilize::delete_free_dof_keypoints(point, dof, keypoints);
-									keypoints = Stabilize::delete_structural_keypoints(point, keypoints);
-
-									if (keypoints.size() > 0)
-									{
-										found = true;
-										dof_key = std::make_pair(point, keypoints.front());
-										break;
-									}
-								}
-								if (found == true)
-									break;
-							}
-						}
-						if (found == true)
-							break;
-					}
-					if (found == true)
-						break;
-				}
-				if (found == true)
-					break;
-			}
-			if (found == true)
-			{
-				Stabilize::add_truss(dof_key);
-				break;
-			}
-
-			else // Structure cannot be stabilized by truss addition; delete trusses/add beams
-			{
-				for (int N = z_size - 1; N >= 0; N--)
-				{
-					for (unsigned int l = 0; l < x_size; l++)
-					{
-						for (unsigned int m = 0; m < y_size; m++)
-						{
-							unsigned int n = N;
-							point_grid = { m, l, n };
-							it_1 = grid_points.find(point_grid);
-							it_2 = free_dofs.find(it_1->second);
-							if (it_2 != free_dofs.end())
-							{
-								point = it_1->second;
-
-								for (unsigned int i = 0; i < it_2->second.size(); i++)
-								{
-									dof = it_2->second[i];
-									point_dof = std::make_pair(point, dof);
-									keypoints = Stabilize::search_keypoints_beam(point_dof);
-									if (keypoints.size() > 0)
-									{
-										// delete and order keypoints:
-										//keypoints = Stabilize::delete_free_dof_keypoints(point, dof, keypoints);
-										keypoints = Stabilize::delete_used_keypoints_beam(point, keypoints);
-										keypoints = Stabilize::delete_unzoned_keypoints_beam(point, keypoints);
-										break;
-
-										if (keypoints.size() > 0)
-										{
-											found = true;
-											break;
-										}
-									}
-									if (found == true)
-										break;
-								}
-							}
-							if (found == true)
-								break;
-						}
-						if (found == true)
-							break;
-					}
-					if (found == true)
-						break;
-				}
-				if (found == true)
-				{
-					Stabilize::add_beams(point, keypoints);
-					break;
-				}
-				else
-				{
-					stabilization_possible = false;
-					std::cout << "Zones can not be stabilized (end of zone point iteration)" << std::endl;
-				}
-				if (remove_superfluous_trusses == true)
-					Stabilize::delete_superfluous_trusses();
-			}
-			break;
-		} // case 1
-
-		case 2:
-			/*
-			Sequence:
-			grid: zmax,x,y -> Dof: uX,uY,uZ
-
-			Structure:
-			Truss addition, Beam addition/substitution
-			*/
-		{
-			//Stabilize::delete_primary_zone_dofs();
-			for (int N = z_size - 1; N >= 0; N--)
-			{
-				for (unsigned int l = 0; l < x_size; l++)
-				{
-					for (unsigned int m = 0; m < y_size; m++)
-					{
-						unsigned int n = N;
-						point_grid = { l, m, n };
-						it_1 = grid_points.find(point_grid);
-						it_2 = free_dofs.find(it_1->second);
-						if (it_2 != free_dofs.end())
-						{
-							point = it_1->second;
-
-							for (unsigned int i = 0; i < it_2->second.size(); i++)
-							{
-								dof = it_2->second[i];
-								point_dof = std::make_pair(point, dof);
-								keypoints = Stabilize::search_keypoints_truss(point_dof);
-								if (keypoints.size() > 0)
-								{
-									// delete and order keypoints:
-									keypoints = Stabilize::delete_unzoned_keypoints(point, keypoints);
-									//keypoints = Stabilize::delete_intersecting_keypoints(point, keypoints);
-									//keypoints = Stabilize::delete_external_keypoints(point, keypoints);
-									keypoints = Stabilize::delete_free_dof_keypoints(point, dof, keypoints);
-									keypoints = Stabilize::delete_structural_keypoints(point, keypoints);
-									break;
-
-									if (keypoints.size() > 0)
-									{
-										found = true;
-										dof_key = std::make_pair(point, keypoints.front());
-										break;
-									}
-								}
-								if (found == true)
-									break;
-							}
-						}
-						if (found == true)
-							break;
-					}
-					if (found == true)
-						break;
-				}
-				if (found == true)
-					break;
-			}
-			if (found == true)
-			{
-				Stabilize::add_truss(dof_key);
-				break;
-			}
-
-			else // Structure cannot be stabilized by truss addition; delete trusses/add beams
-			{
-				for (int N = z_size - 1; N >= 0; N--)
-				{
-					for (unsigned int l = 0; l < x_size; l++)
-					{
-						for (unsigned int m = 0; m < y_size; m++)
-						{
-							unsigned int n = N;
-							point_grid = { m, l, n };
-							it_1 = grid_points.find(point_grid);
-							it_2 = free_dofs.find(it_1->second);
-							if (it_2 != free_dofs.end())
-							{
-								point = it_1->second;
-
-								for (unsigned int i = 0; i < it_2->second.size(); i++)
-								{
-									dof = it_2->second[i];
-									point_dof = std::make_pair(point, dof);
-									keypoints = Stabilize::search_keypoints_beam(point_dof);
-									if (keypoints.size() > 0)
-									{
-										// delete and order keypoints:
-										//keypoints = Stabilize::delete_free_dof_keypoints(point, dof, keypoints);
-										keypoints = Stabilize::delete_used_keypoints_beam(point, keypoints);
-										keypoints = Stabilize::delete_unzoned_keypoints_beam(point, keypoints);
-										break;
-
-										if (keypoints.size() > 0)
-										{
-											found = true;
-											break;
-										}
-									}
-									if (found == true)
-										break;
-								}
-							}
-							if (found == true)
-								break;
-						}
-						if (found == true)
-							break;
-					}
-					if (found == true)
-						break;
-				}
-				if (found == true)
-				{
-					Stabilize::add_beams(point, keypoints);
-					break;
-				}
-				else
-				{
-					stabilization_possible = false;
-					std::cout << "Zones can not be stabilized (end of zone point iteration)" << std::endl;
-				}
-				if (remove_superfluous_trusses == true)
-					Stabilize::delete_superfluous_trusses();
-			}
-			break;
-		} // case 2
-
-		case 3:
-			/*
-			Sequence:
-			grid: x,y,z -> Dof: uX,uY,uZ
-
-			Structure:
-			Rod addition, Beam addition/substitution
-			*/
-		{
-			for (it_x = grid.begin(); it_x != grid.end(); it_x++)
-			{
-				for (it_y = it_x->begin(); it_y != it_x->end(); it_y++)
-				{
-					for (it_z = it_y->begin(); it_z != it_y->end(); it_z++)
-					{
-						point_grid.clear();
-						point_grid.push_back(std::distance(grid.begin(), it_x));
-						point_grid.push_back(std::distance(it_x->begin(), it_y));
-						point_grid.push_back(std::distance(it_y->begin(), it_z));
-						it_1 = grid_points.find(point_grid);
-						it_2 = free_dofs.find(it_1->second);
-						if (it_2 != free_dofs.end())
-						{
-							point = it_1->second;
-
-							for (unsigned int i = 0; i < it_2->second.size(); i++)
-							{
-								dof = it_2->second[i];
-								point_dof = std::make_pair(point, dof);
-								keypoints = Stabilize::search_keypoints_truss(point_dof);
-								if (keypoints.size() > 0)
-								{
-									// delete and order keypoints:
-									keypoints = Stabilize::delete_unzoned_keypoints(point, keypoints);
-									//keypoints = Stabilize::delete_intersecting_keypoints(point, keypoints);
-									keypoints = Stabilize::delete_external_keypoints(point, keypoints);
-									keypoints = Stabilize::delete_free_dof_keypoints(point, dof, keypoints);
-									keypoints = Stabilize::delete_structural_keypoints(point, keypoints);
-									break;
-
-									if (keypoints.size() > 0)
-									{
-										found = true;
-										dof_key = std::make_pair(point, keypoints.front());
-										break;
-									}
-								}
-								if (found == true)
-									break;
-							}
-						}
-						if (found == true)
-							break;
-					}
-					if (found == true)
-						break;
-				}
-				if (found == true)
-					break;
-			}
-			if (found == true)
-			{
-				Stabilize::add_truss(dof_key);
-				break;
-			}
-
-			else // Structure cannot be stabilized by truss addition; delete trusses/add beams
-			{
-				for (it_x = grid.begin(); it_x != grid.end(); it_x++)
-				{
-					for (it_y = it_x->begin(); it_y != it_x->end(); it_y++)
-					{
-						for (it_z = it_y->begin(); it_z != it_y->end(); it_z++)
-						{
-							point_grid.clear();
-							point_grid.push_back(std::distance(grid.begin(), it_x));
-							point_grid.push_back(std::distance(it_x->begin(), it_y));
-							point_grid.push_back(std::distance(it_y->begin(), it_z));
-							it_1 = grid_points.find(point_grid);
-							it_2 = free_dofs.find(it_1->second);
-							if (it_2 != free_dofs.end())
-							{
-								point = it_1->second;
-
-								for (unsigned int i = 0; i < it_2->second.size(); i++)
-								{
-									dof = it_2->second[i];
-									point_dof = std::make_pair(point, dof);
-									keypoints = Stabilize::search_keypoints_beam(point_dof);
-									if (keypoints.size() > 0)
-									{
-										// delete and order keypoints:
-										//keypoints = Stabilize::delete_free_dof_keypoints(point, dof, keypoints);
-										keypoints = Stabilize::delete_used_keypoints_beam(point, keypoints);
-										//keypoints = Stabilize::delete_unzoned_keypoints_beam(point, keypoints);
-										break;
-
-										if (keypoints.size() > 0)
-										{
-											found = true;
-											break;
-										}
-									}
-									if (found == true)
-										break;
-								}
-							}
-							if (found == true)
-								break;
-						}
-						if (found == true)
-							break;
-					}
-					if (found == true)
-						break;
-				}
-				if (found == true)
-				{
-					Stabilize::add_beams(point, keypoints);
-					break;
-				}
-				else
-				{
-					std::cout << "Structure can not be stabilized..." << std::endl;
-					stabilization_possible = false;
-				}
-				if (remove_superfluous_trusses == true)
-					Stabilize::delete_superfluous_trusses();
-			}
-			break;
-		} // case 3
-
-		default:
-			std::cerr << "No method for stabilization sequence chosen, exiting now..." << std::endl;
-			exit(1);
-		} // switch (method)
-	}
-
-
+	//Stabilazation iteration copied and modified to only perform one iteration
 	bool Stabilize::stabilize_one_point3(unsigned int method)
 	{
 		bool stabilization_possible = true;
 		bool dof_stabilized = false; // Flag to track if a DOF has been stabilized
+		int ID; // ID of the component
 
 		std::vector<vector<vector<coord*>>>::iterator it_x; // grid-location x
 		std::vector<vector<coord*>>::iterator it_y; // grid-location y
@@ -4564,20 +4003,167 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 			std::cerr << "No method for stabilization sequence chosen, exiting now..." << std::endl;
 			exit(1);
 		} // switch (method)
-		
+
 			// Debug statement to indicate the end of the function
 		std::cout << "Exiting stabilize_one_point3 function..." << std::endl;
 
-		if (dof_stabilized)
-		{
-			return stabilization_possible; // Return from the function
-		}
-		else
-		{
-			return false; // Return from the function
-		}
+		return dof_stabilized;
+
 
 	} // stabilize_free_dofs()
+
+	void Stabilize::SD_grammar_stabilize3(Structural_Design::SD_Analysis_Vars* SD, Spatial_Design::MS_Conformal* CF)
+	{
+		method = stabilize_settings.method;
+		singular = stabilize_settings.singular;
+		point_it_unzoned = stabilize_settings.point_it_unzoned;
+		zone_it = stabilize_settings.zone_it;
+		point_it_zoned = stabilize_settings.point_it_zoned;
+
+		Stabilize::trusses_substituted = 0; // Reset the count to 0
+		Stabilize::truss_added_count = 0; // Reset the count to 0
+
+		/*
+		if (added_beams.size() == 0) {
+			std::cout << "new rod ID: " << m_SD->get_component_count() << std::endl; //then a truss was added. this is the latest added element ID, so the ID of the truss
+		}
+		else if (added_beams.size() == 2) {
+			std::cout << "new beams IDs: " << m_SD->get_component_count() << m_SD->get_component_count() + 1 << std::endl; //then a beams are added and their IDs are stored in the vector
+		}
+		else if (added_beams.size() == 3) {
+			std::cout << "new beams IDs: " << m_SD->get_component_count() << m_SD->get_component_count() + 1 << m_SD->get_component_count() +2 << std::endl; //then a beams are added and their IDs are stored in the vector
+		}
+		else if (added_beams.size() == 4) {
+			std::cout << "new beams IDs: " << m_SD->get_component_count() << m_SD->get_component_count() + 1 << m_SD->get_component_count() + 2 << m_SD->get_component_count() + 3 << std::endl; //then a beams are added and their IDs are stored in the vector
+		}
+		else if (added_beams.size() == 5) {
+			std::cout << "new beams IDs: " << m_SD->get_component_count() << m_SD->get_component_count() + 1 << m_SD->get_component_count() + 2 << m_SD->get_component_count() + 3 << m_SD->get_component_count() + 4 << std::endl; //then a beams are added and their IDs are stored in the vector
+		}
+		else {
+			std::cout << "no stabilizing elements added" << std::endl;
+		}
+		*/
+
+		//SD->remesh(); //tried it JH
+		//SD->analyse();
+		std::cout << "Commencing Stabilization..." << std::endl << std::endl;
+		std::map<Components::Point*, std::vector<unsigned int> > free_dofs = SD->get_points_with_free_dofs(singular);
+		unsigned int free_dof_points = free_dofs.size();
+		unsigned int free_nodes = 0;
+		//unsigned int prev_free_nodes;
+		for (auto i : free_dofs)
+		{
+			free_nodes += i.second.size();
+		}
+		SD->remesh();
+		SD->analyse();
+		SD_Building_Results SD_results = SD->get_results();
+		BSO::SD_compliance_indexing(SD_results);
+
+		unsigned int iterations = 0;
+		double initial_volume = SD_results.m_struct_volume;
+		//double initial_compliance = SD_results.m_total_compliance;
+		//std::cout << "Total compliance: " << initial_compliance << std::endl;
+		//std::cout << "Structural volume: " << initial_volume << std::endl;
+		BSO::Visualisation::visualise(SD, 1);
+
+		if (free_dof_points == 0)
+			std::cout << "No free DOF's in Structural model" << std::endl;
+		else
+		{
+			std::cout << "Number of points with free DOF's: " << free_dof_points;
+			Structural_Design::Stabilization::Stabilize Stab(SD, CF);
+			bool dof_stabilized = false;
+
+			while (free_dof_points > 0 && dof_stabilized == false)
+			{
+				iterations++;
+
+				//std::cout << std::endl << "Stabilization, round " << iterations << "..." << std::endl;
+
+				Stab.update_free_dofs(free_dofs);
+				//bool stabilization_possible = Stab.stabilize_free_dofs(point_it_unzoned);
+				//bool stabilization_possible = Stab.stabilize_one_point3(point_it_unzoned);
+				dof_stabilized = Stab.stabilize_one_point3(point_it_unzoned);
+				//Stab.show_free_dofs();
+				//prev_free_nodes = free_nodes;
+				SD->remesh();
+				free_dofs = SD->get_points_with_free_dofs(singular);
+				free_nodes = 0;
+				for (auto i : free_dofs)
+				{
+					free_nodes += i.second.size();
+				}
+				free_dof_points = free_dofs.size();
+				if (dof_stabilized == true)
+				{
+					//Stab.show_free_dofs();
+					break;
+				}
+				//std::cout << "Remaining points with free DOF's: " << free_dof_points << std::endl;
+				//std::cout << "Remaining free DOF's: " << free_nodes << std::endl;
+
+				/*
+				if (free_nodes >= prev_free_nodes)
+				{
+					std::cout << "Rod addition has no (positive) effect, deleting rod..." << std::endl;
+					SD->m_components.pop_back();
+					std::cout << "Deleted rod" << std::endl;
+					SD->remesh();
+					std::cout << "Remeshed" << std::endl;
+					free_dofs = SD->get_points_with_free_dofs(singular);
+					free_nodes = 0;
+					for (auto i : free_dofs)
+					{
+						free_nodes += i.second.size();
+					}
+					free_dof_points = free_dofs.size();
+				}
+				*/
+				//BSO::Visualisation::visualise(SD, 1);
+
+			}
+			std::cout << std::endl << "Finished stabilization" << std::endl;
+			std::cout << "Iterations: " << iterations << std::endl;
+			SD->remesh();
+			SD->analyse();
+			SD_Building_Results sd_results = SD->get_results();
+			BSO::SD_compliance_indexing(sd_results);
+			std::cout << "Total compliance: " << sd_results.m_total_compliance << std::endl;
+			std::cout << "Total structural volume: " << sd_results.m_struct_volume << std::endl;
+			std::cout << "Structural volume added for stabilization: " << sd_results.m_struct_volume - initial_volume << std::endl;
+			m_compliance.push_back(sd_results.m_total_compliance);
+			m_added_volume.push_back(sd_results.m_struct_volume - initial_volume);
+			BSO::Visualisation::visualise(SD, 1);
+			
+			//Additional outputs to retrieve the IDs of the added beams and trusses
+			std::cout << "beams " << getTrussesSubstituted() << std::endl;
+			std::cout << "trusses " << getTrussAddedCount() << std::endl;
+
+			if (trusses_substituted > 0)
+			{
+				std::cout << "Number of trusses substituted: " << trusses_substituted << std::endl;
+				// Declare a string variable to store the IDs of added beams
+				std::string beamIDs;
+
+				// Logic to generate the IDs of added beams
+				for (size_t i = 0; i < trusses_substituted; ++i) {
+					// Append the ID of each beam to the string
+					beamIDs += std::to_string(m_SD->get_component_count() -1 + i) + " ";
+				}
+
+				std::cout << "Added beam IDs: " << beamIDs << std::endl;
+			}
+			else if (truss_added_count > 0) {
+				std::cout << "diagonals added: " << truss_added_count << std::endl;
+				std::cout << "added ID: " << m_SD->get_component_count() - 1 << std::endl;
+			}
+			else {
+				std::cout << "no stabilizing elements added" << std::endl;
+			}
+
+		}
+	} // SD_grammar_stabilize()
 
 
 } // namespace Stabilization

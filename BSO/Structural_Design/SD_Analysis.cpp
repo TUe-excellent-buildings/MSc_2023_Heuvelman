@@ -212,6 +212,52 @@ namespace BSO { namespace Structural_Design {
         mesh(m_mesh_division);
     } // ctor
 
+    /*
+    SD_Analysis::SD_Analysis(Structural_Design::SD_Analysis RHS)
+    {
+        m_points = RHS.m_points;
+        m_all_points = RHS.m_all_points;
+        m_components = RHS.m_components;
+        m_trusses = RHS.m_trusses;
+        m_beams = RHS.m_beams;
+        m_flat_shells = RHS.m_flat_shells;
+        m_abstract_loads = RHS.m_abstract_loads;
+		m_truss_props = RHS.m_truss_props;
+        m_beam_props = RHS.m_beam_props;
+        m_flat_shell_props = RHS.m_flat_shell_props;
+        m_spatial_design = RHS.m_spatial_design;
+        m_element_clusters = RHS.m_element_clusters;
+    
+
+        std::cout << "Initialising SD_Analysis..." << std::endl;
+        m_fea_init = false;
+        m_FEA = new FEA;
+        m_spatial_design = &CF;
+        std::cout << "Done" << std::endl;
+
+        // set element cluster to 8 regular intervals 0, 0.125, ...
+        unsigned int n_clusters = 8;
+        std::cout << "Resizing element clusters..." << std::endl;
+        m_element_clusters.resize(n_clusters);
+        std::cout << "Setting element clusters..." << std::endl;
+        for (unsigned int i = 0; i < n_clusters; i++)
+        { // set boundary values of each cluster 'i' at regular intervals of 1/8
+            m_element_clusters[i] = (i + 1) * (1.0 / n_clusters);
+        }
+        std::cout << "Done" << std::endl;
+
+        std::cout << "Requesting SD grammar..." << std::endl;
+        if (CF.request_SD_grammar() == nullptr)
+        {
+            std::cerr << "Error, SD grammar not found. Exiting now..." << std::endl;
+            exit(1);
+        }
+        CF.request_SD_grammar()(&CF, this); // Assuming this returns a function pointer or functor
+        std::cout << "Meshing..." << std::endl;
+        mesh(m_mesh_division);
+    } // ctor
+    */
+
     SD_Analysis::SD_Analysis()
     {
         m_fea_init = false;

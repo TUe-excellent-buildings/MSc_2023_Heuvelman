@@ -98,6 +98,7 @@ const int screenHeight = 1000;
 // Variable to keep track of the number of trusses and beams added
 int TrussCount = 0;
 int BeamCount = 0;
+int ChangeCount = 0;
 // Draw a message when input is invalid
 bool DrawInvalidInput = false;
 
@@ -171,16 +172,6 @@ void checkGLError(const char* action) {
         std::cout << "OpenGL error after " << action << ": " << gluErrorString(err) << std::endl;
     }
 }
-
-//void performStructuralAnalysis() {
-  //  SD_Building->analyse(); // Initiate structural analysis
-  //BSO::Structural_Design::SD_Building_Results sd_results = SD_Building->get_results(); // Retrieve results
-    // Display results as needed (e.g., print to console, show in GUI)
-  //std::cout << std::endl << "Total compliance: " << sd_results.m_total_compliance
-  //    << std::endl << "Structural volume: " << sd_results.m_struct_volume << std::endl;
-    // Visualize structural analysis results in the GUI
-  // BSO::Visualisation::visualise(SD_Building.get(), 1);
-//}
 
 //declare outputfile at global scope
 std::ofstream outputFile;
@@ -314,6 +305,7 @@ void changeScreen(int screen) {
     }
 
     if (screen == 3){
+        /*
         std::cout << "Got here" << std::endl;
         // SD_Building.get()->remesh();
         SD_Building.get()->analyse();
@@ -322,8 +314,47 @@ void changeScreen(int screen) {
         SD_results.obtain_results();
         std::cout << "Total compliance: " << SD_results.m_total_compliance << std::endl;
         std::cout << "Added volume: " << SD_results.m_struct_volume - initial_volume << std::endl;
-        std::cout << "Free DOF's: " <<  SD_Building->get_points_with_free_dofs(1).size() << std::endl;
+        //std::cout << "Free DOF's: " <<  SD_Building->get_points_with_free_dofs(1).size() << std::endl;
         writeToOutputFile("output2.csv", "Total compliance:", std::to_string(SD_results.m_total_compliance), "");
+        writeToOutputFile("output2.csv", "Added volume:", std::to_string(SD_results.m_struct_volume - initial_volume), "");
+        //writeToOutputFile("output2.csv", "Free DOFs:", std::to_string(SD_Building->get_points_with_free_dofs(1).size()), "");
+        writeToOutputFile("output2.csv", "Total iterations/steps:", std::to_string(ChangeCount), "");
+        writeToOutputFile("output2.csv", "Final number of iterations/additions:", std::to_string(TrussCount + BeamCount), "");
+        */
+
+        SD_Building.get()->remesh();
+        SD_Building.get()->analyse();
+        BSO::Structural_Design::SD_Building_Results& SD_results = SD_Building.get()->get_results();
+        BSO::SD_compliance_indexing(SD_results);
+
+        double initial_volume = SD_results.m_struct_volume;
+
+        BSO::Structural_Design::SD_Building_Results& sd_results = SD_Building.get()->get_results();
+        BSO::SD_compliance_indexing(sd_results);
+
+        std::cout << "Total compliance: " << sd_results.m_total_compliance << std::endl;
+        std::cout << "Total structural volume: " << sd_results.m_struct_volume << std::endl;
+        std::cout << "Structural volume added for stabilization: " << sd_results.m_struct_volume - initial_volume << std::endl;
+        //m_compliance.push_back(sd_results.m_total_compliance);
+        //m_added_volume.push_back(sd_results.m_struct_volume - initial_volume);
+
+        writeToOutputFile("output2.csv", "Total compliance:", std::to_string(sd_results.m_total_compliance), "");
+        writeToOutputFile("output2.csv", "Total structural volume:", std::to_string(sd_results.m_struct_volume), "");
+        writeToOutputFile("output2.csv", "Structural volume added for stabilization:", std::to_string(sd_results.m_struct_volume - initial_volume), "");
+
+        /*
+        std::map<Components::Point*, std::vector<unsigned int> > free_dofs = SD_Building.get()->get_points_with_free_dofs(singular);
+        unsigned int free_dof_points = free_dofs.size();
+        unsigned int free_nodes = 0;
+        //unsigned int prev_free_nodes;
+        for (auto i : free_dofs)
+        {
+            free_nodes += i.second.size();
+        }
+        std::cout << "Number of points with free DOF's: " << free_dof_points;
+        */
+
+
     }
 
     if (screen == 4) {
@@ -497,17 +528,22 @@ void drawBoldText(const char* text, float centerX, float centerY, float textWidt
     drawText(text, centerX + boldnessOffset, centerY + boldnessOffset, textWidth);
 }
 
-
 void motion(int x, int y)
 {
-    double dx = prevx-x,
-            dy = prevy-y;
+    // Calculate the boundary of the 3D view area
+    float viewWidth = screenWidth / 1.7;
 
-    cam_local.setrotation(cam_local.getrotation() + (dx*0.5));
-    cam_local.setelevation(cam_local.getelevation() + (dy*0.5));
+    // Only perform rotation if the mouse is within the 3D view area
+    if (x <= viewWidth) {
+        double dx = prevx - x;
+        double dy = prevy - y;
 
-    prevx = x;
-    prevy = y;
+        cam_local.setrotation(cam_local.getrotation() + (dx * 0.5));
+        cam_local.setelevation(cam_local.getelevation() + (dy * 0.5));
+
+        prevx = x;
+        prevy = y;
+    }
 
     vpmanager_local.mousemove_event(x, y);
 
@@ -785,6 +821,10 @@ void keyboard(unsigned char key, int x, int y) {
                     DrawInvalidInput = true;
                 }
             }
+            else {
+                validInput = false;
+                DrawInvalidInput = true;
+            }
 
             if (!opinionTF8.text.empty()) {
                 // Print the entered text from opinionTF8 to the terminal
@@ -810,6 +850,10 @@ void keyboard(unsigned char key, int x, int y) {
                     DrawInvalidInput = true;
                 }
             }
+            else {
+                validInput = false;
+                DrawInvalidInput = true;
+            }
 
             if (validInput && TF7 && TF8) {
                 double p1_first_x = p1.first->get_coords()(0);
@@ -831,6 +875,7 @@ void keyboard(unsigned char key, int x, int y) {
                     // Change the screen after processing both text fields
                     changeScreen(2);
                     TrussCount++;
+                    ChangeCount++;
                 }
             }
             else {
@@ -882,6 +927,10 @@ void keyboard(unsigned char key, int x, int y) {
                     DrawInvalidInput = true;
                 }
             }
+            else {
+                validInput = false;
+                DrawInvalidInput = true;
+            }
 
             if (validInput ) {
                 int elementIndex = std::stoi(clean_str(opinionTF9.text));
@@ -902,6 +951,7 @@ void keyboard(unsigned char key, int x, int y) {
                     opinionTF9.text = ""; // Clear the input string after processing
                     changeScreen(2);
                     BeamCount++;
+                    ChangeCount++;
                 }
                 else {
 					// Handle invalid input gracefully
@@ -955,6 +1005,10 @@ void keyboard(unsigned char key, int x, int y) {
                     DrawInvalidInput = true;
                 }
             }
+            else {
+                validInput = false;
+                DrawInvalidInput = true;
+            }
 
             if (validInput) {
                 int elementIndex = std::stoi(clean_str(opinionTF10.text));
@@ -987,6 +1041,7 @@ void keyboard(unsigned char key, int x, int y) {
                     opinionTF10.text = ""; // Clear the input string after processing
                     changeScreen(2);
                     TrussCount--;
+                    ChangeCount++;
                 }
                 else {
                     // Handle invalid input gracefully
@@ -1038,6 +1093,10 @@ void keyboard(unsigned char key, int x, int y) {
                     DrawInvalidInput = true;
                 }
             }
+            else {
+                validInput = false;
+                DrawInvalidInput = true;
+            }
 
             if (validInput) {
                 int elementIndex = std::stoi(clean_str(opinionTF11.text));
@@ -1056,6 +1115,7 @@ void keyboard(unsigned char key, int x, int y) {
                     opinionTF11.text = ""; // Clear the input string after processing
                     changeScreen(2);
                     BeamCount--;
+                    ChangeCount++;
                 }
                 else {
                     // Handle invalid input gracefully
@@ -1170,8 +1230,8 @@ void drawTextField(int x, int y, int width, int height, TextField& textfield) {
     float borderWidth = 2.0;
 
     // Calculate the adjusted width and height considering padding
-    int adjustedWidth = width - 2 * borderWidth;
-    int adjustedHeight = height - 2 * borderWidth;
+    int adjustedWidth = width - 4 * borderWidth;
+    int adjustedHeight = height - 4 * borderWidth;
 
     glColor3f(0.0, 0.0, 0.0); // Black color for border
     glBegin(GL_QUADS);
@@ -1204,7 +1264,7 @@ void drawTextField(int x, int y, int width, int height, TextField& textfield) {
 
     // Implement text wrapping within the width of the text field
     // This is a simplistic approach and might need adjustment for different font widths
-    int maxWidth = adjustedWidth; // maximum width for text before wrapping
+    int maxWidth = adjustedWidth - 4.0; // maximum width for text before wrapping
     int currentWidth = 0;
     std::string line;
     std::vector<std::string> lines;
@@ -1239,16 +1299,19 @@ void drawTextField(int x, int y, int width, int height, TextField& textfield) {
         }
     }
 
-    // Draw the cursor if the text field is active
-    if (textfield.isActive) {
-        int cursorX = x + borderWidth + glutBitmapLength(GLUT_BITMAP_HELVETICA_18, (const unsigned char*)textfield.text.c_str()); // Adjust for left padding
-        int cursorY = startY; // Use the same starting Y coordinate as the text
-        glColor3f(0.0, 0.0, 0.0); // black cursor
-        glBegin(GL_LINES);
-        glVertex2f(cursorX + 2, cursorY + 18); // Adjust the Y coordinate to draw the cursor above the text
-        glVertex2f(cursorX + 2, cursorY - 3);  // Adjust the Y coordinate to draw the cursor above the text
-        glEnd();
-    }
+    /*
+        // Draw the cursor if the text field is active
+        if (textfield.isActive) {
+            int cursorX = x + borderWidth + glutBitmapLength(GLUT_BITMAP_HELVETICA_18, (const unsigned char*)textfield.text.c_str()); // Adjust for left padding
+            int cursorY = startY; // Use the same starting Y coordinate as the text
+            glColor3f(0.0, 0.0, 0.0); // black cursor
+            glLineWidth(1.0);
+            glBegin(GL_LINES);
+            glVertex2f(cursorX + 2, cursorY + 18); // Adjust the Y coordinate to draw the cursor above the text
+            glVertex2f(cursorX + 2, cursorY - 3);  // Adjust the Y coordinate to draw the cursor above the text
+            glEnd();
+        }
+    */
 }
 
 void checkTextFieldClick(TextField& textField, float mouseX, float mouseY) {
@@ -1365,6 +1428,7 @@ void assignmentDescriptionScreen() {
 
 void LineDivisionScreen() {
     glColor3f(0.0, 0.0, 0.0);
+    glLineWidth(1.0);
     glBegin(GL_LINES);
     glVertex2f(1400.0f, 0.0f);    // Start point of the line at the top
     glVertex2f(1400.0f, screenHeight); // End point of the line at the bottom
@@ -1377,7 +1441,7 @@ void screen3() {
 
     //draw a message when input is invalid. it is handled in the keyboard function
     if (DrawInvalidInput == true) {
-        drawText("Invalid input.", 1645, 170, 200);
+        drawText("Invalid input.", 1645, 200, 200);
     }
 
     // Draw the counter area, which updates based on the user's actions
@@ -1415,7 +1479,7 @@ void screen3() {
     glEnd();
 
     // Draw the "Next step" button in the bottom right corner
-    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 14);
+    drawButton("-> | Finished", 1590, 50, 200, 50, changeScreen, 14);
 }
 
 // ID 3: Screen 4a
@@ -1667,38 +1731,38 @@ void screenReplaceBeamByTruss() {
 
 void screenCheckNext() {
     glColor3f(1.0f, 1.0f, 1.0f); // Set color to white
-    glRectf(750.0f, 500.0f, 1050.0f, 650.0f); // Draw rectangle covering the entire screen
+    glRectf(750.0f, 450.0f, 1050.0f, 650.0f); // Draw rectangle covering the entire screen
 
     //draw box of lines
     glColor3f(0.0, 0.0, 0.0);
     glBegin(GL_LINES);
     glVertex2f(750.0f, 650.0f);
-    glVertex2f(750.0f, 500.0f);
+    glVertex2f(750.0f, 450.0f);
     glVertex2f(750.0f, 650.0f);
     glVertex2f(1050.0f, 650.0f);
     glVertex2f(1050.0f, 650.0f);
-    glVertex2f(1050.0f, 500.0f);
-    glVertex2f(1050.0f, 500.0f);
-    glVertex2f(750.0f, 500.0f);
+    glVertex2f(1050.0f, 450.0f);
+    glVertex2f(1050.0f, 450.0f);
+    glVertex2f(750.0f, 450.0f);
     glEnd();
 
     //draw text within the box
     glColor3f(0.0, 0.0, 0.0);
-    drawText("Are you sure you want to continue? Once you continue to the next step, you cannot go back to this step.", 880, 620, 200);
+    drawText("Are you sure you want to continue? Once you continue to the next step, you cannot go back to this step.      Continuing can take a few seconds.", 880, 620, 200);
 }
 
 void screenCheckNext1() {
     screen3();
     screenCheckNext();
-    drawButton("Yes", 790, 510, 100, 30, changeScreen, 3);
-    drawButton("No", 910, 510, 100, 30, changeScreen, 2);
+    drawButton("Yes", 790, 460, 100, 30, changeScreen, 3);
+    drawButton("No", 910, 460, 100, 30, changeScreen, 2);
 }
 
 void screenCheckNext2() {
     assignmentDescriptionScreen();
 	screenCheckNext();
-	drawButton("Yes", 790, 510, 100, 30, changeScreen, 2);
-	drawButton("No", 910, 510, 100, 30, changeScreen, 1);
+	drawButton("Yes", 790, 460, 100, 30, changeScreen, 2);
+	drawButton("No", 910, 460, 100, 30, changeScreen, 1);
 }
 
 int main(int argc, char** argv) {

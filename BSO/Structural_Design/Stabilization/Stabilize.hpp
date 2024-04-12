@@ -2908,14 +2908,28 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 	}
 
 	void Stabilize::create_manual_beam(Components::Point* p1, Components::Point* p2) {
+		Components::Point* p1_new = p1;
+		Components::Point* p2_new = p2;
+
+		// Get the pointers of the points with the same values as dof_key.first and dof_key.second
+		for (unsigned int i = 0; i < m_SD->get_points().size(); i++)
+		{
+			Components::Point* temp_point = m_SD->get_points()[i];
+			if (temp_point->get_coords()[0] == p1->get_coords()[0] && temp_point->get_coords()[1] == p1->get_coords()[1] && temp_point->get_coords()[2] == p1->get_coords()[2])
+			{
+				p1_new = m_SD->get_points()[i];
+				std::cout<<"Point replaced";
+			}
+			if (temp_point->get_coords()[0] == p2->get_coords()[0] && temp_point->get_coords()[1] == p2->get_coords()[1] && temp_point->get_coords()[2] == p2->get_coords()[2])
+			{
+				p2_new = m_SD->get_points()[i];
+				std::cout<<"Point replaced";
+			}
+		}
+
 		Beam_Props props = m_SD->m_beam_props[0];
-        m_SD->m_components.push_back(new Components::Beam(props.m_b, props.m_h, props.m_E, props.m_v, p1, p2));
+        m_SD->m_components.push_back(new Components::Beam(props.m_b, props.m_h, props.m_E, props.m_v, p1_new, p2_new));
         m_SD->m_components.back()->set_mesh_switch(false);
-		std::pair<Components::Point*, Components::Point*> temp_pair;
-		temp_pair = std::make_pair(p1, p2);
-		added_beams.push_back(temp_pair);
-		temp_pair = std::make_pair(p2, p1);
-		added_beams.push_back(temp_pair);
 	}
 
 	void Stabilize::add_truss(Spatial_Design::Geometry::Rectangle* temp_rectangle)

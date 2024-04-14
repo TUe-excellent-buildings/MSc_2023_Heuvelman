@@ -305,66 +305,38 @@ void changeScreen(int screen) {
     }
 
     if (screen == 3){
-        /*
-        std::cout << "Got here" << std::endl;
-        // SD_Building.get()->remesh();
-        SD_Building.get()->analyse();
-        BSO::Structural_Design::SD_Building_Results& SD_results = SD_Building.get()->get_results();
-        BSO::SD_compliance_indexing(SD_results);
-        SD_results.obtain_results();
-        std::cout << "Total compliance: " << SD_results.m_total_compliance << std::endl;
-        std::cout << "Added volume: " << SD_results.m_struct_volume - initial_volume << std::endl;
-        //std::cout << "Free DOF's: " <<  SD_Building->get_points_with_free_dofs(1).size() << std::endl;
-        writeToOutputFile("output2.csv", "Total compliance:", std::to_string(SD_results.m_total_compliance), "");
-        writeToOutputFile("output2.csv", "Added volume:", std::to_string(SD_results.m_struct_volume - initial_volume), "");
-        //writeToOutputFile("output2.csv", "Free DOFs:", std::to_string(SD_Building->get_points_with_free_dofs(1).size()), "");
-        writeToOutputFile("output2.csv", "Total iterations/steps:", std::to_string(ChangeCount), "");
-        writeToOutputFile("output2.csv", "Final number of iterations/additions:", std::to_string(TrussCount + BeamCount), "");
-        */
-
-        SD_Building.get()->remesh();
-        SD_Building.get()->analyse();
-        BSO::Structural_Design::SD_Building_Results& SD_results = SD_Building.get()->get_results();
-        BSO::SD_compliance_indexing(SD_results);
-
-        double initial_volume = SD_results.m_struct_volume;
-
-        BSO::Structural_Design::SD_Building_Results& sd_results = SD_Building.get()->get_results();
-        BSO::SD_compliance_indexing(sd_results);
-
-        std::cout << "Total compliance: " << sd_results.m_total_compliance << std::endl;
-        std::cout << "Total structural volume: " << sd_results.m_struct_volume << std::endl;
-        std::cout << "Structural volume added for stabilization: " << sd_results.m_struct_volume - initial_volume << std::endl;
-        //m_compliance.push_back(sd_results.m_total_compliance);
-        //m_added_volume.push_back(sd_results.m_struct_volume - initial_volume);
-
-        writeToOutputFile("output2.csv", "Total compliance:", std::to_string(sd_results.m_total_compliance), "");
-        writeToOutputFile("output2.csv", "Total structural volume:", std::to_string(sd_results.m_struct_volume), "");
-        writeToOutputFile("output2.csv", "Structural volume added for stabilization:", std::to_string(sd_results.m_struct_volume - initial_volume), "");
-
-        /*
-        std::map<Components::Point*, std::vector<unsigned int> > free_dofs = SD_Building.get()->get_points_with_free_dofs(singular);
-        unsigned int free_dof_points = free_dofs.size();
-        unsigned int free_nodes = 0;
-        //unsigned int prev_free_nodes;
-        for (auto i : free_dofs)
-        {
-            free_nodes += i.second.size();
-        }
-        std::cout << "Number of points with free DOF's: " << free_dof_points;
-        */
-
-
-    }
-
-    if (screen == 4) {
         //write the number of added trusses and beams as measurement
         std::string TrussCountStr = std::to_string(TrussCount);
         writeToOutputFile("output2.csv", "Truss count:", TrussCountStr.c_str(), "");
         std::string BeamCountStr = std::to_string(BeamCount);
         writeToOutputFile("output2.csv", "Beam count:", BeamCountStr.c_str(), "");
-        //Analyse the structure
-        // performStructuralAnalysis(); // Call the function to perform structural analysis
+        //retrieve and write the toolbox outputs as measurements
+        
+        //write toolbox outputs
+        //BSO::Structural_Design::SD_Building_Results& SD_results = SD_Building.get()->get_results();
+        //BSO::SD_compliance_indexing(SD_results);
+        //double initial_volume = SD_results.m_struct_volume;
+        double initial_volume = 1.65;
+
+        SD_Building.get()->remesh();
+        SD_Building.get()->analyse();
+        BSO::Structural_Design::SD_Building_Results& sd_results = SD_Building.get()->get_results();
+        BSO::SD_compliance_indexing(sd_results);
+
+        std::cout << "Free DOF's: " << SD_Building->get_points_with_free_dofs(1).size() << std::endl; //free DOF's after stabilization
+        std::cout << "Total compliance: " << sd_results.m_total_compliance << std::endl;
+        std::cout << "Total structural volume: " << sd_results.m_struct_volume << std::endl;
+        std::cout << "Structural volume added for stabilization: " << sd_results.m_struct_volume - initial_volume << std::endl;
+
+        writeToOutputFile("output2.csv", "Free DOFs:", std::to_string(SD_Building->get_points_with_free_dofs(1).size()), "");
+        writeToOutputFile("output2.csv", "Total compliance:", std::to_string(sd_results.m_total_compliance), "");
+        writeToOutputFile("output2.csv", "Initial volume:", std::to_string(initial_volume), "");
+        writeToOutputFile("output2.csv", "Total structural volume:", std::to_string(sd_results.m_struct_volume), "");
+        writeToOutputFile("output2.csv", "Structural volume added for stabilization:", std::to_string(sd_results.m_struct_volume - initial_volume), "");
+    }
+
+    if (screen == 4) {
+
         //write the ansers to the questions
         writeToOutputFile("output2.csv", "1..", getSelectedButtonLabel(), opinionTF.text);
     }

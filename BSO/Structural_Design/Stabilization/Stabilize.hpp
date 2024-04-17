@@ -4062,29 +4062,6 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 		Stabilize::trusses_substituted = 0; // Reset the count to 0
 		Stabilize::truss_added_count = 0; // Reset the count to 0
 
-		/*
-		if (added_beams.size() == 0) {
-			std::cout << "new rod ID: " << m_SD->get_component_count() << std::endl; //then a truss was added. this is the latest added element ID, so the ID of the truss
-		}
-		else if (added_beams.size() == 2) {
-			std::cout << "new beams IDs: " << m_SD->get_component_count() << m_SD->get_component_count() + 1 << std::endl; //then a beams are added and their IDs are stored in the vector
-		}
-		else if (added_beams.size() == 3) {
-			std::cout << "new beams IDs: " << m_SD->get_component_count() << m_SD->get_component_count() + 1 << m_SD->get_component_count() +2 << std::endl; //then a beams are added and their IDs are stored in the vector
-		}
-		else if (added_beams.size() == 4) {
-			std::cout << "new beams IDs: " << m_SD->get_component_count() << m_SD->get_component_count() + 1 << m_SD->get_component_count() + 2 << m_SD->get_component_count() + 3 << std::endl; //then a beams are added and their IDs are stored in the vector
-		}
-		else if (added_beams.size() == 5) {
-			std::cout << "new beams IDs: " << m_SD->get_component_count() << m_SD->get_component_count() + 1 << m_SD->get_component_count() + 2 << m_SD->get_component_count() + 3 << m_SD->get_component_count() + 4 << std::endl; //then a beams are added and their IDs are stored in the vector
-		}
-		else {
-			std::cout << "no stabilizing elements added" << std::endl;
-		}
-		*/
-
-		//SD->remesh(); //tried it JH
-		//SD->analyse();
 		std::cout << "Commencing Stabilization..." << std::endl << std::endl;
 		std::map<Components::Point*, std::vector<unsigned int> > free_dofs = SD->get_points_with_free_dofs(singular);
 		unsigned int free_dof_points = free_dofs.size();
@@ -4100,7 +4077,8 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 		BSO::SD_compliance_indexing(SD_results);
 
 		unsigned int iterations = 0;
-		double initial_volume = SD_results.m_struct_volume;
+		//double initial_volume = SD_results.m_struct_volume;
+		//std::cout << "Initial structural volume: " << initial_volume << std::endl;
 		//double initial_compliance = SD_results.m_total_compliance;
 		//std::cout << "Total compliance: " << initial_compliance << std::endl;
 		//std::cout << "Structural volume: " << initial_volume << std::endl;
@@ -4110,7 +4088,7 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 			std::cout << "No free DOF's in Structural model" << std::endl;
 		else
 		{
-			std::cout << "Number of points with free DOF's: " << free_dof_points;
+			//std::cout << "Number of points with free DOF's: " << free_dof_points;
 			Structural_Design::Stabilization::Stabilize Stab(SD, CF);
 			bool dof_stabilized = false;
 
@@ -4121,8 +4099,6 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 				//std::cout << std::endl << "Stabilization, round " << iterations << "..." << std::endl;
 
 				Stab.update_free_dofs(free_dofs);
-				//bool stabilization_possible = Stab.stabilize_free_dofs(point_it_unzoned);
-				//bool stabilization_possible = Stab.stabilize_one_point3(point_it_unzoned);
 				dof_stabilized = Stab.stabilize_one_point3(point_it_unzoned);
 				//Stab.show_free_dofs();
 				//prev_free_nodes = free_nodes;
@@ -4163,6 +4139,7 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 
 			}
 			std::cout << std::endl << "Finished stabilization" << std::endl;
+			/*
 			std::cout << "Iterations: " << iterations << std::endl;
 			SD->remesh();
 			SD->analyse();
@@ -4173,6 +4150,7 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 			std::cout << "Structural volume added for stabilization: " << sd_results.m_struct_volume - initial_volume << std::endl;
 			m_compliance.push_back(sd_results.m_total_compliance);
 			m_added_volume.push_back(sd_results.m_struct_volume - initial_volume);
+			*/
 			BSO::Visualisation::visualise(SD, 1);
 			
 			//Additional outputs to retrieve the IDs of the added beams and trusses

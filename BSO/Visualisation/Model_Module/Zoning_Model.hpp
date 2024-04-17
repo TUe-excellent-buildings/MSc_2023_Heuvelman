@@ -45,6 +45,8 @@ namespace BSO { namespace Visualisation
         std::vector<line_props> cluster_lprops;
 
         unsigned int design_ID = 1;
+        unsigned int zones_ID = 1;
+        bool is_specific_zone = false;
     };
 
     // Implementation of member functions:
@@ -60,6 +62,7 @@ namespace BSO { namespace Visualisation
         if (type == "zones")
         {
             design_ID += i;
+            is_specific_zone = false;
             double offset = 200;
 
 
@@ -144,7 +147,8 @@ namespace BSO { namespace Visualisation
 
     Zoning_Model::Zoning_Model(Spatial_Design::MS_Conformal& ms_conf, unsigned int i, int zone_ID_chosen)
     {
-        design_ID += i;
+        zones_ID += i-6;
+        is_specific_zone = true;
         double offset = 200;
 
 
@@ -229,7 +233,13 @@ namespace BSO { namespace Visualisation
 
     const std::string Zoning_Model::get_description()
     {
-        return std::string("Zoned Design " + std::to_string(design_ID));
+        
+        if (is_specific_zone) {
+            return std::string("Zone " + std::to_string(zones_ID));
+        }
+        else {
+            return std::string("Zoned Design " + std::to_string(design_ID));
+        }
     }
 
     void Zoning_Model::render(const camera &cam) const

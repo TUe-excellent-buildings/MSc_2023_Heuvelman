@@ -13,6 +13,7 @@
 #include <BSO/Performance_Indexing.hpp>
 #include <AEI_Grammar/Grammar_zoning.hpp>
 #include <BSO/Spatial_Design/Zoning/Zone.hpp>
+#include "BSO/Spatial_Design/Geometry/Geometry.hpp"
 
 std::shared_ptr <BSO::Spatial_Design::MS_Building> MS = nullptr;
 std::shared_ptr <BSO::Spatial_Design::MS_Conformal> CF = nullptr;
@@ -27,7 +28,7 @@ BSO::Visualisation::viewportmanager vpmanager_local;
 BSO::Visualisation::orbitalcamera   cam_local;
 int prevx, prevy;
 
-//MS_Space newSpace; 
+//MS_Space newSpace;
 
 typedef void (*ButtonCallback)(int);
 
@@ -112,6 +113,12 @@ const float MARGIN_PERCENT = 5.0f; // Margin as a percentage of the window width
 int modificationCount = 0;
 // Draw a message when input is invalid
 bool DrawInvalidInput = false;
+//Declare variables to keep track of number of zones and zoned designs
+int ZoneCount = 0;
+int ZonedDesignCount = 0;
+int GhostZonedDesignCount = 0;
+int ZoneCount2 = 0;
+int ZonedDesignCount2 = 0;
 
 // Function prototypes
 void display();
@@ -201,6 +208,74 @@ void update_CF() {
     SD_Building = std::make_shared<BSO::Structural_Design::SD_Analysis>(*CF);
     (*SD_Building).analyse();
 }
+
+/*
+void visualiseZones(unsigned int indexToVisualize = -1) {
+    //std::cout << "Total designs in Zoned: " << Zoned->get_designs().size() << std::endl;
+    unsigned int designsCount = Zoned->get_designs().size();
+
+    if (indexToVisualize < designsCount) {
+        visualise(*CF, 1, 1); //one zone independent of index
+        visualise(*CF, indexToVisualize, 1);
+        visualise(*CF, 1, indexToVisualize);
+        visualise(*CF, indexToVisualize, indexToVisualize);
+        visualise(*CF, 4, 1);
+        visualise(*CF, 1, 4);
+        visualise(*CF, "zones", indexToVisualize); //specific zoned design depending on index
+    }
+    else {
+        for (unsigned int i = 0; i < designsCount; i++) {
+            visualise(*CF, "zones", i); //all zoned designs
+        }
+    }
+}
+//either one of the visualizations called. index of zone to visualize not 1 but variable. 
+*/
+
+
+void visualiseZones() { //visualizes all designs if no index is given
+    std::cout << "Total zones in Zoned: " << Zoned->get_zones().size() << std::endl;
+    unsigned int zonesCount = Zoned->get_zones().size();
+    std::cout << "Total designs in Zoned: " << Zoned->get_designs().size() << std::endl;
+    unsigned int designsCount = Zoned->get_designs().size();
+
+    /*
+    if (indexToVisualize < designsCount) {
+        visualise(*CF, 1, 1);
+        visualise(*CF, "zones", indexToVisualize);
+    }
+    else {
+        for (unsigned int i = 0; i < designsCount; i++) {
+            visualise(*CF, "zones", i);
+        }
+    }
+        */
+
+    // Visualize all zones
+    int initial_zone_count = Zoned->get_zones().size() - ZoneCount;
+    int initial_design_count = Zoned->get_designs().size() - GhostZonedDesignCount;
+    std::cout << "Initial zone count: " << initial_zone_count << std::endl;
+    std::cout << "Initial design count: " << initial_design_count << std::endl;
+    /*
+    for (unsigned int i = 0; initial_zone_count < i < zonesCount; i++) {
+        visualise(*CF, Zoned->get_designs().size() - 1, 0);
+    }
+    */
+
+
+    for (unsigned int i = initial_design_count+1; i <= designsCount; i++) {
+        //std::cout << "Visualizing zoned design " << i << std::endl;
+        //visualise(*CF, "zones", i);
+        std::cout << "Visualizing zone corresponding to " << i << std::endl;
+        visualise(*CF, i, 0);
+
+    }
+
+    //visualise(*CF, Zoned->get_designs().size() - 1, 1);
+    //visualise(*CF, Zoned->get_designs().size() -1 , 0);
+}
+
+
 
 void checkGLError(const char* action) {
     GLenum err;
@@ -308,8 +383,6 @@ void retrieve_SD_results() {
         std::cout << m_volume[i] << std::endl;
         writeToOutputFile("output.csv", "Structural volume in zoned design " + std::to_string(i + 1) + ":", std::to_string(m_volume[i]), "");
     }
-
-
 }
 
 //Declare a global variable to store the selected button label
@@ -380,22 +453,6 @@ void initializeScreen() {
     opinionTF19.isActive = false;
 }
 
-//Function to visualize zoned designs, which one can be chosen with the index. 
-void visualiseZones(unsigned int indexToVisualize = -1) {
-    std::cout << "Total designs in Zoned: " << Zoned->get_designs().size() << std::endl;
-    unsigned int designsCount = Zoned->get_designs().size();
-
-    if (indexToVisualize < designsCount) {
-        visualise(*CF, 1, 1);
-        visualise(*CF, "zones", indexToVisualize);
-    }
-    else {
-        for (unsigned int i = 0; i < designsCount; i++) {
-            visualise(*CF, "zones", i);
-        }
-    }
-}
-
 bool visualisationActive_3a = false;
 bool visualisationActive_3b = false;
 bool visualisationActive_3c = false;
@@ -440,9 +497,8 @@ void changeScreen(int screen) {
         }
         vpmanager_local.clearviewports();
         visualise(*MS);
-        visualiseZones(2);
-        // HERE CREATED ZONES AND ZONED DESIGNS NEED TO BE ADDED TO THE VISUALISATION
-        
+        visualiseZones();
+        //visualiseZones();
         //visualiseZones(2);
         // visualise(&SD, 1);
         // visualise(CF, "rectangles");
@@ -482,7 +538,7 @@ void changeScreen(int screen) {
         vpmanager_local.clearviewports();
         visualise(*MS);
         update_CF();
-        visualiseZones(2);
+        visualiseZones();
         //retrieve_SD_results();
     }
     else {
@@ -494,12 +550,26 @@ void changeScreen(int screen) {
         visualisationActive_3e = false;
     }
 
+    if (screen == 3) {
+        //retrieve_SD_results();
+        std::string ZoneCountStr = std::to_string(ZoneCount);
+        writeToOutputFile("output.csv", "Zone count 1:", ZoneCountStr.c_str(), "");
+        std::string ZonedDesignCountStr = std::to_string(ZonedDesignCount);
+        writeToOutputFile("output.csv", "Zoned design count 1:", ZonedDesignCountStr.c_str(), "");
+        //print which spaces are in the zones, and which zones in which zoned design (to compare if they are correct)
+    }
     if (screen == 4) {
         writeToOutputFile("output.csv", "Step 2: Pick one zoned design you would like to continue with and explain why.", "", opinionTF.text);
     }
     if (screen == 6) {
         retrieve_SD_results();
     }
+    if (screen == 7) {
+        std::string ZoneCountStr2 = std::to_string(ZoneCount2);
+        writeToOutputFile("output.csv", "Zone count 1:", ZoneCountStr2.c_str(), "");
+        std::string ZonedDesignCountStr2 = std::to_string(ZonedDesignCount2);
+        writeToOutputFile("output.csv", "Zoned design count 1:", ZonedDesignCountStr2.c_str(), "");
+	}
     if (screen == 8) {
         writeToOutputFile("output.csv", "Step 3: This time pick the one of which you think its structural design has the highest stiffness. Explain your reasoning.", "", opinionTF2.text);
         writeToOutputFile("output.csv", "1..", getSelectedButtonLabel(), opinionTF3.text);
@@ -625,7 +695,7 @@ void drawText2(const char* text, float centerX, float centerY, float textWidth) 
     }
 }
 
-// Function to draw text centered within a given width, used within the draw button function. 
+// Function to draw text centered within a given width, used within the draw button function.
 void drawTextCentered(const char* text, float centerX, float centerY, float textWidth) {
     float lineHeight = 18; // Approximate line height, adjust as needed
     float effectiveTextWidth = textWidth - 2 * MARGIN_PERCENT; // Effective width after considering margins
@@ -790,7 +860,7 @@ void display() {
     if (active) {
         // Set viewport for the left half of the screen
         setup3D();
-        
+
         // Render the visualisation
         vpmanager_local.render(cam_local);
         checkGLError("render");
@@ -897,6 +967,16 @@ std::vector<int> parseValues(const std::string& input, char delimiter) {
     return values;
 }
 
+std::string clean_str(const std::string& input) {
+    std::string result;
+    for (char ch : input) {
+        if (isdigit(ch)) {
+            result += ch;
+        }
+    }
+    return result;
+}
+
 void keyboard(unsigned char key, int x, int y) {
 
     GLenum err;
@@ -988,73 +1068,96 @@ void keyboard(unsigned char key, int x, int y) {
     if (currentScreen == 14) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
             opinionTF9.text += key; // Append the character to the input string
+            DrawInvalidInput = false;
         }
         else if (key == 8 && opinionTF9.text != "") { // Backspace key
             opinionTF9.text.pop_back(); // Remove the last character from input string
+            DrawInvalidInput = false;
         }
         else if (key == 13) { // Enter key
             bool validInput = true; // Flag to track if the input is valid
             std::shared_ptr<BSO::Spatial_Design::MS_Building> msBuilding = MS;
-            std::shared_ptr<BSO::Spatial_Design::Zoning::Zoned_Design> zoning = Zoned;
+            std::shared_ptr<BSO::Spatial_Design::MS_Conformal> msConformal = CF;
+            BSO::Spatial_Design::Zoning::Zoned_Design zoning(CF.get());
             //std::shared_ptr<BSO::Spatial_Design::Zoning::Zone> zone;
 
+            std::vector<BSO::Spatial_Design::Geometry::Cuboid*> cuboids;
+            std::vector<int> spaceIDs;
+
             if (!opinionTF9.text.empty()) {
-                // Print the entered text to the terminal
                 std::cout << "Entered text: " << opinionTF9.text << std::endl;
-                // Write the entered text to the process file
                 writeToProcessFile("process.csv", "Create Zone", opinionTF9.text);
 
                 std::stringstream ss(opinionTF9.text);
-                int space_ID;
-                if (!(ss >> space_ID)) {
-                    // Handle invalid space ID format gracefully
-                    std::cout << "Error: Invalid space ID format." << std::endl;
-                    validInput = false;
-                }
-                else {
-                    // Get the index of the space with the specified ID
-                    int space_index = MS->get_space_index(space_ID);
-                    if (space_index < 0) {
-                        // Handle space not found gracefully
-                        std::cout << "Error: Space with ID " << space_ID << " not found." << std::endl;
+                std::string item;
+                while (getline(ss, item, ',')) {
+                    try {
+                        int space_ID = std::stoi(item);
+                        if (space_ID >= 0 && space_ID <= CF->get_space_count()) {
+                            spaceIDs.push_back(space_ID);
+                        }
+                        else {
+                            std::cout << "Error: Space ID " << space_ID << " is out of valid range." << std::endl;
+                            validInput = false;
+                            DrawInvalidInput = true;
+                        }
+                    }
+                    catch (std::exception& e) {
+                        std::cout << "Error: Invalid space ID input '" << item << "'." << std::endl;
                         validInput = false;
+                        DrawInvalidInput = true;
                     }
                 }
             }
             else {
-                // Handle empty space ID input gracefully
                 std::cout << "Error: Space ID input is empty." << std::endl;
                 validInput = false;
+                DrawInvalidInput = true;
             }
 
             if (validInput) {
-                // Delete the space at the specified index
-                std::stringstream ss(opinionTF9.text);
-                int space_ID;
-                ss >> space_ID;
+                //retrieve cuboids corresponding to the inputted spaces
+                //std::shared_ptr<BSO::Spatial_Design::Zoning::Zone> new_zone = std::make_shared<BSO::Spatial_Design::Zoning::Zone>();
 
-                int space_index = MS->get_space_index(space_ID);
-                //std::shared_ptr<BSO::Spatial_Design::Zoning::Zone> zone = std::make_shared<BSO::Spatial_Design::Zoning::Zone>();
-                //std::vector<Geometry::Cuboid*> cuboids = MS->get_cuboids_by_space_index(space_index);
+                std::vector<BSO::Spatial_Design::Geometry::Cuboid*> all_cuboids;
 
-                //       Zone* newZone = new Zone(); // Assuming you have a default constructor for Zone
-                //       newZone->add_space(space_ID);
-                //       Zoned->m_zones.push_back(newZone);
+                for (unsigned int i = 0; i < CF->get_space_count(); i++) {
+                    BSO::Spatial_Design::Geometry::Space* space = CF->get_space(i);
+                    std::vector<BSO::Spatial_Design::Geometry::Cuboid*> cuboids = space->get_cuboids();
+                    std::cout << "space " << space->get_ID() << " , has cuboids: " << cuboids.size() << std::endl;
 
+                    if (std::find(spaceIDs.begin(), spaceIDs.end(), space->get_ID()) != spaceIDs.end())
+                    {
+                        all_cuboids.insert(all_cuboids.end(), cuboids.begin(), cuboids.end());
+                    }
+                  
+                }
+                std::cout << "number of spaces in zone: " << spaceIDs.size() <<  std::endl;
+                std::cout << "number of cuboids in zone: " << all_cuboids.size() << std::endl;
 
-                //Zone* new_zone = new Zone(); // Assuming you have a constructor for Zone that takes a string
-                //zone->add_spaces(space_ID); // Add the space to the new zone
-                // Add the new zone to your design
-                //MS->add_zone(new_zone, 3);
-                //Zoned->add_zone(zone, 0);
+                BSO::Spatial_Design::Zoning::Zone new_zone(all_cuboids);
+                new_zone.add_ID(Zoned->get_zones().size() + 1);  // Proper ID assignment
 
-                //zone->add_spaces(); // Assuming add_spaces doesn't need any argument
-                //Zoned->add_zone(zone.get(), 0);
+                Zoned->add_zone(&new_zone, 2);
 
-                // Update the visualisation
-                //   visualiseZones();
+                std::cout << "Zone successfully added." << std::endl;
+                std::cout << "Zone ID: " << new_zone.get_ID() << std::endl;
+                new_zone.get_type();
+                new_zone.get_cuboids();
+                std::cout << "Zone type: " << new_zone.get_type() << std::endl;
+                std::cout << "Zone cuboids: " << new_zone.get_cuboids().size() << std::endl;
 
-                //Geometry::Cuboid* temp_cuboid = m_CF->get_cuboid(i);
+                //included_zone = newzone;
+                //Zoned_Design::add_zone(included_zone, 1);
+
+                auto new_zoned_design = std::make_shared<BSO::Spatial_Design::Zoning::Zoned_Design>(CF.get());
+                new_zoned_design->add_zone(&new_zone, 1);
+
+                Zoned->add_zoned_design(new_zoned_design.get());
+
+                ZoneCount++;
+                GhostZonedDesignCount++;
+                visualiseZones();
 
                 opinionTF9.text = ""; // Clear the input string after processing
                 changeScreen(2);
@@ -1065,54 +1168,193 @@ void keyboard(unsigned char key, int x, int y) {
     if (currentScreen == 15) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
             opinionTF10.text += key; // Append the character to the input string
+            DrawInvalidInput = false;
         }
         else if (key == 8 && opinionTF10.text != "") { // Backspace key
             opinionTF10.text.pop_back(); // Remove the last character from input string
+            DrawInvalidInput = false;
         }
         else if (key == 13) { // Enter key
-            // Print the entered text to the terminal
-            std::cout << "Entered text: " << opinionTF10.text << std::endl;
-            //Write the entered text to the process file
-            writeToProcessFile("process.csv", "Delete Zone", opinionTF10.text);
+            bool validInput = true; // Flag to track if the input is valid
+            std::shared_ptr<BSO::Spatial_Design::MS_Building> msBuilding = MS;
+            std::shared_ptr<BSO::Spatial_Design::MS_Conformal> msConformal = CF;
+            std::shared_ptr<BSO::Spatial_Design::Zoning::Zoned_Design> zoning = Zoned;
+            //std::shared_ptr<BSO::Spatial_Design::Zoning::Zone> zone;
 
-            //Zoned_Design::delete_tagged_zones()
+            int zoneIDToDelete = 0;
+            auto zones = Zoned->get_zones();
+            std::cout << "Number of zones: " << zones.size() << std::endl;
+            try {
+                zoneIDToDelete = std::stoi(opinionTF10.text);
+                // Check if the zone ID is within the valid range
+                auto it = std::find_if(zones.begin(), zones.end(), [zoneIDToDelete](BSO::Spatial_Design::Zoning::Zone* zone) { return zone->get_ID() == zoneIDToDelete; });
+                std::cout << "Entered text: " << opinionTF10.text << std::endl;
+                writeToProcessFile("process.csv", "Delete Zone", opinionTF10.text);
+                if (it == zones.end()) {
+                    std::cout << "Error: Zone ID " << zoneIDToDelete << " not found." << std::endl;
+                    validInput = false;
+                    DrawInvalidInput = true;
+                }
+            }
+            catch (std::exception& e) {
+                std::cout << "Error: Invalid zone ID input '" << opinionTF10.text << "'. Exception: " << e.what() << std::endl;
+                validInput = false;
+                DrawInvalidInput = true;
+            }
 
-            opinionTF10.text = ""; // Clear the input string after processing
-            changeScreen(2);
+            if (validInput) {
+                // Retrieve the specific zone
+                auto it = std::find_if(zones.begin(), zones.end(), [zoneIDToDelete](BSO::Spatial_Design::Zoning::Zone* zone) { return zone->get_ID() == zoneIDToDelete; });
+                std::cout << "Deleting zone " << zoneIDToDelete << std::endl;
+
+                if (it != zones.end()) {
+                    (*it)->tag_for_deletion(); // Tag the zone for deletion
+                    Zoned->delete_tagged_zones(); // Delete all zones tagged for deletion
+                    std::cout << "Zone " << zoneIDToDelete << " deleted successfully." << std::endl;
+                }
+                
+                visualiseZones();
+                ZoneCount--; // Decrement the count of zones
+                opinionTF10.text = ""; // Clear the input field
+                changeScreen(2); // Optionally change the screen after deletion
+            }
         }
     }
 
     if (currentScreen == 16) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
             opinionTF11.text += key; // Append the character to the input string
+            DrawInvalidInput = false;
         }
         else if (key == 8 && opinionTF11.text != "") { // Backspace key
             opinionTF11.text.pop_back(); // Remove the last character from input string
+            DrawInvalidInput = false;
         }
         else if (key == 13) { // Enter key
-            // Print the entered text to the terminal
-            std::cout << "Entered text: " << opinionTF11.text << std::endl;
-            // Write the entered text to the process file
-            writeToProcessFile("process.csv", "Create Zoned Design", opinionTF11.text);
-            opinionTF11.text = ""; // Clear the input string after processing
-            changeScreen(2);
+            bool validInput = true; // Flag to track if the input is valid
+            std::shared_ptr<BSO::Spatial_Design::MS_Building> msBuilding = MS;
+            std::shared_ptr<BSO::Spatial_Design::MS_Conformal> msConformal = CF;
+            std::shared_ptr<BSO::Spatial_Design::Zoning::Zoned_Design> zoning = Zoned;
+            //std::shared_ptr<BSO::Spatial_Design::Zoning::Zone> zone;
+            std::vector<int> zoneIDs;
+
+            if (!opinionTF11.text.empty()) {
+                std::cout << "Entered text: " << opinionTF11.text << std::endl;
+                writeToProcessFile("process.csv", "Create Zoned Design", opinionTF11.text);
+
+                std::stringstream ss(opinionTF11.text);
+                std::string item;
+                while (getline(ss, item, ',')) {
+                    try {
+                        int zone_ID = std::stoi(item);
+                        if (zone_ID >= 0 && zone_ID <= ZoneCount) {
+                            zoneIDs.push_back(zone_ID);
+                        }
+                        else {
+                            std::cout << "Error: zone ID " << zone_ID << " is out of valid range." << std::endl;
+                            validInput = false;
+                            DrawInvalidInput = true;
+                        }
+                    }
+                    catch (std::exception& e) {
+                        std::cout << "Error: Invalid zone ID input '" << item << "'." << std::endl;
+                        validInput = false;
+                        DrawInvalidInput = true;
+                    }
+                }
+            }
+            else {
+                std::cout << "Error: Zone ID input is empty." << std::endl;
+                validInput = false;
+                DrawInvalidInput = true;
+            }
+
+            if (validInput) {
+                //included_zone = ...
+                //Zoned_Design::add_zone(included_zone, 1);
+
+                //auto new_zoned_design = std::make_shared<BSO::Spatial_Design::Zoning::Zoned_Design>(CF.get());
+                auto current_zones = Zoned->get_zones();
+
+                for (int id : zoneIDs) {
+                    if (id >= 0 && id < current_zones.size()) {
+                        BSO::Spatial_Design::Zoning::Zone* zoneToAdd = current_zones[id];  // Directly use the pointer
+                        if (zoneToAdd != nullptr) {
+                            Zoned->add_zone(zoneToAdd, 1);
+                            Zoned->add_ID(ZonedDesignCount + 1);
+                            std::cout << "Zone ID " << id << " added to the new Zoned Design." << std::endl;
+                        }
+                        else {
+                            std::cout << "No zone found with ID " << id << "." << std::endl;
+                        }
+                    }
+                    else {
+                        std::cout << "Zone ID " << id << " is out of range of existing zones." << std::endl;
+                    }
+                }
+
+                visualiseZones();
+
+                opinionTF11.text = ""; // Clear the input string after processing
+                changeScreen(2);
+                ZonedDesignCount++;
+                GhostZonedDesignCount++;
+            }
         }
     }
 
     if (currentScreen == 17) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
             opinionTF12.text += key; // Append the character to the input string
+            DrawInvalidInput = false;
         }
         else if (key == 8 && opinionTF12.text != "") { // Backspace key
             opinionTF12.text.pop_back(); // Remove the last character from input string
+            DrawInvalidInput = false;
         }
         else if (key == 13) { // Enter key
-            // Print the entered text to the terminal
-            std::cout << "Entered text: " << opinionTF12.text << std::endl;
-            // Write the entered text to the process file
-            writeToProcessFile("process.csv", "Delete Zoned Design", opinionTF12.text);
-            opinionTF12.text = ""; // Clear the input string after processing
-            changeScreen(2);
+            bool validInput = true; // Flag to track if the input is valid
+            std::shared_ptr<BSO::Spatial_Design::MS_Building> msBuilding = MS;
+            std::shared_ptr<BSO::Spatial_Design::MS_Conformal> msConformal = CF;
+            std::shared_ptr<BSO::Spatial_Design::Zoning::Zoned_Design> zoning = Zoned;
+            //std::shared_ptr<BSO::Spatial_Design::Zoning::Zone> zone;
+
+            if (!opinionTF12.text.empty()) {
+                std::cout << "Entered text: " << opinionTF12.text << std::endl;
+                writeToProcessFile("process.csv", "Delete Zoned Design", opinionTF12.text);
+
+                try {
+                    int zoned_design_ID = std::stoi(clean_str(opinionTF12.text));
+                    if (zoned_design_ID >= 0 && zoned_design_ID <= ZonedDesignCount) {
+                        validInput = true;
+                    }
+                    else {
+                        std::cout << "Error: zoned design ID " << zoned_design_ID << " is out of valid range." << std::endl;
+                        validInput = false;
+                        DrawInvalidInput = true;
+                    }
+
+                }
+                catch (std::exception& e) {
+                    std::cout << "Error: Invalid zoned design ID input '" << opinionTF12.text << "'." << std::endl;
+                    validInput = false;
+                    DrawInvalidInput = true;
+                }
+            }
+            else {
+                std::cout << "Error: Zone ID input is empty." << std::endl;
+                validInput = false;
+                DrawInvalidInput = true;
+            }
+
+            if (validInput) {
+                //code to delete zoned design
+
+                opinionTF12.text = ""; // Clear the input string after processing
+                changeScreen(2);
+                ZonedDesignCount--;
+                GhostZonedDesignCount--;
+            }
         }
     }
 
@@ -2010,21 +2252,15 @@ void ReadInstructions4() {
 }
 
 void screen3a() {
-    // Screen layout and colors should be adjusted as necessary.
-
-    // Draw structural design illustration placeholder (left side)
-    // BSO::Spatial_Design::MS_Building MS("MS_Input.txt");
-
-    // BSO::Visualisation::init_visualisation_without();
-    // BSO::Visualisation::visualise(MS);
-    // BSO::Visualisation::end_visualisation();
-
     LineDivisionScreen();
 
-    // Draw the bottom area where zones and zoned designs are displayed
-    std::string number_zones = std::string("Zones: ") + std::to_string(Zoned->get_designs().size());
+    //draw a message when input is invalid. it is handled in the keyboard function
+    if (DrawInvalidInput == true) {
+        drawText("Invalid input.", 1645, 200, 200);
+    }
+
+    //std::string number_zones = std::string("Zones: ") + std::to_string(Zoned->get_designs().size());
     //drawText(number_zones.c_str(), 100, 300, 200);
-    //drawText("Zoned designs: 0", 100, 150, 200);
 
     // Draw control buttons (right side)
     drawText("Zones", screenWidth - 150, 720, 200);
@@ -2058,9 +2294,6 @@ void screen3b() {
 
     LineDivisionScreen();
 
-    // Draw the bottom area where zones and zoned designs are displayed
-    drawText("Zoned designs:", 100, 150, 200);
-
     //Draw text and a textfield(textbox)
     drawText("Zoned design:", screenWidth - 180, 660, 200);
     drawTextField(1510, 600, 150, 50, opinionTF);
@@ -2082,9 +2315,6 @@ void screen3c() {
     // Draw structural design illustration placeholder (left side)
 
     LineDivisionScreen();
-
-    // Draw the bottom area where zones and zoned designs are displayed
-    drawText("Zoned designs:", 100, 150, 200);
 
     //Draw text and a textfield(textbox)
     drawText("Zoned design:", screenWidth - 180, 660, 200);

@@ -1,6 +1,7 @@
 #ifndef MS_MODEL_HPP
 #define MS_MODEL_HPP
 
+#include <GL/glut.h> // GLUT library for fonts
 
 #include <BSO/Visualisation/Model_Module/Model.hpp>
 #include <BSO/Visualisation/BSP_Module/BSP.hpp>
@@ -54,6 +55,13 @@ namespace BSO { namespace Visualisation
             glEnd();
         }
 
+        void drawRenderedText(const char* text, float x, float y, float z) const {
+            glRasterPos3f(x, y, z); // Position where to start the text
+            while (*text) {
+                glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *text);
+                ++text;
+            }
+        }
 
     private:
         std::list<polygon*> polygons;
@@ -383,9 +391,7 @@ namespace BSO { namespace Visualisation
         drawLineThick(3000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
         drawLineThick(3000.0f, 0.0f, 0.0f, 2700.0f, 0.0f, -300.0f);
         drawLineThick(3000.0f, 0.0f, 0.0f, 2700.0f, 0.0f, 300.0f);
-        // draw letter x
-        drawLine(1300.0f, 0.0f, 500.0f, 700.0f, 0.0f, 1100.0f);
-        drawLine(700.0f, 0.0f, 500.0f, 1300.0f, 0.0f, 1100.0f);
+        drawRenderedText("X", 3100.0f, 0.0f, 0.0f); // Label X axis
         // y axis (z in the model)
         drawLineThick(0.0f, 3000.0f, 0.0f, 0.0f, 0.0f, 0.0f);
         drawLineThick(0.0f, 3000.0f, 0.0f, 0.0f, 2700.0f, -300.0f);
@@ -395,13 +401,15 @@ namespace BSO { namespace Visualisation
         drawLine(0.0f, 2200.0f, 500.0f, 0.0f, 2200.0f, 1000.0f);
         drawLine(0.0f, 1600.0f, 500.0f, 0.0f, 2200.0f, 1000.0f);
         // z axis (y in the model)
-        drawLineThick(0.0f, 0.0f, -3000.0f, 0.0f, 0.0f, 0.0f);
-        drawLineThick(0.0f, 0.0f, -3000.0f, -300.0f, 0.0f, -2700.0f);
-        drawLineThick(0.0f, 0.0f, -3000.0f, 300.0f, 0.0f, -2700.0f);
+        drawLineThick(0.0f, 0.0f, -30000.0f, 0.0f, 0.0f, 0.0f);
+        drawLineThick(0.0f, 0.0f, -30000.0f, -300.0f, 0.0f, -29700.0f);
+        drawLineThick(0.0f, 0.0f, -30000.0f, 300.0f, 0.0f, -29700.0f);
         // draw letter y
         drawLine(-500.0f, 0.0f, -1500.0f, -1000.0f, 0.0f, -500.0f);
         drawLine(-1000.0f, 0.0f, -1500.0f, -750.0f, 0.0f, -1000.0f);
-
+        //draw measures in y axis
+        drawLineThick(-300.0f, 0.0f, -12000.0f, 0.0f, 0.0f, -12000.0f);
+        drawLineThick(-300.0f, 0.0f, -24000.0f, 0.0f, 0.0f, -24000.0f);
 
         glPopAttrib();
     }

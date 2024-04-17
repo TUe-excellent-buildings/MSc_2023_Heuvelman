@@ -46,6 +46,7 @@ private:
 	bool delete_non_combined_appendix_zones = false; // set false when combine_appendix_zones == false (or whole_spaces_only == true)
 	bool zone_cores = true;
 	bool always_use_cores = false;
+	int ID;
 	// switches
 
 public:
@@ -100,6 +101,11 @@ public:
 	void prepare_cuboids();
 	std::vector<int> get_zoned_floors();
 	std::vector<int> get_floor_coords();
+
+	void add_ID(unsigned int);
+	unsigned int get_ID();
+
+	void add_zoned_design(Zoned_Design* ZD) { m_zoned.push_back(ZD); }
 }; // Zoned_Design
 
 } // namespace Zoning

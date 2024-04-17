@@ -248,6 +248,67 @@ void writeToIQDFile(std::string IQDFileName, std::string question, std::string u
     IQDFile.close();
 }
 
+// Function to get SD related outputs from the toolbox
+void retrieve_SD_results() {
+    CF = std::make_shared<BSO::Spatial_Design::MS_Conformal>(*MS, &(BSO::Grammar::grammar_zoning));
+    (*CF).make_conformal();
+    Zoned = std::make_shared<BSO::Spatial_Design::Zoning::Zoned_Design>(CF.get());
+    (*Zoned).make_zoning();
+
+    // Define vectors to store compliance and volumes for all designs
+    std::vector<double> all_compliance;
+    std::vector<double> all_volume;
+
+    // SD-analysis unzoned design
+    Zoned->reset_SD_model();
+    Zoned->prepare_unzoned_SD_model();
+    SD_Building = std::make_shared<BSO::Structural_Design::SD_Analysis>(*CF);
+    (*SD_Building).analyse();
+    BSO::Structural_Design::SD_Building_Results sd_results = (*SD_Building).get_results();
+    BSO::SD_compliance_indexing(sd_results);
+    std::cout << std::endl << "Total compliance in the unzoned design: " << sd_results.m_total_compliance
+        << std::endl << "Structural volume: " << sd_results.m_struct_volume << std::endl;
+    Zoned->add_unzoned_compliance(sd_results.m_total_compliance);
+
+    //outputs to excel:
+    writeToOutputFile("output3.csv", "Total compliance in the unzoned design:", std::to_string(sd_results.m_total_compliance), "");
+    writeToOutputFile("output3.csv", "Structural volume in the unzoned design:", std::to_string(sd_results.m_struct_volume), "");
+
+    // SD-analysis zoned designs
+    std::vector<double> m_compliance;
+    std::vector<double> m_volume;
+
+    Zoned = std::make_shared<BSO::Spatial_Design::Zoning::Zoned_Design>(CF.get());
+    (*Zoned).make_zoning();
+    for (unsigned int i = 0; i < Zoned->get_designs().size(); i++)
+    {
+        Zoned->reset_SD_model();
+        Zoned->prepare_zoned_SD_model(i);
+        SD_Building = std::make_shared<BSO::Structural_Design::SD_Analysis>(*CF);
+        (*SD_Building).analyse();
+        sd_results = (*SD_Building).get_results(); // Reuse existing sd_results object
+        BSO::SD_compliance_indexing(sd_results);
+        std::cout << "Total compliance in zoned design " << i + 1 << ": "
+            << sd_results.m_total_compliance << std::endl << "Structural volume: " << sd_results.m_struct_volume << std::endl;
+        Zoned->add_compliance(sd_results.m_total_compliance, i);
+        m_compliance.push_back(sd_results.m_total_compliance);
+        m_volume.push_back(sd_results.m_struct_volume);
+    }
+    std::cout << std::endl << "Compliances:" << std::endl;
+    for (unsigned int i = 0; i < m_compliance.size(); i++)
+    {
+        std::cout << m_compliance[i] << std::endl;
+        writeToOutputFile("output3.csv", "Total compliance in zoned design " + std::to_string(i + 1) + ":", std::to_string(m_compliance[i]), "");
+    }
+    std::cout << std::endl << "Volumes:" << std::endl;
+    for (unsigned int i = 0; i < m_volume.size(); i++)
+    {
+        std::cout << m_volume[i] << std::endl;
+        writeToOutputFile("output3.csv", "Structural volume in zoned design " + std::to_string(i + 1) + ":", std::to_string(m_volume[i]), "");
+    }
+}
+
+
 //Declare a global variable to store the selected button label
 std::string selectedButtonLabel = "";
 
@@ -466,16 +527,12 @@ void changeScreen(int screen) {
     if (screen == 4) {
         writeToOutputFile("output3.csv", "Step 2: Pick one zoned design you would like to continue with and explain why.", "", opinionTF.text);
     }
+    if (screen == 6) {
+        retrieve_SD_results();
+    }
     if (screen == 33) {
         writeToOutputFile("output3.csv", "Step 3: This time pick the one of which you think its structural design has the highest stiffness. Explain your reasoning.", "", opinionTF2.text);
         writeToOutputFile("output3.csv", "Step 5: Pick one to continue with out of the two most diverse zoned designs. Explain your reasoning.", "", opinionTF25.text);
-
-        BSO::Structural_Design::SD_Building_Results& SD_results = SD_Building.get()->get_results();
-        SD_results.obtain_results();
-        std::cout << "Total compliance: " << SD_results.m_total_ghost_compliance << SD_results.m_struct_volume << SD_results.m_struct_ghost_volume << std::endl;
-        writeToOutputFile("output2.csv", "Total compliance:", std::to_string(SD_results.m_total_compliance), "");
-        writeToOutputFile("output2.csv", "Structural volume:", std::to_string(SD_results.m_struct_volume), "");
-        writeToOutputFile("output2.csv", "Ghost volume:", std::to_string(SD_results.m_struct_ghost_volume), "");
     }
     if (screen == 34) {
         writeToOutputFile("output3.csv", "Step 6: This time pick again out of all zoned designs. Explain your reasoning.", "", opinionTF27.text);

@@ -13,6 +13,9 @@
 #include <BSO/Performance_Indexing.hpp>
 #include <AEI_Grammar/Grammar_zoning.hpp>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 std::shared_ptr <BSO::Spatial_Design::MS_Building> MS = nullptr;
 std::shared_ptr <BSO::Spatial_Design::MS_Conformal> CF = nullptr;
 std::shared_ptr <BSO::Spatial_Design::Zoning::Zoned_Design> Zoned = nullptr;
@@ -152,6 +155,8 @@ void onMouseClick(int button, int state, int x, int y);
 void setup2D();
 void setup3D();
 void setup_models();
+void initializeTextures();
+void displayTexture(GLuint texture, float x, float y, float width, float height);
 
 void visualise(BSO::Spatial_Design::MS_Building& ms_building)
 {
@@ -1774,6 +1779,66 @@ void drawArrow(float x, float y, bool leftArrow) {
     glEnd();
 }
 
+
+GLuint loadImageAsTexture(const char* filename) {
+    int width, height, nrChannels;
+    unsigned char* data = stbi_load(filename, &width, &height, &nrChannels, 0);
+    if (!data) {
+        std::cerr << "Failed to load texture: " << filename << std::endl;
+        return 0;
+    }
+    else if (data) {
+        std::cout << "Loaded texture: " << filename << std::endl;
+    }
+
+    std::cout << "Loaded texture: " << filename << std::endl;
+
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    GLenum format = GL_RGB; // Default to GL_RGB
+    if (nrChannels == 1)
+        format = GL_RED;
+    else if (nrChannels == 3)
+        format = GL_RGB; // Explicitly set, even though it's the default
+    else if (nrChannels == 4)
+        format = GL_RGBA;
+
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    stbi_image_free(data);
+
+    return textureID;
+}
+
+void displayTexture(GLuint texture, float x, float y, float width, float height) {
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.0f, 1.0f); glVertex2f(x, y);
+    glTexCoord2f(1.0f, 1.0f); glVertex2f(x + width, y);
+    glTexCoord2f(1.0f, 0.0f); glVertex2f(x + width, y + height);
+    glTexCoord2f(0.0f, 0.0f); glVertex2f(x, y + height);
+    glEnd();
+    glDisable(GL_TEXTURE_2D);
+}
+
+GLuint imgZoningRender;
+GLuint imgStabilizationRender;
+
+void initializeTextures() {
+    imgZoningRender = loadImageAsTexture("C:/Users/20183767/source/repos/MSc_2023_Heuvelman/GUI/JH_Zoning_Assignment_GUI/Zoning BSD render.png");
+    imgStabilizationRender = loadImageAsTexture("C:/Users/20183767/source/repos/MSc_2023_Heuvelman/GUI/JH_Stabilization_Assignment_GUI_new/Stabilization BSD render.png");
+    // Load more textures as needed
+}
+
 void mainScreen() {
     glColor3f(0.0, 0.0, 0.0);
     drawText("Welcome to this experiment for a SED graduation project. We are glad to have you here and hope you will have a nice experience.", 930, 820, 400);
@@ -1789,11 +1854,11 @@ void mainScreen() {
 }
 
 void assignmentDescriptionScreen() {
-    drawText("Selected Assignment: 3 'Human-AI zoning assignment'​", 900, 740, 400);
-    drawText("Expected duration: 25 minutes​", 900, 710, 400);
-    drawText("Read the following instructions carefully:​", 900, 650, 400);
+    drawText("Selected Assignment: 3 'Human-AI zoning assignment'​", 1500, 740, 400);
+    drawText("Expected duration: 25 minutes​", 1500, 710, 400);
+    drawText("Read the following instructions carefully:​", 1500, 650, 400);
     drawText("You will in a moment go through a design task. You are asked to perform this task in the way you are used to go about a commission in your daily practice. It is important that you say aloud everything that you think or do in designing. ​So, in every step, explain what you do and why you do it. Try to keep speaking constantly and not be silent for longer than 20 seconds. ​Please speak English. Good luck!​",
-    900, 600, 400);
+    1500, 600, 400);
     //underline ENGLISH
     //glLineWidth(2.0);
     //glColor3f(0.0, 0.0, 0.0);
@@ -1804,6 +1869,19 @@ void assignmentDescriptionScreen() {
 
     drawButton("<- | Previous step", 1380, 50, 200, 50, changeScreen, 0);
     drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 31);
+
+    //Draw the render
+    glEnable(GL_LIGHTING); // Enable to show image becomes black
+    glEnable(GL_LIGHT0); // Enable to prevent image becomes black
+    GLfloat emissionColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f }; // Emit the texture's color
+    glMaterialfv(GL_FRONT, GL_EMISSION, emissionColor); // Apply to front face
+    float picWidth = 1200; // Width of the picture as specified.
+    float picHeight = 900;
+    displayTexture(imgZoningRender, 50, 50, picWidth, picHeight);
+    GLfloat defaultEmission[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+    glMaterialfv(GL_FRONT, GL_EMISSION, defaultEmission);
+    glDisable(GL_LIGHTING); //Disbale for other GUI elements
+    glDisable(GL_LIGHT0); //Disbale for other GUI elements
 }
 
 void LineDivisionScreen() {
@@ -2545,6 +2623,7 @@ int main(int argc, char** argv) {
     initializeScreen();
 
     // Main loop
+    initializeTextures();  // Make sure this is called
     glutMainLoop();
     //return 0;
 

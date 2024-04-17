@@ -47,7 +47,7 @@ namespace BSO { namespace Visualisation
             glEnd();
         }
         void drawLineThick(float x, float y, float z, float x1, float y1, float z1) const {
-            glLineWidth(4.0);
+            glLineWidth(3.0);
             glColor3f(1.0, 0.0, 0.0);
             glBegin(GL_LINES);
             glVertex3f(x, y, z);
@@ -56,6 +56,14 @@ namespace BSO { namespace Visualisation
         }
 
         void drawRenderedText(const char* text, float x, float y, float z) const {
+            glRasterPos3f(x, y, z); // Position where to start the text
+            while (*text) {
+                glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *text);
+                ++text;
+            }
+        }
+
+        void drawRenderedTextBig(const char* text, float x, float y, float z) const {
             glRasterPos3f(x, y, z); // Position where to start the text
             while (*text) {
                 glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *text);
@@ -388,28 +396,37 @@ namespace BSO { namespace Visualisation
 
         // Draw the lines in for the GUI JH, to create axis x,y,z
         // x axis
-        drawLineThick(3000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-        drawLineThick(3000.0f, 0.0f, 0.0f, 2700.0f, 0.0f, -300.0f);
-        drawLineThick(3000.0f, 0.0f, 0.0f, 2700.0f, 0.0f, 300.0f);
-        drawRenderedText("X", 3100.0f, 0.0f, 0.0f); // Label X axis
+        drawLineThick(25000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+        drawLineThick(25000.0f, 0.0f, 0.0f, 24700.0f, 0.0f, -300.0f);
+        drawLineThick(25000.0f, 0.0f, 0.0f, 24700.0f, 0.0f, 300.0f);
+        drawRenderedTextBig("X", 1500.0f, 0.0f, 600.0f); // Label X axis
+        //draw measures in the x axis
+        drawLineThick(6000.0f, 0.0f, 300.0f, 6000.0f, 0.0f, 0.0f);
+        drawLineThick(12000.0f, 0.0f, 300.0f, 12000.0f, 0.0f, 0.0f);
+        drawLineThick(24000.0f, 0.0f, 300.0f, 24000.0f, 0.0f, 0.0f);
+        drawRenderedText("60", 6000.0f, 0.0f, 500.0f);
+        drawRenderedText("120", 12000.0f, 0.0f, 500.0f);
+        drawRenderedText("240", 24000.0f, 0.0f, 500.0f);
         // y axis (z in the model)
-        drawLineThick(0.0f, 3000.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-        drawLineThick(0.0f, 3000.0f, 0.0f, 0.0f, 2700.0f, -300.0f);
-        drawLineThick(0.0f, 3000.0f, 0.0f, 0.0f, 2700.0f, 300.0f);
-        // draw letter z
-        drawLine(0.0f, 1600.0f, 500.0f, 0.0f, 1600.0f, 1000.0f);
-        drawLine(0.0f, 2200.0f, 500.0f, 0.0f, 2200.0f, 1000.0f);
-        drawLine(0.0f, 1600.0f, 500.0f, 0.0f, 2200.0f, 1000.0f);
+        drawLineThick(0.0f, 7000.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+        drawLineThick(0.0f, 7000.0f, 0.0f, 0.0f, 6700.0f, -300.0f);
+        drawLineThick(0.0f, 7000.0f, 0.0f, 0.0f, 6700.0f, 300.0f);
+        drawRenderedTextBig("Z", 0.0f, 1500.0f, 400.0f); // Label Z axis
+        //draw measures in z axis
+        drawLineThick(0.0f, 3000.0f, 300.0f, 0.0f, 3000.0f, 0.0f);
+        drawLineThick(0.0f, 6000.0f, 300.0f, 0.0f, 6000.0f, 0.0f);
+        drawRenderedText("30", 0.0f, 3000.0f, 500.0f);
+        drawRenderedText("60", 0.0f, 6000.0f, 500.0f);
         // z axis (y in the model)
-        drawLineThick(0.0f, 0.0f, -30000.0f, 0.0f, 0.0f, 0.0f);
-        drawLineThick(0.0f, 0.0f, -30000.0f, -300.0f, 0.0f, -29700.0f);
-        drawLineThick(0.0f, 0.0f, -30000.0f, 300.0f, 0.0f, -29700.0f);
-        // draw letter y
-        drawLine(-500.0f, 0.0f, -1500.0f, -1000.0f, 0.0f, -500.0f);
-        drawLine(-1000.0f, 0.0f, -1500.0f, -750.0f, 0.0f, -1000.0f);
+        drawLineThick(0.0f, 0.0f, -25000.0f, 0.0f, 0.0f, 0.0f);
+        drawLineThick(0.0f, 0.0f, -25000.0f, -300.0f, 0.0f, -24700.0f);
+        drawLineThick(0.0f, 0.0f, -25000.0f, 300.0f, 0.0f, -24700.0f);
+        drawRenderedTextBig("Y", -600.0f, 0.0f, -1500.0f); // Label Y axis
         //draw measures in y axis
         drawLineThick(-300.0f, 0.0f, -12000.0f, 0.0f, 0.0f, -12000.0f);
         drawLineThick(-300.0f, 0.0f, -24000.0f, 0.0f, 0.0f, -24000.0f);
+        drawRenderedText("120", -1000.0f, 0.0f, -12000.0f);
+        drawRenderedText("240", -1000.0f, 0.0f, -24000.0f);
 
         glPopAttrib();
     }

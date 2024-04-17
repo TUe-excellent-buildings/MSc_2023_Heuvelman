@@ -1438,9 +1438,13 @@ void assignmentDescriptionScreen() {
     //Draw the render
     glEnable(GL_LIGHTING); // Enable to show image becomes black
     glEnable(GL_LIGHT0); // Enable to prevent image becomes black
-    float picWidth = screenWidth / 1.6; // Width of the picture as specified.
-    float picHeight = screenHeight /1.6;
-    displayTexture(imgStabilizationRender, 0, 0, picWidth, picHeight);
+    GLfloat emissionColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f }; // Emit the texture's color
+    glMaterialfv(GL_FRONT, GL_EMISSION, emissionColor); // Apply to front face
+    float picWidth = 1200; // Width of the picture as specified.
+    float picHeight = 900;
+    displayTexture(imgStabilizationRender, 50, 50, picWidth, picHeight);
+    GLfloat defaultEmission[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+    glMaterialfv(GL_FRONT, GL_EMISSION, defaultEmission);
     glDisable(GL_LIGHTING); //Disbale for other GUI elements
     glDisable(GL_LIGHT0); //Disbale for other GUI elements
 }

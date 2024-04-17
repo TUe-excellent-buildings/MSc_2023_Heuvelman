@@ -100,6 +100,22 @@ namespace BSO { namespace Structural_Design {
 		virtual Eigen::Vector6d get_displacements() = 0;
 		virtual std::map<Elements::Node*, std::vector<unsigned int> > get_nodes_with_free_dofs(double) = 0;
 
+        Components::Component* getLastComponent() const {
+            if (!m_components.empty()) {
+                return m_components.back();
+            }
+            return nullptr;
+        }
+
+        void removeLastComponent() {
+            if (!m_components.empty()) {
+                m_components.pop_back();  // Remove the last component
+            }
+            else {
+                std::cerr << "No components to remove." << std::endl;
+            }
+        }
+
         std::vector<SD_Analysis*> m_previous_designs;
 
         virtual ~SD_Analysis_Vars();

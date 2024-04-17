@@ -58,6 +58,18 @@ void Zoned_Design::add_zone(Zone* zone, unsigned int n)
     m_zones.push_back(zone);
 } // add_zone()
 
+void Zoned_Design::add_ID(unsigned int n)
+{
+    ID = n;
+} // add_ID()
+
+
+unsigned int Zoned_Design::get_ID()
+{
+    return ID;
+} // get_ID()
+
+
 void Zoned_Design::prepare_zone(Zone* zone)
 {
     zone->dimensions();

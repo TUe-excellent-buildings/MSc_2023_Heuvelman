@@ -257,7 +257,7 @@ void changeScreen(int screen) {
         writeToProcessFile("process4.csv", "Starting time, assignment chosen", "");
     }
 
-    if (screen == 4) {
+    if (screen == 3) {
         //write the number of added trusses and beams as measurement
         std::string TrussCountStr = std::to_string(TrussCount);
         writeToOutputFile("output4.csv", "Truss count:", TrussCountStr.c_str(), "");
@@ -265,7 +265,31 @@ void changeScreen(int screen) {
         writeToOutputFile("output4.csv", "Beam count:", BeamCountStr.c_str(), "");
         std::string AISuggestionCountStr = std::to_string(TrussCount);
         writeToOutputFile("output4.csv", "AI suggestions count:", AISuggestionCountStr.c_str(), "");
-        //write the ansers to the questions
+
+        //write toolbox outputs
+        //BSO::Structural_Design::SD_Building_Results& SD_results = SD_Building.get()->get_results();
+        //BSO::SD_compliance_indexing(SD_results);
+        //double initial_volume = SD_results.m_struct_volume;
+        double initial_volume = 1.65;
+
+        SD_Building.get()->remesh();
+        SD_Building.get()->analyse();
+        BSO::Structural_Design::SD_Building_Results& sd_results = SD_Building.get()->get_results();
+        BSO::SD_compliance_indexing(sd_results);
+
+        std::cout << "Free DOF's: " << SD_Building->get_points_with_free_dofs(1).size() << std::endl; //free DOF's after stabilization
+        std::cout << "Total compliance: " << sd_results.m_total_compliance << std::endl;
+        std::cout << "Total structural volume: " << sd_results.m_struct_volume << std::endl;
+        std::cout << "Structural volume added for stabilization: " << sd_results.m_struct_volume - initial_volume << std::endl;
+
+        writeToOutputFile("output4.csv", "Free DOFs:", std::to_string(SD_Building->get_points_with_free_dofs(1).size()), "");
+        writeToOutputFile("output4.csv", "Total compliance:", std::to_string(sd_results.m_total_compliance), "");
+        writeToOutputFile("output4.csv", "Initial volume:", std::to_string(initial_volume), "");
+        writeToOutputFile("output4.csv", "Total structural volume:", std::to_string(sd_results.m_struct_volume), "");
+        writeToOutputFile("output4.csv", "Structural volume added for stabilization:", std::to_string(sd_results.m_struct_volume - initial_volume), "");
+    }
+
+    if (screen == 4) {
         writeToOutputFile("output4.csv", "1..", getSelectedButtonLabel(), opinionTF.text);
     }
     if (screen == 5) {
@@ -1426,7 +1450,7 @@ void screen3() {
     drawButton("Delete diagonal rod", screenWidth - 310, 490, 200, 50, changeScreen, 12);
     drawButton("Replace beam by rod", screenWidth - 310, 430, 200, 50, changeScreen, 13);
 
-    if (AISuggestionCount == 30) {
+    if (AISuggestionCount == 7) {
     drawText("7/7 AI suggestions reached", 1570, 395, 200);
     drawButton("AI suggestion", screenWidth - 310, 330, 200, 50, buttonClicked, 1);
 	}
@@ -1711,15 +1735,21 @@ void screenAISuggestion() {
     //repeat button with a background color
     drawButtonWithBackgroundColor("AI suggestion", screenWidth - 310, 330, 200, 50, buttonClicked, 1, 0.1, 0.75, 0.9);
 
-    drawText("Choose to accept or discard the suggestion:", 1575, 240, 275);
-	//either a suggestion OR a message that the structure is stable
-    // if.. than this and else it is stable.
-    drawButtonWithBackgroundColor("Accept", 1445, 160, 150, 50, buttonClicked, 9, 0.5, 0.8, 0.5);
-    drawButtonWithBackgroundColor("Discard", 1605, 160, 150, 50, buttonClicked, 10, 1.0, 0.5, 0.5);
-        //drawText("The structure is stable.", 1575, 200, 275);
+    SD_Building.get()->remesh();
+    SD_Building.get()->analyse();
+    BSO::Structural_Design::SD_Building_Results& sd_results = SD_Building.get()->get_results();
+    BSO::SD_compliance_indexing(sd_results);
+    std::cout << "Free DOF's: " << SD_Building->get_points_with_free_dofs(1).size() << std::endl; //free DOF's after stabilization
 
-    //draw lines around it
-    boxAroundPopUp();
+    if (SD_Building->get_points_with_free_dofs(1).size() == 0) {
+		drawText("The structure is stable.", 1630, 200, 275);
+	}
+	else {
+        drawText("Choose to accept or discard the suggestion:", 1575, 240, 275);
+        drawButtonWithBackgroundColor("Accept", 1445, 160, 150, 50, buttonClicked, 9, 0.5, 0.8, 0.5);
+        drawButtonWithBackgroundColor("Discard", 1605, 160, 150, 50, buttonClicked, 10, 1.0, 0.5, 0.5);
+        boxAroundPopUp();
+	}
 }
 
 void screenCheckNext() {

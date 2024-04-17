@@ -168,6 +168,49 @@ void Zone::check_spaces()
     }
 } // check_spaces()
 
+/*
+// Helper function to find a cuboid by its ID
+Geometry::Cuboid* find_cuboid_by_id(MS_Conformal* ms_conformal, unsigned int cuboid_id) {
+    unsigned int cuboid_count = ms_conformal->get_cuboid_count();
+    for (unsigned int i = 0; i < cuboid_count; i++) {
+        Geometry::Cuboid* temp_cuboid = ms_conformal->get_cuboid(i);
+        if (temp_cuboid->get_ID() == cuboid_id) {
+            return temp_cuboid;
+        }
+    }
+    return nullptr; // No cuboid found with the given ID
+}
+
+std::vector<Geometry::Cuboid*> Zone::get_cuboids_from_spaces(MS_Conformal* ms_conformal) {
+    std::vector<Geometry::Cuboid*> cuboids;
+    for (auto& space : m_spaces) {
+        auto temp_cuboid_IDs = space->get_cuboid_IDs();
+        for (auto id : temp_cuboid_IDs) {
+            Geometry::Cuboid* cuboid = find_cuboid_by_id(ms_conformal, id);
+            if (cuboid && std::find(cuboids.begin(), cuboids.end(), cuboid) == cuboids.end()) {
+                cuboids.push_back(cuboid);
+            }
+        }
+    }
+    return cuboids;
+}
+
+ void Zone::get_cuboid_space(unsigned int space_index) {
+     for (auto& space : m_spaces) {
+         auto temp_cuboid_IDs = space->get_cuboid_IDs();
+     }
+}
+
+ std::vector<Geometry::Cuboid*> Zone::get_cuboids_space(unsigned int space_index) {
+     std::vector<Geometry::Cuboid*> cuboids;
+     for (auto& space : m_spaces) {
+          auto cuboids = space->get_cuboid_IDs();
+     }
+     return cuboids;
+ }
+
+ */
+
 bool Zone::get_whole_spaces()
 {
     return whole_spaces;

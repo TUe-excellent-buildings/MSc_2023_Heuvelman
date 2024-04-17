@@ -263,12 +263,11 @@ void visualiseZones() { //visualizes all designs if no index is given
     */
 
 
-    for (unsigned int i = initial_design_count+1; i <= designsCount; i++) {
+    for (unsigned int i = initial_design_count; i <= designsCount; i++) {
         //std::cout << "Visualizing zoned design " << i << std::endl;
         //visualise(*CF, "zones", i);
         std::cout << "Visualizing zone corresponding to " << i << std::endl;
         visualise(*CF, i, 0);
-
     }
 
     //visualise(*CF, Zoned->get_designs().size() - 1, 1);
@@ -1136,14 +1135,23 @@ void keyboard(unsigned char key, int x, int y) {
                 std::cout << "number of cuboids in zone: " << all_cuboids.size() << std::endl;
 
                 BSO::Spatial_Design::Zoning::Zone new_zone(all_cuboids);
-                new_zone.add_ID(Zoned->get_zones().size() + 1);  // Proper ID assignment
+                std::cout << "zone coords min 1: " << new_zone.get_min_coords(0) << " " << new_zone.get_min_coords(1) << " " << new_zone.get_min_coords(2) << std::endl;
+                std::cout << "zone coords max 1: " << new_zone.get_max_coords(0) << " " << new_zone.get_max_coords(1) << " " << new_zone.get_max_coords(2) << std::endl;
+                std::cout << "coords of the first curobid min " << new_zone.get_cuboids()[0]->get_min_vertex()->get_coords()[0] << new_zone.get_cuboids()[0]->get_min_vertex()->get_coords()[1] << new_zone.get_cuboids()[0]->get_min_vertex()->get_coords()[2] << std::endl;
+                //std::cout << "coords of the first curobid" << new_zone.get_cuboids()[0]->get_coords() << std::endl;
+
+                //new_zone.add_ID(Zoned->get_zones().size() + 1);
+                //new_zone.add_ID(20);
+                for (int i = 0; i < all_cuboids.size(); i++) {
+					new_zone.add_cuboid(all_cuboids[i]);
+				}
 
                 Zoned->add_zone(&new_zone, 2);
 
+                std::cout << "zone coords min 2: " << new_zone.get_min_coords(0) << " " << new_zone.get_min_coords(1) << " " << new_zone.get_min_coords(2) << std::endl;
+                std::cout << "zone coords max 2: " << new_zone.get_max_coords(0) << " " << new_zone.get_max_coords(1) << " " << new_zone.get_max_coords(2) << std::endl;
                 std::cout << "Zone successfully added." << std::endl;
                 std::cout << "Zone ID: " << new_zone.get_ID() << std::endl;
-                new_zone.get_type();
-                new_zone.get_cuboids();
                 std::cout << "Zone type: " << new_zone.get_type() << std::endl;
                 std::cout << "Zone cuboids: " << new_zone.get_cuboids().size() << std::endl;
 
@@ -1151,9 +1159,10 @@ void keyboard(unsigned char key, int x, int y) {
                 //Zoned_Design::add_zone(included_zone, 1);
 
                 auto new_zoned_design = std::make_shared<BSO::Spatial_Design::Zoning::Zoned_Design>(CF.get());
-                new_zoned_design->add_zone(&new_zone, 1);
+                new_zoned_design->add_zone(&new_zone, 2);
 
                 Zoned->add_zoned_design(new_zoned_design.get());
+                std::cout << "number of zones in design" << Zoned->get_designs().back()->get_zones().size() << std::endl;
 
                 ZoneCount++;
                 GhostZonedDesignCount++;

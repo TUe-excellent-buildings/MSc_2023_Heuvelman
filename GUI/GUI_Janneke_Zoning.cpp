@@ -209,30 +209,6 @@ void update_CF() {
     (*SD_Building).analyse();
 }
 
-/*
-void visualiseZones(unsigned int indexToVisualize = -1) {
-    //std::cout << "Total designs in Zoned: " << Zoned->get_designs().size() << std::endl;
-    unsigned int designsCount = Zoned->get_designs().size();
-
-    if (indexToVisualize < designsCount) {
-        visualise(*CF, 1, 1); //one zone independent of index
-        visualise(*CF, indexToVisualize, 1);
-        visualise(*CF, 1, indexToVisualize);
-        visualise(*CF, indexToVisualize, indexToVisualize);
-        visualise(*CF, 4, 1);
-        visualise(*CF, 1, 4);
-        visualise(*CF, "zones", indexToVisualize); //specific zoned design depending on index
-    }
-    else {
-        for (unsigned int i = 0; i < designsCount; i++) {
-            visualise(*CF, "zones", i); //all zoned designs
-        }
-    }
-}
-//either one of the visualizations called. index of zone to visualize not 1 but variable. 
-*/
-
-
 void visualiseZones() { //visualizes all designs if no index is given
     std::cout << "Total zones in Zoned: " << Zoned->get_zones().size() << std::endl;
     unsigned int zonesCount = Zoned->get_zones().size();
@@ -263,7 +239,7 @@ void visualiseZones() { //visualizes all designs if no index is given
     */
 
 
-    for (unsigned int i = initial_design_count; i <= designsCount; i++) {
+    for (unsigned int i = initial_design_count +1; i <= designsCount; i++) {
         //std::cout << "Visualizing zoned design " << i << std::endl;
         //visualise(*CF, "zones", i);
         std::cout << "Visualizing zone corresponding to " << i << std::endl;
@@ -273,8 +249,6 @@ void visualiseZones() { //visualizes all designs if no index is given
     //visualise(*CF, Zoned->get_designs().size() - 1, 1);
     //visualise(*CF, Zoned->get_designs().size() -1 , 0);
 }
-
-
 
 void checkGLError(const char* action) {
     GLenum err;
@@ -1137,13 +1111,14 @@ void keyboard(unsigned char key, int x, int y) {
                 BSO::Spatial_Design::Zoning::Zone new_zone(all_cuboids);
                 std::cout << "zone coords min 1: " << new_zone.get_min_coords(0) << " " << new_zone.get_min_coords(1) << " " << new_zone.get_min_coords(2) << std::endl;
                 std::cout << "zone coords max 1: " << new_zone.get_max_coords(0) << " " << new_zone.get_max_coords(1) << " " << new_zone.get_max_coords(2) << std::endl;
-                std::cout << "coords of the first curobid min " << new_zone.get_cuboids()[0]->get_min_vertex()->get_coords()[0] << new_zone.get_cuboids()[0]->get_min_vertex()->get_coords()[1] << new_zone.get_cuboids()[0]->get_min_vertex()->get_coords()[2] << std::endl;
+                //std::cout << "coords of the first curobid min " << new_zone.get_cuboids()[0]->get_min_vertex()->get_coords()[0] << new_zone.get_cuboids()[0]->get_min_vertex()->get_coords()[1] << new_zone.get_cuboids()[0]->get_min_vertex()->get_coords()[2] << std::endl;
                 //std::cout << "coords of the first curobid" << new_zone.get_cuboids()[0]->get_coords() << std::endl;
 
-                //new_zone.add_ID(Zoned->get_zones().size() + 1);
+                new_zone.add_ID(Zoned->get_zones().size() + 1);
                 //new_zone.add_ID(20);
                 for (int i = 0; i < all_cuboids.size(); i++) {
 					new_zone.add_cuboid(all_cuboids[i]);
+                    all_cuboids[i]->add_zone_ID(Zoned->get_zones().size() + 1);
 				}
 
                 Zoned->add_zone(&new_zone, 2);

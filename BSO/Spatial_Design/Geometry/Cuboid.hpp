@@ -56,6 +56,7 @@ public:
     unsigned int get_zone_ID(unsigned int);
 
     int get_last_zone() { return zone_IDs.back(); };
+    const std::vector<unsigned int>& get_all_zones() const { return zone_IDs; }
 
     std::vector<Vertex*> get_vertices() { return std::vector<Vertex*>(m_vertices, m_vertices + 8); }
 };

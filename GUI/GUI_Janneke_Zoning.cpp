@@ -1042,6 +1042,7 @@ void keyboard(unsigned char key, int x, int y) {
 
             std::vector<BSO::Spatial_Design::Geometry::Cuboid*> cuboids;
             std::vector<int> spaceIDs;
+            static int last_zone_id = 10;
 
             int initial_zone_count = Zoned->get_zones().size() - ZoneCount;
             int initial_design_count = Zoned->get_designs().size() - GhostZonedDesignCount;
@@ -1100,25 +1101,29 @@ void keyboard(unsigned char key, int x, int y) {
                 //std::cout << "number of spaces in zone: " << spaceIDs.size() <<  std::endl;
                 //std::cout << "number of cuboids in zone: " << all_cuboids.size() << std::endl;
 
-                BSO::Spatial_Design::Zoning::Zone new_zone(all_cuboids);
+                //BSO::Spatial_Design::Zoning::Zone new_zone(all_cuboids);
+                //auto new_zone = std::make_shared<Zone>(cuboids);
+                std::shared_ptr<BSO::Spatial_Design::Zoning::Zone> new_zone = std::make_shared<BSO::Spatial_Design::Zoning::Zone>(all_cuboids);
+                
                 //std::cout << "zone coords min 1: " << new_zone.get_min_coords(0) << " " << new_zone.get_min_coords(1) << " " << new_zone.get_min_coords(2) << std::endl;
                 //std::cout << "zone coords max 1: " << new_zone.get_max_coords(0) << " " << new_zone.get_max_coords(1) << " " << new_zone.get_max_coords(2) << std::endl;
                 //std::cout << "coords of the first curobid min " << new_zone.get_cuboids()[0]->get_min_vertex()->get_coords()[0] << new_zone.get_cuboids()[0]->get_min_vertex()->get_coords()[1] << new_zone.get_cuboids()[0]->get_min_vertex()->get_coords()[2] << std::endl;
                 //std::cout << "coords of the first curobid" << new_zone.get_cuboids()[0]->get_coords() << std::endl;
 
-                new_zone.add_ID(Zoned->get_zones().size() + 1);
+                //new_zone.add_ID(Zoned->get_zones().size() + 1);
+                new_zone->add_ID(++last_zone_id);
                 //new_zone.add_ID(20);
                 for (int i = 0; i < all_cuboids.size(); i++) {
-					new_zone.add_cuboid(all_cuboids[i]);
+					new_zone->add_cuboid(all_cuboids[i]);
                     all_cuboids[i]->add_zone_ID(Zoned->get_zones().size() + 1);
 				}
 
-                Zoned->add_zone(&new_zone, 2);
+                Zoned->add_zone(new_zone.get(), 2);
 
                 //std::cout << "zone coords min 2: " << new_zone.get_min_coords(0) << " " << new_zone.get_min_coords(1) << " " << new_zone.get_min_coords(2) << std::endl;
                 //std::cout << "zone coords max 2: " << new_zone.get_max_coords(0) << " " << new_zone.get_max_coords(1) << " " << new_zone.get_max_coords(2) << std::endl;
                 std::cout << "Zone successfully added." << std::endl;
-                std::cout << "Zone ID: " << new_zone.get_ID() << std::endl;
+                std::cout << "Zone ID: " << new_zone->get_ID() << std::endl;
                 //std::cout << "Zone type: " << new_zone.get_type() << std::endl;
                 //std::cout << "Zone cuboids: " << new_zone.get_cuboids().size() << std::endl;
 
@@ -1126,11 +1131,22 @@ void keyboard(unsigned char key, int x, int y) {
                 //Zoned_Design::add_zone(included_zone, 1);
 
                 auto new_zoned_design = std::make_shared<BSO::Spatial_Design::Zoning::Zoned_Design>(CF.get());
-                new_zoned_design->add_zone(&new_zone, 2);
+                new_zoned_design->add_zone(new_zone.get(), 2);
 
                 Zoned->add_zoned_design(new_zoned_design.get());
                 //std::cout << "number of zones in design" << Zoned->get_designs().back()->get_zones().size() << std::endl;
                 selfCreatedZoneIDs.push_back(Zoned->get_designs().size());
+
+                if (!Zoned->get_zones().empty()) {
+                    std::cout << "Zone IDs in Zoned: ";
+                    for (auto& zone : Zoned->get_zones()) {
+                        std::cout << zone->get_ID() << " ";
+                    }
+                    std::cout << std::endl;
+                }
+                else {
+                    std::cout << "No zones currently in Zoned." << std::endl;
+                }
 
                 ZoneCount++;
                 GhostZonedDesignCount++;
@@ -1217,6 +1233,7 @@ void keyboard(unsigned char key, int x, int y) {
             int initial_zone_count = Zoned->get_zones().size() - ZoneCount;
             int initial_design_count = Zoned->get_designs().size() - GhostZonedDesignCount;
 
+            /*//real function
             if (!opinionTF11.text.empty()) {
                 std::cout << "Entered text: " << opinionTF11.text << std::endl;
                 writeToProcessFile("process.csv", "Create Zoned Design", opinionTF11.text);
@@ -1249,8 +1266,26 @@ void keyboard(unsigned char key, int x, int y) {
                 validInput = false;
                 DrawInvalidInput = true;
             }
+            */
 
-            /*
+            //just to test if it works
+            std::stringstream ss(opinionTF11.text);
+            std::string item;
+            while (getline(ss, item, ',')) {
+                try {
+                    int zone_ID = std::stoi(item);
+                    validInput = false;
+                    DrawInvalidInput = true;
+                    zoneIDs.push_back(zone_ID);
+                }
+				catch (std::exception& e) {
+					std::cout << "Error: Invalid zone ID input '" << item << "'." << std::endl;
+					validInput = false;
+					DrawInvalidInput = true;
+				}
+
+
+            /* //with ifs etc. 
             if (validInput) {
                 auto current_zones = Zoned->get_zones();
                 for (int id : zoneIDs) {
@@ -1286,6 +1321,40 @@ void keyboard(unsigned char key, int x, int y) {
             }
                 */
 
+                //just to test if it works
+                auto current_zones = Zoned->get_zones();  // Assuming this correctly retrieves a vector of zones
+                std::vector<unsigned int> validZoneIDs;
+
+                for (int id : zoneIDs) {
+                    int actual_id = id;
+                        validZoneIDs.push_back(actual_id);  // Collect valid IDs
+                }
+                std::cout << "test goes into ifValid" << std::endl;
+
+
+                std::cout << "test start ifValid" << std::endl;
+                BSO::Spatial_Design::Zoning::Zoned_Design* temporary_new_design = Zoned->make_zoning2(validZoneIDs);
+                std::cout << "temporary new zoned design: " << temporary_new_design << std::endl;
+                Zoned->add_zoned_design(temporary_new_design);
+
+                for (auto last_zoneIDs : Zoned->get_designs().back()->get_zones()) {
+                    std::cout << "all zones inside of the last zoned design: " << last_zoneIDs->get_ID() << std::endl;
+                }
+
+                selfCreatedZonedDesignIDs.push_back(Zoned->get_designs().size());  // Assume this is the index of the newly added design
+                std::cout << "New design ID: " << Zoned->get_designs().size() << std::endl;
+
+                visualiseZones();  // Refresh the visual representation of zones
+
+                ZonedDesignCount++;
+                GhostZonedDesignCount++;
+                opinionTF11.text = ""; // Clear the input string after processing
+                changeScreen(2);  // Move to the next screen in GUI
+
+
+                }
+
+            /*
             if (validInput) {
                 auto current_zones = Zoned->get_zones();  // Assuming this correctly retrieves a vector of zones
                 std::vector<unsigned int> validZoneIDs;
@@ -1302,11 +1371,18 @@ void keyboard(unsigned char key, int x, int y) {
                         break;  // Exit if any ID is invalid
                     }
                 }
-                std::cout << "test 1" << std::endl;
+                std::cout << "test goes into ifValid" << std::endl;
 
                 if (validInput && !validZoneIDs.empty()) {
-                    std::cout << "test 2" << std::endl;
-                    Zoned->make_zoning2(validZoneIDs);  // Call the function to create and add the new design
+                    std::cout << "test start ifValid" << std::endl;
+                    BSO::Spatial_Design::Zoning::Zoned_Design* temporary_new_design = Zoned->make_zoning2(validZoneIDs);
+                    std::cout << "temporary new zoned design: " << temporary_new_design << std::endl;
+                    Zoned->add_zoned_design(temporary_new_design);
+
+                    for (auto last_zoneIDs : Zoned->get_designs().back()->get_zones()) {
+                        std::cout << "all zones inside of the last zoned design: " << last_zoneIDs->get_ID() << std::endl;
+                    }
+
 
                     selfCreatedZonedDesignIDs.push_back(Zoned->get_designs().size());  // Assume this is the index of the newly added design
                     std::cout << "New design ID: " << Zoned->get_designs().size() << std::endl;
@@ -1322,6 +1398,7 @@ void keyboard(unsigned char key, int x, int y) {
                     std::cerr << "No valid zones were provided for new zoned design." << std::endl;
                 }
             }
+            */
 
             std::cout << "Total zones in Zoned: " << Zoned->get_zones().size() << std::endl;
             std::cout << "Total designs in Zoned: " << Zoned->get_designs().size() << std::endl;
@@ -2259,7 +2336,7 @@ void assignmentDescriptionScreen() {
     drawText("Selected Assignment: 1 'Human zoning assignment'​", 1500, 740, 400);
     drawText("Expected duration: 40 minutes​", 1500, 710, 400);
     drawText("Read the following instructions carefully:​", 1500, 650, 400);
-    drawText("You will in a moment go through a design task. You are asked to perform this task in the way you are used to go about a commission in your daily practice. It is important that you say aloud everything that you think or do in designing. ​So, in every step, explain what you do and why you do it. Try to keep speaking constantly and not be silent for longer than 20 seconds. ​Please speak English. Good luck!​",
+    drawText("You will in a moment go through a design task. It is important that you say aloud everything that you think or do in designing. ​So, in every step, explain what you do and why you do it. Try to keep speaking constantly and not be silent for longer than 20 seconds. ​Please speak English. Good luck!​",
     1500, 600, 400);
     //underline ENGLISH
     //glLineWidth(2.0);
@@ -2706,7 +2783,8 @@ void screen5() {
 }
 
 void screen5b() {
-    drawText("Thank you for your participation, this is the end of the assignment.", 600, 800, 600);
+    drawText("Thank you very for your participation! This is the end of the assignment.", 600, 800, 600);
+    drawText("Don't forget to follow the 'after the assignment' steps in the set-up guide.", 600, 700, 600);
     LineDivisionScreen();
     drawButton("-> | End", 1590, 50, 200, 50, closeWindowCallback, 0);
 }

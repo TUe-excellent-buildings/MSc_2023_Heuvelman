@@ -2789,20 +2789,42 @@ void Zoned_Design::make_zoning()
 
 } // make_zoning()
 
-void Zoned_Design::make_zoning2(const std::vector<unsigned int>& zoneIDs) {
+Zoned_Design* Zoned_Design::make_zoning2(const std::vector<unsigned int>& zoneIDs) {
+    std::cout << "test 0 start make zoning" << std::endl;
     Zoned_Design* newZonedDesign = new Zoned_Design(m_CF);
-
-    for (auto zoneID : zoneIDs) {
-        Zone* zone = Zoned_Design(m_CF).get_zones()[zoneID];  // Assuming MS_Conformal has a method to get zones by ID
-        if (zone) {
-            newZonedDesign->m_zones.push_back(zone);
-            newZonedDesign->add_cuboids(zone);
-            m_zoned.push_back(newZonedDesign);
-        }
-        else {
-            std::cerr << "Zone with ID " << zoneID << " not found." << std::endl;
-        }
+    std::cout << "input: ";
+    for (const auto& id : zoneIDs) {
+        std::cout << id << " ";
     }
+    std::cout << std::endl;
+
+    std::cout << "Current Zone IDs in m_zones: ";
+    for (const auto& zone : m_zones) {
+        std::cout << zone->get_ID() << " ";
+    }
+    std::cout << std::endl;
+
+
+    std::cout << "test 1 new zoned design defined" << std::endl;
+    for (auto zoneID : zoneIDs) {
+        std::cout << "inside forloop. Checking zone with ID " << zoneID << "." << std::endl;
+        Zone* zone = get_zone_by_ID(zoneID); 
+        std::cout << "inside foloop. Zone with ID " << zoneID << " found." << std::endl;
+        newZonedDesign->m_zones.push_back(zone);
+        std::cout << "inside forloop. zones pushed into m_zones . test 2" << std::endl;
+        newZonedDesign->add_cuboids(zone);
+        std::cout << "inside. cuboids added. test 3" << std::endl;
+        std::cout << "newZonedDesign : " << newZonedDesign << std::endl;
+        //m_zoned.push_back(newZonedDesign);
+    }
+    return newZonedDesign;
+}
+
+Zone* Zoned_Design::get_zone_by_ID(int ID) {
+	for (auto zone : m_zones) {
+		if (ID == zone->get_ID()) return zone;
+	}
+    throw std::runtime_error("Zone with ID " + std::to_string(ID) + " not found. get zone by ID");
 }
 
 void Zoned_Design::prepare_cuboids()

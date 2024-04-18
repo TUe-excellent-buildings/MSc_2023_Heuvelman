@@ -1422,7 +1422,7 @@ void assignmentDescriptionScreen() {
     drawText("Selected Assignment: 2 'Human stabilization assignment'​", 1500, 740, 400);
     drawText("Expected duration: 20 minutes​", 1500, 710, 400);
     drawText("Read the following instructions carefully:​", 1500, 650, 400);
-    drawText("You will in a moment go through a design task. You are asked to perform this task in the way you are used to go about a commission in your daily practice. It is important that you say aloud everything that you think or do in designing. ​So, in every step, explain what you do and why you do it. Try to keep speaking constantly and not be silent for longer than 20 seconds. ​Please speak English. Good luck!​",
+    drawText("You will in a moment go through a design task. It is important that you say aloud everything that you think or do in designing. ​So, in every step, explain what you do and why you do it. Try to keep speaking constantly and not be silent for longer than 20 seconds. ​Please speak English. Good luck!​",
         1500, 600, 400);
     //underline ENGLISH
     //glLineWidth(2.0);
@@ -1654,7 +1654,8 @@ void screen5() {
 
 //ID 17
 void screen5b() {
-    drawText("Thank you for your participation, this is the end of the assignment.", 600, 800, 600);
+    drawText("Thank you very for your participation! This is the end of the assignment.", 600, 800, 600);
+    drawText("Don't forget to follow the 'after the assignment' steps in the set-up guide.", 600, 700, 600);
     LineDivisionScreen();
     drawButton("-> | End", 1590, 50, 200, 50, closeWindowCallback, 0);
 }

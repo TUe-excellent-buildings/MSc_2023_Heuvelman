@@ -97,8 +97,9 @@ public:
 	std::pair<double, unsigned int> get_min_compliance();
 	double get_compliance(unsigned int);
 
+	Zone* get_zone_by_ID(int ID);
 	void make_zoning();
-	void make_zoning2(const std::vector<unsigned int>& zoneIDs);
+	Zoned_Design* make_zoning2(const std::vector<unsigned int>& zoneIDs);
 	void prepare_cuboids();
 	std::vector<int> get_zoned_floors();
 	std::vector<int> get_floor_coords();

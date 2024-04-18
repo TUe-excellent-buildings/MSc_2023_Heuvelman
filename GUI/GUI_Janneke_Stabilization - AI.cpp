@@ -358,6 +358,16 @@ void buttonClicked(int variable) {
 
     if (selectedButtonLabel == "Accept") {
         writeToProcessFile("process4.csv", "AI suggestion", getSelectedButtonLabel());
+
+        int numBeamsAdded = BSO::Structural_Design::Stabilization::Stabilize::getTrussesSubstituted();
+        int numTrussesAdded = BSO::Structural_Design::Stabilization::Stabilize::getTrussAddedCount();
+        if (numTrussesAdded > 0) {
+            TrussCount++;
+        }
+        else if (numBeamsAdded > 0) {
+            BeamCount += numBeamsAdded; // Increment BeamCount by the number of beams added
+        }
+
         changeScreen(2);
     }
     else if (selectedButtonLabel == "Discard") {
@@ -365,16 +375,26 @@ void buttonClicked(int variable) {
 
         //remove added elements
         int numBeamsAdded = BSO::Structural_Design::Stabilization::Stabilize::getTrussesSubstituted();
-        std::cout << "beams substituted GUI" << numBeamsAdded << std::endl;
         int numTrussesAdded = BSO::Structural_Design::Stabilization::Stabilize::getTrussAddedCount();
-        std::cout << "trusses substituted GUI" << numTrussesAdded << std::endl;
+
         if (numTrussesAdded > 0) {
 			SD_Building->removeLastComponent();
 		}
         else if (numBeamsAdded > 0) {
-			for (int i = 0; i < numBeamsAdded; i++) {
-				//SD_Building->removeLastComponent();
-			}
+            for (int i = 0; i < numBeamsAdded; i++) {
+                bool isBeam;
+                bool isTruss;
+                bool isGhost;
+                bool isShell;
+                int componentCount;
+                // Calculate the index of the element to delete based on the current iteration
+                int elementIndex = SD_Building->get_component_count() - i - 1; // Corrected method name and logic
+                std::pair<BSO::Structural_Design::Components::Point*, BSO::Structural_Design::Components::Point*> p_delete =
+                Stab_model->getBoundaryPoints(elementIndex, isBeam, isGhost, isShell, isTruss, componentCount);
+                std::cout << "Deleting element at index: " << elementIndex << std::endl; // More descriptive message
+                Stab_model->delete_element(elementIndex);
+                Stab_model->create_manual_truss(p_delete);
+            }
 		}
 
         changeScreen(2);

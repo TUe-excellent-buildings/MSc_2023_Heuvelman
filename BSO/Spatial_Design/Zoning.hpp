@@ -98,6 +98,7 @@ public:
 	double get_compliance(unsigned int);
 
 	void make_zoning();
+	void make_zoning2(const std::vector<unsigned int>& zoneIDs);
 	void prepare_cuboids();
 	std::vector<int> get_zoned_floors();
 	std::vector<int> get_floor_coords();

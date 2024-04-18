@@ -154,6 +154,7 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 		Spatial_Design::Geometry::Rectangle* return_rectangle(Components::Point* p1, Components::Point* p2);
 		void delete_element(int ID);
 
+
 		// Output:
 		void show_free_dofs();
 		void show_singulars();

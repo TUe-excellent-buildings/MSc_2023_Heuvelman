@@ -2789,6 +2789,22 @@ void Zoned_Design::make_zoning()
 
 } // make_zoning()
 
+void Zoned_Design::make_zoning2(const std::vector<unsigned int>& zoneIDs) {
+    Zoned_Design* newZonedDesign = new Zoned_Design(m_CF);
+
+    for (auto zoneID : zoneIDs) {
+        Zone* zone = Zoned_Design(m_CF).get_zones()[zoneID];  // Assuming MS_Conformal has a method to get zones by ID
+        if (zone) {
+            newZonedDesign->m_zones.push_back(zone);
+            newZonedDesign->add_cuboids(zone);
+            m_zoned.push_back(newZonedDesign);
+        }
+        else {
+            std::cerr << "Zone with ID " << zoneID << " not found." << std::endl;
+        }
+    }
+}
+
 void Zoned_Design::prepare_cuboids()
 {
     unsigned int cuboid_count = m_CF->get_cuboid_count();

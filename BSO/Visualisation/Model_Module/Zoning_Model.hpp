@@ -75,12 +75,26 @@ namespace BSO { namespace Visualisation
             for (unsigned int k = 0; k < ms_conf.get_cuboid_count(); k++)
             {
                 unsigned int zone_ID = ms_conf.get_cuboid(k)->get_zone_ID(i);
+                std::cout << "i" << i << std::endl;
+                std::cout << "Cuboid " << k << ": Zone ID = " << zone_ID << std::endl;
                 if (std::find(zone_IDs.begin(), zone_IDs.end(), zone_ID) == zone_IDs.end())
                 {
                     zone_IDs.push_back(zone_ID);
                 }
             }
             std::sort(zone_IDs.begin(), zone_IDs.end());
+            
+
+            for (unsigned int k = 0; k < ms_conf.get_cuboid_count(); k++)
+            {
+                auto all_zone_IDs = ms_conf.get_cuboid(k)->get_all_zones();  // Retrieve all zone IDs for the cuboid at index k
+                std::cout << "Cuboid " << k << " is associated with zone IDs: ";
+                for (auto zone_ID : all_zone_IDs) {  // Iterate over each zone ID
+                    std::cout << zone_ID << " ";
+                }
+                std::cout << std::endl;  // Print newline for better readability between cuboid entries
+            }
+
 
             for (unsigned int k = 0; k < zone_IDs.size(); k++)
             {
@@ -176,10 +190,8 @@ namespace BSO { namespace Visualisation
             double green = pow((0.5 + 0.5*cos(2*PI*color_gradient - PI)), (eta/3));
             double blue = 1 - ((tanh(beta * (1 - eta)) + tanh(beta * (color_gradient - (1 - eta)))) /
                                 (tanh(beta * (1 - eta)) + tanh(beta * eta)));
-            double alpha = 0.25;
+            double alpha = 0.1;
             double alpha2 = 1.0;
-
-
 
             // assign the color values to the graphic properties structure
             polygon_props temp_props;
@@ -216,12 +228,12 @@ namespace BSO { namespace Visualisation
             //unsigned int zone_ID = ms_conf.get_cuboid(k)->get_all_zones();
             auto all_zone_ID = ms_conf.get_cuboid(k)->get_all_zones();  // This now returns a vector of all zone IDs
             for (auto zone_ID : all_zone_ID) {  // Iterate over each zone ID
-                std::cout << "zone_ID used for visual: " << zone_ID << std::endl;
+                //std::cout << "zone_ID used for visual: " << zone_ID << std::endl;
 
                 if (zone_ID > highest_zone_ID) {
                     highest_zone_ID = zone_ID;  // Update if the current zone_ID is greater
                 }
-                std::cout << "Highest zone_ID encountered: " << highest_zone_ID << std::endl;
+                //std::cout << "Highest zone_ID encountered: " << highest_zone_ID << std::endl;
 
                 temp_coords_1 = ms_conf.get_cuboid(k)->get_max_vertex()->get_coords();
                 temp_coords_2 = ms_conf.get_cuboid(k)->get_min_vertex()->get_coords();
@@ -239,7 +251,7 @@ namespace BSO { namespace Visualisation
                     add_cube(&cluster_props[1], &cluster_lprops[1], min, max, polygons);
                 }
                 */
-                std::cout << "zones_ID " << zones_ID << std::endl;
+                //std::cout << "zones_ID " << zones_ID << std::endl;
                 if (zone_ID == 10 + zones_ID)
                 {
                     add_cube(&cluster_props2[1], &cluster_lprops[0], min, max, polygons);

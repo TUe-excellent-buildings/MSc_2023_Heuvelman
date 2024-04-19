@@ -5,7 +5,8 @@
 #include <chrono>
 #include <ctime>
 #include <cstdlib> // for exit()
-
+#include <fstream>
+#include <string>
 
 #include <BSO/Spatial_Design/Movable_Sizable.hpp>
 #include <BSO/Spatial_Design/Conformation.hpp>
@@ -98,6 +99,7 @@ const int screenHeight = 1000;
 int TrussCount = 0;
 int BeamCount = 0;
 int AISuggestionCount = 0;
+int ModificationCount = 0;
 // Draw a message when input is invalid
 bool DrawInvalidInput = false;
 
@@ -139,6 +141,8 @@ void setup3D();
 void setup_models();
 void initializeTextures();
 void displayTexture(GLuint texture, float x, float y, float width, float height);
+void yesButtonPressed(int screen);
+void displayPleaseWait();
 
 void visualise(BSO::Spatial_Design::MS_Building& ms_building)
 {
@@ -174,22 +178,35 @@ void checkGLError(const char* action) {
 std::ofstream outputFile;
 std::ofstream processFile;
 
-//creating output in excel file
-void writeToOutputFile(std::string outputFileName, std::string question, std::string userAnswer, std::string userExplanation) {
+void writeToOutputFile(const std::string& outputFileName, const std::string& question, const std::string& userAnswer, const std::string& userExplanation) {
     static bool headerPrinted = false;
     outputFile.open("output4.csv", std::ios::app);
+
+    auto escapeCSVField = [](const std::string& field) -> std::string {
+        std::string escapedField = "\"";
+        for (char ch : field) {
+            if (ch == '"') {
+                escapedField += "\"\""; // Replace " with ""
+            }
+            else {
+                escapedField += ch;
+            }
+        }
+        escapedField += "\"";
+        return escapedField;
+        };
+
     if (!headerPrinted) {
         outputFile << "Question,User Answer,User Explanation\n";
         headerPrinted = true;
     }
-    if (!userExplanation.empty()) {
-        outputFile << question << "," << userAnswer << "," << userExplanation << "\n";
-    }
-    else {
-        outputFile << question << "," << userAnswer << ",\n";
-    }
+    outputFile << escapeCSVField(question) << ","
+        << escapeCSVField(userAnswer) << ","
+        << escapeCSVField(userExplanation) << "\n";
+
     outputFile.close();
 }
+
 
 void writeToProcessFile(std::string processFileName, std::string action, std::string userInput) {
     //headers are only printed once, so the static variable for each column
@@ -254,6 +271,29 @@ void changeScreen(int screen) {
         AISuggestionCount++;
         Stab_model->SD_grammar_stabilize3(SD_Building.get(), CF.get());
         visualise(SD_Building.get(), 1);
+
+        int numBeamsAdded = BSO::Structural_Design::Stabilization::Stabilize::getTrussesSubstituted();
+        int numTrussesAdded = BSO::Structural_Design::Stabilization::Stabilize::getTrussAddedCount();
+
+        if (numTrussesAdded > 0) {
+            int elementIndex = SD_Building->get_component_count()- 1;
+            std::string ElementIndexStr = std::to_string(elementIndex);
+            writeToProcessFile("process4.csv", "AI suggestion: truss", ElementIndexStr.c_str());
+        }
+        else if (numBeamsAdded > 0) {
+            std::string elementIndicesStr = "";
+            for (int i = numBeamsAdded - 1; i >= 0; i--) {
+                int elementIndex = SD_Building->get_component_count() - i - 1;
+                elementIndicesStr += std::to_string(elementIndex);
+                if (i > 0) { 
+                    elementIndicesStr += ", ";
+                }
+            }
+            writeToProcessFile("process4.csv", "AI suggestion: beams", elementIndicesStr.c_str());
+        }
+        else {
+			writeToProcessFile("process4.csv", "AI suggestion", "No elements added");
+		}
     }
 
     if (screen == 1) {
@@ -269,6 +309,8 @@ void changeScreen(int screen) {
         writeToOutputFile("output4.csv", "Beam count:", BeamCountStr.c_str(), "");
         std::string AISuggestionCountStr = std::to_string(TrussCount);
         writeToOutputFile("output4.csv", "AI suggestions count:", AISuggestionCountStr.c_str(), "");
+        std::string ModificationCountStr = std::to_string(ModificationCount);
+        writeToOutputFile("output4.csv", "Total modifications/iterations:", ModificationCountStr.c_str(), "");
 
         //write toolbox outputs
         //BSO::Structural_Design::SD_Building_Results& SD_results = SD_Building.get()->get_results();
@@ -357,6 +399,7 @@ void buttonClicked(int variable) {
     }
 
     if (selectedButtonLabel == "Accept") {
+        ModificationCount++;
         writeToProcessFile("process4.csv", "AI suggestion", getSelectedButtonLabel());
 
         int numBeamsAdded = BSO::Structural_Design::Stabilization::Stabilize::getTrussesSubstituted();
@@ -371,6 +414,7 @@ void buttonClicked(int variable) {
         changeScreen(2);
     }
     else if (selectedButtonLabel == "Discard") {
+        ModificationCount++;
         writeToProcessFile("process4.csv", "AI suggestion", getSelectedButtonLabel());
 
         //remove added elements
@@ -907,6 +951,7 @@ void keyboard(unsigned char key, int x, int y) {
                     // Change the screen after processing both text fields
                     changeScreen(2);
                     TrussCount++;
+                    ModificationCount++;
                     std::cout << "last component: " << SD_Building->getLastComponent() << std::endl;
                 }
             }
@@ -983,6 +1028,7 @@ void keyboard(unsigned char key, int x, int y) {
                     opinionTF9.text = ""; // Clear the input string after processing
                     changeScreen(2);
                     BeamCount++;
+                    ModificationCount++;
                 }
                 else {
                     // Handle invalid input gracefully
@@ -1072,6 +1118,7 @@ void keyboard(unsigned char key, int x, int y) {
                     opinionTF10.text = ""; // Clear the input string after processing
                     changeScreen(2);
                     TrussCount--;
+                    ModificationCount++;
                 }
                 else {
                     // Handle invalid input gracefully
@@ -1145,6 +1192,7 @@ void keyboard(unsigned char key, int x, int y) {
                     opinionTF11.text = ""; // Clear the input string after processing
                     changeScreen(2);
                     BeamCount--;
+                    ModificationCount++;
                 }
                 else {
                     // Handle invalid input gracefully
@@ -1475,24 +1523,29 @@ GLuint imgZoningRender;
 GLuint imgStabilizationRender;
 
 void initializeTextures() {
-    imgZoningRender = loadImageAsTexture("C:/Users/20183767/source/repos/MSc_2023_Heuvelman/GUI/JH_Zoning_Assignment_GUI/Zoning BSD render.png");
-    imgStabilizationRender = loadImageAsTexture("C:/Users/20183767/source/repos/MSc_2023_Heuvelman/GUI/JH_Stabilization_Assignment_GUI_new/Stabilization BSD render.png");
+    imgZoningRender = loadImageAsTexture("Zoning BSD render.png");
+    imgStabilizationRender = loadImageAsTexture("Stabilization BSD render.png");
     // Load more textures as needed
 }
 
 // ID 0: Main screen
 void mainScreen() {
     glColor3f(0.0, 0.0, 0.0);
-    drawText("Welcome to this experiment for a SED graduation project. We are glad to have you here and hope you will have a nice experience.", 930, 820, 400);
-    drawText("In which assignment will you participate?", 930, 740, 400);
+    drawText("Welcome to this experiment for a Structural Engineering and Design graduation project. We are glad to have you here and hope you will have a nice experience.", 1500, 550, 400);
+    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 1);
 
-    drawButton("Assignment 1", 800, 650, 200, 50, buttonClicked, 1);
-    drawButton("Assignment 2", 800, 580, 200, 50, buttonClicked, 1);
-    drawButton("Assignment 3", 800, 510, 200, 50, buttonClicked, 1);
-    drawButton("Assignment 4", 800, 440, 200, 50, changeScreen, 1);
-
-    // Draw the "Next step" button in the bottom right corner
-    //drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 1);
+    //Draw the render
+    glEnable(GL_LIGHTING); // Enable to show image becomes black
+    glEnable(GL_LIGHT0); // Enable to prevent image becomes black
+    GLfloat emissionColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f }; // Emit the texture's color
+    glMaterialfv(GL_FRONT, GL_EMISSION, emissionColor); // Apply to front face
+    float picWidth = 1200; // Width of the picture as specified.\]]]]]]]]]]]]]]]]]
+    float picHeight = 900;
+    displayTexture(imgStabilizationRender, 50, 50, picWidth, picHeight);
+    GLfloat defaultEmission[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+    glMaterialfv(GL_FRONT, GL_EMISSION, defaultEmission);
+    glDisable(GL_LIGHTING); //Disbale for other GUI elements
+    glDisable(GL_LIGHT0); //Disbale for other GUI elements
 }
 
 // ID 1: Assignment description screen
@@ -1561,6 +1614,7 @@ void screen3() {
     drawButton("Delete diagonal rod", screenWidth - 310, 490, 200, 50, changeScreen, 12);
     drawButton("Replace beam by rod", screenWidth - 310, 430, 200, 50, changeScreen, 13);
 
+    //Disable AI button after 7 suggestions
     if (AISuggestionCount == 7) {
     drawText("7/7 AI suggestions reached", 1570, 395, 200);
     drawButton("AI suggestion", screenWidth - 310, 330, 200, 50, buttonClicked, 1);
@@ -1568,8 +1622,6 @@ void screen3() {
     else {
     drawButton("AI suggestion", screenWidth - 310, 330, 200, 50, changeScreen, 16);
     }
-
-    //drawButton("Hide member numbers", 1100, 50, 200, 50, buttonClicked, 1);
 
     // Draw the message at the top of the structure illustration
     drawBoldText("Stabilize the structural design with minimal structural adjustments. You may use AI suggestions up to a maximum of seven times. Say aloud everything you think and do; thus, explain your reasoning.", 1550, screenHeight - 35, 280, 1);
@@ -1622,7 +1674,7 @@ void screen4a() {
 
 // ID 4: Screen 4b
 void screen4b() {
-    drawText("2. How would you rate the level of ease in performing this assignment?", 600, 800, 600);
+    drawText("2. How would you rate the level of ease in performing this assignment          (so, the stabilization process)?", 600, 800, 600);
     drawButton("1", 300, 725, 50, 30, buttonClicked, 1);
     drawButton("2", 350, 725, 50, 30, buttonClicked, 2);
     drawButton("3", 400, 725, 50, 30, buttonClicked, 3);
@@ -1847,12 +1899,14 @@ void screenAISuggestion() {
     //repeat button with a background color
     drawButtonWithBackgroundColor("AI suggestion", screenWidth - 310, 330, 200, 50, buttonClicked, 1, 0.1, 0.75, 0.9);
 
+    //Get suggestions from the toolbox
     SD_Building.get()->remesh();
     SD_Building.get()->analyse();
     BSO::Structural_Design::SD_Building_Results& sd_results = SD_Building.get()->get_results();
     BSO::SD_compliance_indexing(sd_results);
     std::cout << "Free DOF's: " << SD_Building->get_points_with_free_dofs(1).size() << std::endl; //free DOF's after stabilization
 
+    //Type of suggestion
     if (SD_Building->get_points_with_free_dofs(1).size() == 0) {
 		drawText("The structure is stable.", 1630, 200, 275);
 	}
@@ -1861,6 +1915,30 @@ void screenAISuggestion() {
         drawButtonWithBackgroundColor("Accept", 1445, 160, 150, 50, buttonClicked, 9, 0.5, 0.8, 0.5);
         drawButtonWithBackgroundColor("Discard", 1605, 160, 150, 50, buttonClicked, 10, 1.0, 0.5, 0.5);
         boxAroundPopUp();
+	}
+
+    //Show the user which element(s) were added or replaced by AI
+    int numBeamsAdded = BSO::Structural_Design::Stabilization::Stabilize::getTrussesSubstituted();
+    int numTrussesAdded = BSO::Structural_Design::Stabilization::Stabilize::getTrussAddedCount();
+
+    if (numTrussesAdded > 0) {
+        int elementIndex = SD_Building->get_component_count() - 1;
+        std::string ElementIndexStr = "Element added: " + std::to_string(elementIndex);
+        drawText(ElementIndexStr.c_str(), 1575, 275, 275);
+    }
+    else if (numBeamsAdded > 0) {
+        std::string elementIndicesStr = "Elements added: ";
+        for (int i = numBeamsAdded - 1; i >= 0; i--) {
+            int elementIndex = SD_Building->get_component_count() - i - 1;
+            elementIndicesStr += std::to_string(elementIndex);
+            if (i > 0) {  // Add a comma and space except after the last index
+                elementIndicesStr += ", ";
+            }
+        }
+        drawText(elementIndicesStr.c_str(), 1575, 275, 275);
+    }
+    else {
+        drawText("No element is added.", 1630, 230, 275);
 	}
 }
 
@@ -1886,17 +1964,40 @@ void screenCheckNext() {
     drawText("Are you sure you want to continue? Once you continue to the next step, you cannot go back to this step.      Continuing can take a few seconds.", 880, 620, 200);
 }
 
+void yesButtonPressed(int screen) {
+    // Draw and display the "please wait" screen immediately
+    displayPleaseWait();
+    // Now change the screen
+    changeScreen(screen);
+}
+
+void displayPleaseWait() {
+    // Clear the screen or draw over the current content
+    glClearColor(0.95f, 0.95f, 0.95f, 1.0f); // Very light gray background
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Setup for 2D drawing
+    setup2D();
+
+    // Use a simple function to draw centered text
+    drawText("Loading...", 950, 500, 200);
+
+    // Flush the OpenGL commands and swap buffers to display the text immediately
+    glFlush();  // Ensure all OpenGL commands are processed
+    glutSwapBuffers();
+}
+
 void screenCheckNext1() {
     screen3();
     screenCheckNext();
-    drawButton("Yes", 790, 460, 100, 30, changeScreen, 3);
+    drawButton("Yes", 790, 460, 100, 30, yesButtonPressed, 3);
     drawButton("No", 910, 460, 100, 30, changeScreen, 2);
 }
 
 void screenCheckNext2() {
     assignmentDescriptionScreen();
     screenCheckNext();
-    drawButton("Yes", 790, 460, 100, 30, changeScreen, 2);
+    drawButton("Yes", 790, 460, 100, 30, yesButtonPressed, 2);
     drawButton("No", 910, 460, 100, 30, changeScreen, 1);
 }
 

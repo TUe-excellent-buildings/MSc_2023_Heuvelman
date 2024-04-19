@@ -6,8 +6,6 @@
 #include <ctime>
 #include <cstdlib> // for exit()
 
-// #define AUTOSTABILIZE
-
 #include <BSO/Spatial_Design/Movable_Sizable.hpp>
 #include <BSO/Spatial_Design/Conformation.hpp>
 #include <BSO/Spatial_Design/Zoning.hpp>
@@ -140,6 +138,9 @@ void setup3D();
 void setup_models();
 void initializeTextures();
 void displayTexture(GLuint texture, float x, float y, float width, float height);
+void yesButtonPressed(int screen);
+void displayPleaseWait();
+
 
 void visualise(BSO::Spatial_Design::MS_Building& ms_building)
 {
@@ -180,19 +181,32 @@ std::ofstream outputFile;
 std::ofstream processFile;
 
 //creating output in excel file
-void writeToOutputFile(std::string outputFileName, std::string question, std::string userAnswer, std::string userExplanation) {
+void writeToOutputFile(const std::string& outputFileName, const std::string& question, const std::string& userAnswer, const std::string& userExplanation) {
     static bool headerPrinted = false;
     outputFile.open("output2.csv", std::ios::app);
+
+    auto escapeCSVField = [](const std::string& field) -> std::string {
+        std::string escapedField = "\"";
+        for (char ch : field) {
+            if (ch == '"') {
+                escapedField += "\"\""; // Replace " with ""
+            }
+            else {
+                escapedField += ch;
+            }
+        }
+        escapedField += "\"";
+        return escapedField;
+        };
+
     if (!headerPrinted) {
         outputFile << "Question,User Answer,User Explanation\n";
         headerPrinted = true;
     }
-    if (!userExplanation.empty()) {
-        outputFile << question << "," << userAnswer << "," << userExplanation << "\n";
-    }
-    else {
-        outputFile << question << "," << userAnswer << ",\n";
-    }
+    outputFile << escapeCSVField(question) << ","
+        << escapeCSVField(userAnswer) << ","
+        << escapeCSVField(userExplanation) << "\n";
+
     outputFile.close();
 }
 
@@ -312,11 +326,10 @@ void changeScreen(int screen) {
         writeToOutputFile("output2.csv", "Truss count:", TrussCountStr.c_str(), "");
         std::string BeamCountStr = std::to_string(BeamCount);
         writeToOutputFile("output2.csv", "Beam count:", BeamCountStr.c_str(), "");
-        //retrieve and write the toolbox outputs as measurements
+        std::string ChangeCountStr = std::to_string(ChangeCount);
+        writeToOutputFile("output2.csv", "Total modifications/iterations:", ChangeCountStr.c_str(), "");
         
-        //write toolbox outputs
-        //BSO::Structural_Design::SD_Building_Results& SD_results = SD_Building.get()->get_results();
-        //BSO::SD_compliance_indexing(SD_results);
+        //retrieve and write the toolbox outputs as measurements
         //double initial_volume = SD_results.m_struct_volume;
         double initial_volume = 1.65;
 
@@ -1400,21 +1413,29 @@ GLuint imgZoningRender;
 GLuint imgStabilizationRender;
 
 void initializeTextures() {
-    imgZoningRender = loadImageAsTexture("C:/Users/20183767/source/repos/MSc_2023_Heuvelman/GUI/JH_Zoning_Assignment_GUI/Zoning BSD render.png");
-    imgStabilizationRender = loadImageAsTexture("C:/Users/20183767/source/repos/MSc_2023_Heuvelman/GUI/JH_Stabilization_Assignment_GUI_new/Stabilization BSD render.png");
+    imgZoningRender = loadImageAsTexture("Zoning BSD render.png");
+    imgStabilizationRender = loadImageAsTexture("Stabilization BSD render.png");
     // Load more textures as needed
 }
 
 // ID 0: Main screen
 void mainScreen() {
     glColor3f(0.0, 0.0, 0.0);
-    drawText("Welcome to this experiment for a SED graduation project. We are glad to have you here and hope you will have a nice experience.", 930, 820, 400);
-    drawText("In which assignment will you participate?", 930, 740, 400);
+    drawText("Welcome to this experiment for a Structural Engineering and Design graduation project. We are glad to have you here and hope you will have a nice experience.", 1500, 550, 400);
+    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 1);
 
-    drawButton("Assignment 1", 800, 650, 200, 50, buttonClicked, 1);
-    drawButton("Assignment 2", 800, 580, 200, 50, changeScreen, 1);
-    drawButton("Assignment 3", 800, 510, 200, 50, buttonClicked, 1);
-    drawButton("Assignment 4", 800, 440, 200, 50, buttonClicked, 1);
+    //Draw the render
+    glEnable(GL_LIGHTING); // Enable to show image becomes black
+    glEnable(GL_LIGHT0); // Enable to prevent image becomes black
+    GLfloat emissionColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f }; // Emit the texture's color
+    glMaterialfv(GL_FRONT, GL_EMISSION, emissionColor); // Apply to front face
+    float picWidth = 1200; // Width of the picture as specified.\]]]]]]]]]]]]]]]]]
+    float picHeight = 900;
+    displayTexture(imgStabilizationRender, 50, 50, picWidth, picHeight);
+    GLfloat defaultEmission[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+    glMaterialfv(GL_FRONT, GL_EMISSION, defaultEmission);
+    glDisable(GL_LIGHTING); //Disbale for other GUI elements
+    glDisable(GL_LIGHT0); //Disbale for other GUI elements
 }
 
 // ID 1: Assignment description screen
@@ -1534,7 +1555,7 @@ void screen4a() {
 
 // ID 4: Screen 4b
 void screen4b() {
-    drawText("2. How would you rate the level of ease in performing this assignment?", 600, 800, 600);
+    drawText("2. How would you rate the level of ease in performing this assignment          (so, the stabilization process)?", 600, 800, 600);
     drawButton("1", 300, 725, 50, 30, buttonClicked, 1);
     drawButton("2", 350, 725, 50, 30, buttonClicked, 2);
     drawButton("3", 400, 725, 50, 30, buttonClicked, 3);
@@ -1775,17 +1796,40 @@ void screenCheckNext() {
     drawText("Are you sure you want to continue? Once you continue to the next step, you cannot go back to this step.      Continuing can take a few seconds.", 880, 620, 200);
 }
 
+void yesButtonPressed(int screen) {
+    // Draw and display the "please wait" screen immediately
+    displayPleaseWait();
+    // Now change the screen
+    changeScreen(screen);
+}
+
+void displayPleaseWait() {
+    // Clear the screen or draw over the current content
+    glClearColor(0.95f, 0.95f, 0.95f, 1.0f); // Very light gray background
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Setup for 2D drawing
+    setup2D();
+
+    // Use a simple function to draw centered text
+    drawText("Loading...", 950, 500, 200);
+
+    // Flush the OpenGL commands and swap buffers to display the text immediately
+    glFlush();  // Ensure all OpenGL commands are processed
+    glutSwapBuffers();
+}
+
 void screenCheckNext1() {
     screen3();
     screenCheckNext();
-    drawButton("Yes", 790, 460, 100, 30, changeScreen, 3);
+    drawButton("Yes", 790, 460, 100, 30, yesButtonPressed, 3);
     drawButton("No", 910, 460, 100, 30, changeScreen, 2);
 }
 
 void screenCheckNext2() {
     assignmentDescriptionScreen();
 	screenCheckNext();
-	drawButton("Yes", 790, 460, 100, 30, changeScreen, 2);
+	drawButton("Yes", 790, 460, 100, 30, yesButtonPressed, 2);
 	drawButton("No", 910, 460, 100, 30, changeScreen, 1);
 }
 

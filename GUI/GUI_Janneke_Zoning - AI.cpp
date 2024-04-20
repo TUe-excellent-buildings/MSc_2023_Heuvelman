@@ -13,6 +13,9 @@
 #include <BSO/Performance_Indexing.hpp>
 #include <AEI_Grammar/Grammar_zoning.hpp>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 std::shared_ptr <BSO::Spatial_Design::MS_Building> MS = nullptr;
 std::shared_ptr <BSO::Spatial_Design::MS_Conformal> CF = nullptr;
 std::shared_ptr <BSO::Spatial_Design::Zoning::Zoned_Design> Zoned = nullptr;
@@ -104,6 +107,10 @@ const float MARGIN_PERCENT = 5.0f; // Margin as a percentage of the window width
 
 // Variable to keep track of BSD modifications
 int modificationCount = 0;
+int AddedCount = 0;
+int DeletedCount = 0;
+int MovedCount = 0;
+int ResizedCount = 0;
 // Draw a message when input is invalid
 bool DrawInvalidInput = false;
 
@@ -152,6 +159,10 @@ void onMouseClick(int button, int state, int x, int y);
 void setup2D();
 void setup3D();
 void setup_models();
+void initializeTextures();
+void displayTexture(GLuint texture, float x, float y, float width, float height);
+void yesButtonPressed(int screen);
+void displayPleaseWait();
 
 void visualise(BSO::Spatial_Design::MS_Building& ms_building)
 {
@@ -529,6 +540,7 @@ void changeScreen(int screen) {
     }
     if (screen == 6) {
         retrieve_SD_results();
+
     }
     if (screen == 33) {
         writeToOutputFile("output3.csv", "Step 3: This time pick the one of which you think its structural design has the highest stiffness. Explain your reasoning.", "", opinionTF2.text);
@@ -536,6 +548,17 @@ void changeScreen(int screen) {
     }
     if (screen == 34) {
         writeToOutputFile("output3.csv", "Step 6: This time pick again out of all zoned designs. Explain your reasoning.", "", opinionTF27.text);
+        //write BSD modifications to output file
+        std::string modificationCountStr = std::to_string(modificationCount);
+        writeToOutputFile("output3.csv", "Modification count:", modificationCountStr.c_str(), "");
+        std::string AddedCountStr = std::to_string(AddedCount);
+        writeToOutputFile("output3.csv", "Added count:", AddedCountStr.c_str(), "");
+        std::string DeletedCountStr = std::to_string(DeletedCount);
+        writeToOutputFile("output3.csv", "Deleted count:", DeletedCountStr.c_str(), "");
+        std::string MovedCountStr = std::to_string(MovedCount);
+        writeToOutputFile("output3.csv", "Moved count:", MovedCountStr.c_str(), "");
+        std::string ResizedCountStr = std::to_string(ResizedCount);
+        writeToOutputFile("output3.csv", "Resized count:", ResizedCountStr.c_str(), "");
     }
     if (screen == 8) {
         writeToOutputFile("output3.csv", "1..", getSelectedButtonLabel(), opinionTF3.text);
@@ -1165,6 +1188,7 @@ void keyboard(unsigned char key, int x, int y) {
                 // Change the screen after processing both text fields
                 changeScreen(5);
                 modificationCount++;
+                AddedCount++;
 
             }
             else {
@@ -1244,6 +1268,7 @@ void keyboard(unsigned char key, int x, int y) {
                 opinionTF15.text = ""; // Clear the input string after processing
                 changeScreen(5);
                 modificationCount++;
+                DeletedCount++;
 
             }
             else {
@@ -1378,6 +1403,7 @@ void keyboard(unsigned char key, int x, int y) {
                 // Change the screen after processing both text fields
                 changeScreen(5);
                 modificationCount++;
+                MovedCount++;
 
             }
             else {
@@ -1513,6 +1539,7 @@ void keyboard(unsigned char key, int x, int y) {
                 // Change the screen after processing both text fields
                 changeScreen(5);
                 modificationCount++;
+                ResizedCount++;
 
             }
             else {
@@ -1774,26 +1801,91 @@ void drawArrow(float x, float y, bool leftArrow) {
     glEnd();
 }
 
+
+GLuint loadImageAsTexture(const char* filename) {
+    int width, height, nrChannels;
+    unsigned char* data = stbi_load(filename, &width, &height, &nrChannels, 0);
+    if (!data) {
+        std::cerr << "Failed to load texture: " << filename << std::endl;
+        return 0;
+    }
+    else if (data) {
+        std::cout << "Loaded texture: " << filename << std::endl;
+    }
+
+    std::cout << "Loaded texture: " << filename << std::endl;
+
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    GLenum format = GL_RGB; // Default to GL_RGB
+    if (nrChannels == 1)
+        format = GL_RED;
+    else if (nrChannels == 3)
+        format = GL_RGB; // Explicitly set, even though it's the default
+    else if (nrChannels == 4)
+        format = GL_RGBA;
+
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    stbi_image_free(data);
+
+    return textureID;
+}
+
+void displayTexture(GLuint texture, float x, float y, float width, float height) {
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.0f, 1.0f); glVertex2f(x, y);
+    glTexCoord2f(1.0f, 1.0f); glVertex2f(x + width, y);
+    glTexCoord2f(1.0f, 0.0f); glVertex2f(x + width, y + height);
+    glTexCoord2f(0.0f, 0.0f); glVertex2f(x, y + height);
+    glEnd();
+    glDisable(GL_TEXTURE_2D);
+}
+
+GLuint imgZoningRender;
+GLuint imgStabilizationRender;
+
+void initializeTextures() {
+    imgZoningRender = loadImageAsTexture("Zoning BSD render.png");
+    imgStabilizationRender = loadImageAsTexture("Stabilization BSD render.png");
+    // Load more textures as needed
+}
+
 void mainScreen() {
     glColor3f(0.0, 0.0, 0.0);
-    drawText("Welcome to this experiment for a SED graduation project. We are glad to have you here and hope you will have a nice experience.", 930, 820, 400);
-    drawText("In which assignment will you participate?", 930, 740, 400);
+    drawText("Welcome to this experiment for a Structural Engineering and Design graduation project. We are glad to have you here and hope you will have a nice experience.", 1500, 550, 400);
+    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 1);
 
-    drawButton("Assignment 1", 800, 650, 200, 50, buttonClicked, 1);
-    drawButton("Assignment 2", 800, 580, 200, 50, buttonClicked, 1);
-    drawButton("Assignment 3", 800, 510, 200, 50, changeScreen, 1);
-    drawButton("Assignment 4", 800, 440, 200, 50, buttonClicked, 1);
-
-    // Draw the "Next step" button in the bottom right corner
-    //drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 1);
+    //Draw the render
+    glEnable(GL_LIGHTING); // Enable to show image becomes black
+    glEnable(GL_LIGHT0); // Enable to prevent image becomes black
+    GLfloat emissionColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f }; // Emit the texture's color
+    glMaterialfv(GL_FRONT, GL_EMISSION, emissionColor); // Apply to front face
+    float picWidth = 1200; // Width of the picture as specified.\]]]]]]]]]]]]]]]]]
+    float picHeight = 900;
+    displayTexture(imgZoningRender, 50, 50, picWidth, picHeight);
+    GLfloat defaultEmission[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+    glMaterialfv(GL_FRONT, GL_EMISSION, defaultEmission);
+    glDisable(GL_LIGHTING); //Disbale for other GUI elements
+    glDisable(GL_LIGHT0); //Disbale for other GUI elements
 }
 
 void assignmentDescriptionScreen() {
-    drawText("Selected Assignment: 3 'Human-AI zoning assignment'​", 900, 740, 400);
-    drawText("Expected duration: 25 minutes​", 900, 710, 400);
-    drawText("Read the following instructions carefully:​", 900, 650, 400);
-    drawText("You will in a moment go through a design task. You are asked to perform this task in the way you are used to go about a commission in your daily practice. It is important that you say aloud everything that you think or do in designing. ​So, in every step, explain what you do and why you do it. Try to keep speaking constantly and not be silent for longer than 20 seconds. ​Please speak English. Good luck!​",
-    900, 600, 400);
+    drawText("Selected Assignment: 3 'Human-AI zoning assignment'​", 1500, 740, 400);
+    drawText("Expected duration: 25 minutes​", 1500, 710, 400);
+    drawText("Read the following instructions carefully:​", 1500, 650, 400);
+    drawText("You will in a moment go through a design task. It is important that you say aloud everything that you think or do in designing. ​So, in every step, explain what you do and why you do it. Try to keep speaking constantly and not be silent for longer than 20 seconds. ​Please speak English. Good luck!​",
+    1500, 600, 400);
     //underline ENGLISH
     //glLineWidth(2.0);
     //glColor3f(0.0, 0.0, 0.0);
@@ -1804,6 +1896,19 @@ void assignmentDescriptionScreen() {
 
     drawButton("<- | Previous step", 1380, 50, 200, 50, changeScreen, 0);
     drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 31);
+
+    //Draw the render
+    glEnable(GL_LIGHTING); // Enable to show image becomes black
+    glEnable(GL_LIGHT0); // Enable to prevent image becomes black
+    GLfloat emissionColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f }; // Emit the texture's color
+    glMaterialfv(GL_FRONT, GL_EMISSION, emissionColor); // Apply to front face
+    float picWidth = 1200; // Width of the picture as specified.
+    float picHeight = 900;
+    displayTexture(imgZoningRender, 50, 50, picWidth, picHeight);
+    GLfloat defaultEmission[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+    glMaterialfv(GL_FRONT, GL_EMISSION, defaultEmission);
+    glDisable(GL_LIGHTING); //Disbale for other GUI elements
+    glDisable(GL_LIGHT0); //Disbale for other GUI elements
 }
 
 void LineDivisionScreen() {
@@ -2194,7 +2299,7 @@ void screen4a() {
 }
 
 void screen4b() {
-    drawText("2. How would you rate the level of ease in performing this assignment?", 600, 800, 600);
+    drawText("2. How would you rate the level of ease in performing this assignment?        For example, think about zoning, decision making, and in general.", 600, 800, 600);
     drawButton("1", 300, 725, 50, 30, buttonClicked, 1);
     drawButton("2", 350, 725, 50, 30, buttonClicked, 2);
     drawButton("3", 400, 725, 50, 30, buttonClicked, 3);
@@ -2316,7 +2421,8 @@ void screen5() {
 }
 
 void screen5b() {
-    drawText("Thank you for your participation, this is the end of the assignment.", 600, 800, 600);
+    drawText("Thank you very for your participation! This is the end of the assignment.", 600, 800, 600);
+    drawText("Don't forget to follow the 'after the assignment' steps in the set-up guide.", 600, 700, 600);
     LineDivisionScreen();
     drawButton("-> | End", 1590, 50, 200, 50, closeWindowCallback, 0);
 }
@@ -2474,52 +2580,75 @@ void screenCheckNextLonger() {
     drawText("Are you sure you want to continue? Once you continue to the next step, you cannot go back to this step.      Continuing can take a minute.", 880, 620, 200);
 }
 
+void yesButtonPressed(int screen) {
+    // Draw and display the "please wait" screen immediately
+    displayPleaseWait();
+    // Now change the screen
+    changeScreen(screen);
+}
+
+void displayPleaseWait() {
+    // Clear the screen or draw over the current content
+    glClearColor(0.95f, 0.95f, 0.95f, 1.0f); // Very light gray background
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Setup for 2D drawing
+    setup2D();
+
+    // Use a simple function to draw centered text
+    drawText("Loading...", 950, 500, 200);
+
+    // Flush the OpenGL commands and swap buffers to display the text immediately
+    glFlush();  // Ensure all OpenGL commands are processed
+    glutSwapBuffers();
+}
+
 void screenCheckNext1() {
     screen3a();
     screenCheckNext();
-    drawButton("Yes", 790, 510, 100, 30, changeScreen, 3);
+    drawButton("Yes", 790, 510, 100, 30, yesButtonPressed, 3);
     drawButton("No", 910, 510, 100, 30, changeScreen, 2);
 }
 
 void screenCheckNext2() {
     screen3b();
     screenCheckNext();
-    drawButton("Yes", 790, 510, 100, 30, changeScreen, 4);
+    drawButton("Yes", 790, 510, 100, 30, yesButtonPressed, 4);
     drawButton("No", 910, 510, 100, 30, changeScreen, 3);
 }
 
 void screenCheckNext3() {
     screen3c();
 	screenCheckNext();
-	drawButton("Yes", 790, 510, 100, 30, changeScreen, 5);
+	drawButton("Yes", 790, 510, 100, 30, yesButtonPressed, 5);
 	drawButton("No", 910, 510, 100, 30, changeScreen, 4);
 }
 
 void screenCheckNext4() {
     screen3d();
 	screenCheckNextLonger();
-	drawButton("Yes", 790, 460, 100, 30, changeScreen, 6);
+	drawButton("Yes", 790, 460, 100, 30, yesButtonPressed, 6);
 	drawButton("No", 910, 460, 100, 30, changeScreen, 5);
 }
 
 void screenCheckNext5() {
     screen3e();
 	screenCheckNext();
-	drawButton("Yes", 790, 510, 100, 30, changeScreen, 33);
+	drawButton("Yes", 790, 510, 100, 30, yesButtonPressed, 33);
 	drawButton("No", 910, 510, 100, 30, changeScreen, 6);
 }
 
 void screenCheckNext6() {
     assignmentDescriptionScreen();
     screenCheckNext();
-    drawButton("Yes", 790, 510, 100, 30, changeScreen, 2);
+    drawButton("Yes", 790, 510, 100, 30, yesButtonPressed, 2);
     drawButton("No", 910, 510, 100, 30, changeScreen, 1);
 }
 
 void screenCheckNext7() {
     screen3f();
     screenCheckNext();
-    drawButton("Yes", 790, 510, 100, 30, changeScreen, 34);
+    drawButton("Yes", 790, 510, 100, 30, yesButtonPressed, 34);
     drawButton("No", 910, 510, 100, 30, changeScreen, 33);
 }
 
@@ -2545,6 +2674,7 @@ int main(int argc, char** argv) {
     initializeScreen();
 
     // Main loop
+    initializeTextures();  // Make sure this is called
     glutMainLoop();
     //return 0;
 

@@ -57,6 +57,14 @@ namespace BSO { namespace Visualisation
             glEnd();
         }
 
+        void drawRenderedTextBig(const char* text, float x, float y, float z) const {
+            glRasterPos3f(x, y, z); // Position where to start the text
+            while (*text) {
+                glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *text);
+                ++text;
+            }
+        }
+
     protected:
 
     private:
@@ -275,24 +283,17 @@ namespace BSO { namespace Visualisation
         drawLine(2500.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
         drawLine(2500.0f, 0.0f, 0.0f, 2200.0f, 0.0f, -300.0f);
         drawLine(2500.0f, 0.0f, 0.0f, 2200.0f, 0.0f, 300.0f);
-        // draw letter x
-        drawLine(1300.0f, 0.0f, 500.0f, 700.0f, 0.0f, 1100.0f);
-        drawLine(700.0f, 0.0f, 500.0f, 1300.0f, 0.0f, 1100.0f);
+        drawRenderedTextBig("X", 1500.0f, 0.0f, 600.0f); // Label X axis
         // y axis (z in the model)
         drawLine(0.0f, 2500.0f, 0.0f, 0.0f, 0.0f, 0.0f);
         drawLine(0.0f, 2500.0f, 0.0f, 0.0f, 2200.0f, -300.0f);
         drawLine(0.0f, 2500.0f, 0.0f, 0.0f, 2200.0f, 300.0f);
-        // draw letter z
-        drawLine(0.0f, 1600.0f, 500.0f, 0.0f, 1600.0f, 1000.0f);
-        drawLine(0.0f, 2200.0f, 500.0f, 0.0f, 2200.0f, 1000.0f);
-        drawLine(0.0f, 1600.0f, 500.0f, 0.0f, 2200.0f, 1000.0f);
+        drawRenderedTextBig("Z", 0.0f, 1500.0f, 400.0f); // Label Z axis
         // z axis (y in the model)
         drawLine(0.0f, 0.0f, -2500.0f, 0.0f, 0.0f, 0.0f);
         drawLine(0.0f, 0.0f, -2500.0f, -300.0f, 0.0f, -2200.0f);
         drawLine(0.0f, 0.0f, -2500.0f, 300.0f, 0.0f, -2200.0f);
-        // draw letter y
-        drawLine(-500.0f, 0.0f, -1500.0f, -1000.0f, 0.0f, -500.0f);
-        drawLine(-1000.0f, 0.0f, -1500.0f, -750.0f, 0.0f, -1000.0f);
+        drawRenderedTextBig("Y", -600.0f, 0.0f, -1500.0f); // Label Y axis
 
         glPopAttrib();
     }

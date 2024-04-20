@@ -154,6 +154,7 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 		Spatial_Design::Geometry::Rectangle* return_rectangle(Components::Point* p1, Components::Point* p2);
 		void delete_element(int ID);
 
+
 		// Output:
 		void show_free_dofs();
 		void show_singulars();
@@ -4102,6 +4103,7 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 				dof_stabilized = Stab.stabilize_one_point3(point_it_unzoned);
 				//Stab.show_free_dofs();
 				//prev_free_nodes = free_nodes;
+				/*
 				SD->remesh();
 				free_dofs = SD->get_points_with_free_dofs(singular);
 				free_nodes = 0;
@@ -4115,6 +4117,7 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 					//Stab.show_free_dofs();
 					break;
 				}
+				*/
 				//std::cout << "Remaining points with free DOF's: " << free_dof_points << std::endl;
 				//std::cout << "Remaining free DOF's: " << free_nodes << std::endl;
 
@@ -4151,34 +4154,7 @@ namespace BSO { namespace Structural_Design { namespace Stabilization
 			m_compliance.push_back(sd_results.m_total_compliance);
 			m_added_volume.push_back(sd_results.m_struct_volume - initial_volume);
 			*/
-			BSO::Visualisation::visualise(SD, 1);
-			
-			//Additional outputs to retrieve the IDs of the added beams and trusses
-			std::cout << "beams " << getTrussesSubstituted() << std::endl;
-			std::cout << "trusses " << getTrussAddedCount() << std::endl;
-
-			if (trusses_substituted > 0)
-			{
-				std::cout << "Number of trusses substituted: " << trusses_substituted << std::endl;
-				// Declare a string variable to store the IDs of added beams
-				std::string beamIDs;
-
-				// Logic to generate the IDs of added beams
-				for (size_t i = 0; i < trusses_substituted; ++i) {
-					// Append the ID of each beam to the string
-					beamIDs += std::to_string(m_SD->get_component_count() -1 + i) + " ";
-				}
-
-				std::cout << "Added beam IDs: " << beamIDs << std::endl;
-			}
-			else if (truss_added_count > 0) {
-				std::cout << "diagonals added: " << truss_added_count << std::endl;
-				std::cout << "added ID: " << m_SD->get_component_count() - 1 << std::endl;
-			}
-			else {
-				std::cout << "no stabilizing elements added" << std::endl;
-			}
-
+			//BSO::Visualisation::visualise(SD, 1);
 		}
 	} // SD_grammar_stabilize()
 

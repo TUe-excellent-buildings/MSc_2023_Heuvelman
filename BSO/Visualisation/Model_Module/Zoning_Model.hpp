@@ -42,6 +42,7 @@ namespace BSO { namespace Visualisation
         random_bsp     *pbsp;
 
         std::vector<polygon_props> cluster_props;
+        std::vector<polygon_props> cluster_props2;
         std::vector<line_props> cluster_lprops;
 
         unsigned int design_ID = 1;
@@ -74,12 +75,26 @@ namespace BSO { namespace Visualisation
             for (unsigned int k = 0; k < ms_conf.get_cuboid_count(); k++)
             {
                 unsigned int zone_ID = ms_conf.get_cuboid(k)->get_zone_ID(i);
+                std::cout << "i" << i << std::endl;
+                std::cout << "Cuboid " << k << ": Zone ID = " << zone_ID << std::endl;
                 if (std::find(zone_IDs.begin(), zone_IDs.end(), zone_ID) == zone_IDs.end())
                 {
                     zone_IDs.push_back(zone_ID);
                 }
             }
             std::sort(zone_IDs.begin(), zone_IDs.end());
+            
+
+            for (unsigned int k = 0; k < ms_conf.get_cuboid_count(); k++)
+            {
+                auto all_zone_IDs = ms_conf.get_cuboid(k)->get_all_zones();  // Retrieve all zone IDs for the cuboid at index k
+                std::cout << "Cuboid " << k << " is associated with zone IDs: ";
+                for (auto zone_ID : all_zone_IDs) {  // Iterate over each zone ID
+                    std::cout << zone_ID << " ";
+                }
+                std::cout << std::endl;  // Print newline for better readability between cuboid entries
+            }
+
 
             for (unsigned int k = 0; k < zone_IDs.size(); k++)
             {
@@ -175,8 +190,8 @@ namespace BSO { namespace Visualisation
             double green = pow((0.5 + 0.5*cos(2*PI*color_gradient - PI)), (eta/3));
             double blue = 1 - ((tanh(beta * (1 - eta)) + tanh(beta * (color_gradient - (1 - eta)))) /
                                 (tanh(beta * (1 - eta)) + tanh(beta * eta)));
-            double alpha = 0.25;
-
+            double alpha = 0.1;
+            double alpha2 = 1.0;
 
             // assign the color values to the graphic properties structure
             polygon_props temp_props;
@@ -193,27 +208,65 @@ namespace BSO { namespace Visualisation
             // add the graphic properties to this clusters index
             cluster_props.push_back(temp_props);
             cluster_lprops.push_back(temp_lprops);
+
+            polygon_props temp_props2;
+            temp_props2.ambient = rgba(red,green,blue,alpha2);
+            temp_props2.diffuse = rgba(red,green,blue,alpha2);
+            temp_props2.specular = rgba(0,0,0,alpha2);
+            temp_props2.shininess = 0.1;
+            temp_props2.translucent = true;
+            temp_props2.twosided = false;
+
+            cluster_props2.push_back(temp_props2);
         }
 
+        unsigned int highest_zone_ID = 0;
+        labels.clear();
         for (unsigned int k = 0; k < ms_conf.get_cuboid_count(); k++)
         {
-            unsigned int zone_ID = ms_conf.get_cuboid(k)->get_zone_ID(i);
+            //unsigned int zone_ID = ms_conf.get_cuboid(k)->get_last_zone();
+            //unsigned int zone_ID = ms_conf.get_cuboid(k)->get_all_zones();
+            auto all_zone_ID = ms_conf.get_cuboid(k)->get_all_zones();  // This now returns a vector of all zone IDs
+            for (auto zone_ID : all_zone_ID) {  // Iterate over each zone ID
+                //std::cout << "zone_ID used for visual: " << zone_ID << std::endl;
 
-            temp_coords_1 = ms_conf.get_cuboid(k)->get_max_vertex()->get_coords();
-            temp_coords_2 = ms_conf.get_cuboid(k)->get_min_vertex()->get_coords();
+                if (zone_ID > highest_zone_ID) {
+                    highest_zone_ID = zone_ID;  // Update if the current zone_ID is greater
+                }
+                //std::cout << "Highest zone_ID encountered: " << highest_zone_ID << std::endl;
 
-            max = vect3d(temp_coords_1(0)-offset, temp_coords_1(2)-offset, -temp_coords_2(1)-offset);
-            min = vect3d(temp_coords_2(0)+offset, temp_coords_2(2)+offset, -temp_coords_1(1)+offset);
+                temp_coords_1 = ms_conf.get_cuboid(k)->get_max_vertex()->get_coords();
+                temp_coords_2 = ms_conf.get_cuboid(k)->get_min_vertex()->get_coords();
 
-            if(zone_ID != zone_ID_chosen)
-            {
-                add_cube(&cluster_props[0], &cluster_lprops[0], min, max, polygons);
-            } else {
-                add_cube(&cluster_props[1], &cluster_lprops[1], min, max, polygons);
+                max = vect3d(temp_coords_1(0) - offset, temp_coords_1(2) - offset, -temp_coords_2(1) - offset);
+                min = vect3d(temp_coords_2(0) + offset, temp_coords_2(2) + offset, -temp_coords_1(1) + offset);
+
+                /*
+                //if(zone_ID != highest_zone_ID)
+                //if (zone_ID != >get_zones().size() + 1)
+                if (zone_ID != 10 + zones_ID)
+                {
+                    add_cube(&cluster_props[0], &cluster_lprops[0], min, max, polygons);
+                } else {
+                    add_cube(&cluster_props[1], &cluster_lprops[1], min, max, polygons);
+                }
+                */
+                //std::cout << "zones_ID " << zones_ID << std::endl;
+                if (zone_ID == 10 + zones_ID)
+                {
+                    add_cube(&cluster_props2[1], &cluster_lprops[0], min, max, polygons);
+                    std::ostringstream out; out << zone_ID; std::string ID = out.str(); // cast the int value of ID as a string
+                    labels.push_back(create_label(&lbprops, ID, min + ((max - min) / 2.0)));
+                }
+                //if (zone_ID <= 10)
+                if (zone_ID == 2 | zone_ID == 6 | zone_ID == 7 | zone_ID == 10)
+                {
+                    add_cube(&cluster_props[0], &cluster_lprops[1], min, max, polygons);
+                    std::ostringstream out; out << zone_ID; std::string ID = out.str(); // cast the int value of ID as a string
+                    //labels.push_back(create_label(&lbprops, ID, min + ((max - min) / 2.0)));
+                }
             }
 
-            std::ostringstream out; out << zone_ID; std::string ID = out.str(); // cast the int value of ID as a string
-            labels.push_back(create_label(&lbprops, ID, min + ((max-min)/2.0)));
         }
         pbsp = new random_bsp(polygons);
 

@@ -3101,6 +3101,18 @@ std::vector<int> Zoned_Design::get_floor_coords()
 	return m_floor_coords;
 }
 
+bool Zoned_Design::remove_zone_by_ID(unsigned int zoneID) {
+    auto it = std::find_if(m_zones.begin(), m_zones.end(),
+        [zoneID](Zone* zone) { return zone->get_ID() == zoneID; });
+
+    if (it != m_zones.end()) {
+        // Optionally, handle other cleanup tasks here if necessary
+        delete* it; // Assuming dynamic allocation was used
+        m_zones.erase(it);
+        return true; // Successfully removed
+    }
+    return false; // Zone ID not found
+}
 
 } // namespace Zoning
 } // namespace Spatial_Design

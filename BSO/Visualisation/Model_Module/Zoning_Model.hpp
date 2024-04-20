@@ -70,13 +70,13 @@ namespace BSO { namespace Visualisation
             vertex max, min;
             Vectors::Point temp_coords_1, temp_coords_2;
 
+            
             // store zone ID's for current design (i) in vector
             std::vector<unsigned int> zone_IDs;
             for (unsigned int k = 0; k < ms_conf.get_cuboid_count(); k++)
             {
                 unsigned int zone_ID = ms_conf.get_cuboid(k)->get_zone_ID(i);
-                std::cout << "i" << i << std::endl;
-                std::cout << "Cuboid " << k << ": Zone ID = " << zone_ID << std::endl;
+                //std::cout << "Cuboid " << k << ": Zone ID = " << zone_ID << std::endl;
                 if (std::find(zone_IDs.begin(), zone_IDs.end(), zone_ID) == zone_IDs.end())
                 {
                     zone_IDs.push_back(zone_ID);
@@ -84,17 +84,26 @@ namespace BSO { namespace Visualisation
             }
             std::sort(zone_IDs.begin(), zone_IDs.end());
             
-
             for (unsigned int k = 0; k < ms_conf.get_cuboid_count(); k++)
             {
-                auto all_zone_IDs = ms_conf.get_cuboid(k)->get_all_zones();  // Retrieve all zone IDs for the cuboid at index k
-                std::cout << "Cuboid " << k << " is associated with zone IDs: ";
-                for (auto zone_ID : all_zone_IDs) {  // Iterate over each zone ID
-                    std::cout << zone_ID << " ";
-                }
-                std::cout << std::endl;  // Print newline for better readability between cuboid entries
+                unsigned int zone_ID = ms_conf.get_cuboid(k)->get_all_zones().back();
+                std::cout << "Cuboid " << k << ": Zone ID = " << zone_ID << std::endl;
             }
 
+            /*
+            // to show zoned design with all latest created zones
+            std::vector<unsigned int> zone_IDs;
+            for (unsigned int k = 0; k < ms_conf.get_cuboid_count(); k++)
+            {
+                unsigned int zone_ID = ms_conf.get_cuboid(k)->get_all_zones().back();
+                std::cout << "Cuboid " << k << ": Zone ID = " << zone_ID << std::endl;
+                if (std::find(zone_IDs.begin(), zone_IDs.end(), zone_ID) == zone_IDs.end())
+                {
+                    zone_IDs.push_back(zone_ID);
+                }
+            }
+            std::sort(zone_IDs.begin(), zone_IDs.end());
+            */
 
             for (unsigned int k = 0; k < zone_IDs.size(); k++)
             {
@@ -135,6 +144,12 @@ namespace BSO { namespace Visualisation
             {
                 unsigned int zone_ID = ms_conf.get_cuboid(k)->get_zone_ID(i);
                 ptrdiff_t pos = std::find(zone_IDs.begin(), zone_IDs.end(), zone_ID) - zone_IDs.begin();
+
+                /*
+                // to show zoned design with all latest created zones
+                unsigned int zone_ID = ms_conf.get_cuboid(k)->get_all_zones().back();  // Retrieve all zone IDs for the cuboid at index k
+                ptrdiff_t pos = std::find(zone_IDs.begin(), zone_IDs.end(), zone_ID) - zone_IDs.begin();
+                */
 
                 temp_coords_1 = ms_conf.get_cuboid(k)->get_max_vertex()->get_coords();
                 temp_coords_2 = ms_conf.get_cuboid(k)->get_min_vertex()->get_coords();

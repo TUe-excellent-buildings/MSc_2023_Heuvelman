@@ -1138,11 +1138,27 @@ void keyboard(unsigned char key, int x, int y) {
                 //included_zone = newzone;
                 //Zoned_Design::add_zone(included_zone, 1);
 
-                auto new_zoned_design = std::make_shared<BSO::Spatial_Design::Zoning::Zoned_Design>(CF.get());
-                new_zoned_design->add_zone(new_zone, 2);
+                BSO::Spatial_Design::Zoning::Zoned_Design* new_zoned_design = new BSO::Spatial_Design::Zoning::Zoned_Design(CF.get());
 
-                Zoned->add_zoned_design(new_zoned_design.get());
-                //std::cout << "number of zones in design" << Zoned->get_designs().back()->get_zones().size() << std::endl;
+                std::cout << "New zoned design size: " << new_zoned_design->get_zones().size();
+
+
+                std::vector<BSO::Spatial_Design::Zoning::Zone*> zones = Zoned->get_zones();
+                // ------------ TESTING ----------------
+                for (unsigned int j = 0; j < zones.size(); j++)
+                {
+                    new_zoned_design->add_zone(zones[j], 2);
+                }
+                new_zoned_design->add_rectangles();
+                new_zoned_design->add_vertices();
+                // new_zoned_design->add_zone(Zoned->get_zones().back(), 2);
+
+                std::cout << "New zoned design size: " << new_zoned_design->get_zones().size();
+
+                // ^^------------ TESTING ----------------^^
+
+                Zoned->add_zoned_design(new_zoned_design);
+                std::cout << "number of zones in design" << Zoned->get_designs().back()->get_zones().size() << std::endl;
                 selfCreatedZoneIDs.push_back(Zoned->get_designs().size());
 
                 if (!Zoned->get_zones().empty()) {

@@ -109,6 +109,9 @@ int currentScreen = 0;
 const int screenWidth = 1800;
 const int screenHeight = 1000;
 
+// Zone ID code
+int lastZoneID = 10;
+
 // Text margin as a percentage of the window width
 const float MARGIN_PERCENT = 5.0f; // Margin as a percentage of the window width
 
@@ -1108,7 +1111,7 @@ void keyboard(unsigned char key, int x, int y) {
                 //int newZoneID = ++last_zone_id;
                 int newZoneID = Zoned->get_zones().size() + 1;
 
-                std::shared_ptr<BSO::Spatial_Design::Zoning::Zone> new_zone = std::make_shared<BSO::Spatial_Design::Zoning::Zone>(all_cuboids);
+                BSO::Spatial_Design::Zoning::Zone* new_zone = new BSO::Spatial_Design::Zoning::Zone(all_cuboids);
                 
                 //std::cout << "zone coords min 1: " << new_zone.get_min_coords(0) << " " << new_zone.get_min_coords(1) << " " << new_zone.get_min_coords(2) << std::endl;
                 //std::cout << "zone coords max 1: " << new_zone.get_max_coords(0) << " " << new_zone.get_max_coords(1) << " " << new_zone.get_max_coords(2) << std::endl;
@@ -1123,7 +1126,7 @@ void keyboard(unsigned char key, int x, int y) {
                     all_cuboids[i]->add_zone_ID(newZoneID);
 				}
 
-                Zoned->add_zone(new_zone.get(), 2);
+                Zoned->add_zone(new_zone, 2);
 
                 //std::cout << "zone coords min 2: " << new_zone.get_min_coords(0) << " " << new_zone.get_min_coords(1) << " " << new_zone.get_min_coords(2) << std::endl;
                 //std::cout << "zone coords max 2: " << new_zone.get_max_coords(0) << " " << new_zone.get_max_coords(1) << " " << new_zone.get_max_coords(2) << std::endl;
@@ -1136,7 +1139,7 @@ void keyboard(unsigned char key, int x, int y) {
                 //Zoned_Design::add_zone(included_zone, 1);
 
                 auto new_zoned_design = std::make_shared<BSO::Spatial_Design::Zoning::Zoned_Design>(CF.get());
-                new_zoned_design->add_zone(new_zone.get(), 2);
+                new_zoned_design->add_zone(new_zone, 2);
 
                 Zoned->add_zoned_design(new_zoned_design.get());
                 //std::cout << "number of zones in design" << Zoned->get_designs().back()->get_zones().size() << std::endl;

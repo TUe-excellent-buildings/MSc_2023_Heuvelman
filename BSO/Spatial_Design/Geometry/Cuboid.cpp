@@ -1029,6 +1029,13 @@ unsigned int Cuboid::get_zone_ID(unsigned int n)
     return zone_IDs[n];
 }
 
+void Cuboid::remove_zone_ID(unsigned int zoneID) {
+    auto it = std::find(zone_IDs.begin(), zone_IDs.end(), zoneID);
+    if (it != zone_IDs.end()) {
+        zone_IDs.erase(it);
+    }
+}
+
 } // Geometry
 } // Spatial_Design
 } // BSO

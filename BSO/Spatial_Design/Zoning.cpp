@@ -2817,6 +2817,7 @@ Zoned_Design* Zoned_Design::make_zoning2(const std::vector<unsigned int>& zoneID
         std::cout << "newZonedDesign : " << newZonedDesign << std::endl;
         //m_zoned.push_back(newZonedDesign);
     }
+    std::cout << "zoned in m_zoned" << m_zoned.size() << std::endl;
     return newZonedDesign;
 }
 
@@ -3106,8 +3107,7 @@ bool Zoned_Design::remove_zone_by_ID(unsigned int zoneID) {
         [zoneID](Zone* zone) { return zone->get_ID() == zoneID; });
 
     if (it != m_zones.end()) {
-        // Optionally, handle other cleanup tasks here if necessary
-        delete* it; // Assuming dynamic allocation was used
+        delete* it;
         m_zones.erase(it);
         return true; // Successfully removed
     }

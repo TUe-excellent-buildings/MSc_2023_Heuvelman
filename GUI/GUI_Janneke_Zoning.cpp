@@ -1142,7 +1142,8 @@ void keyboard(unsigned char key, int x, int y) {
                 //BSO::Spatial_Design::Zoning::Zone new_zone(all_cuboids);
                 //auto new_zone = std::make_shared<Zone>(cuboids);
                 //int newZoneID = ++last_zone_id;
-                int newZoneID = Zoned->get_zones().size() + 1;
+                //int newZoneID = Zoned->get_zones().size() + 1;
+                int newZoneID = Zoned->get_zones().back()->get_ID() + 1;
 
                 BSO::Spatial_Design::Zoning::Zone* new_zone = new BSO::Spatial_Design::Zoning::Zone(all_cuboids);
                 
@@ -1227,6 +1228,12 @@ void keyboard(unsigned char key, int x, int y) {
                 writeToProcessFile("process.csv", "Delete Zone", opinionTF9.text);
                 try {
                     unsigned int zoneID = std::stoul(opinionTF10.text);
+                    // Clear the zone ID from all associated cuboids
+                    std::vector<BSO::Spatial_Design::Geometry::Cuboid*> cuboids = Zoned->get_zone_by_ID(zoneID)->get_cuboids();  // Assume Zone has a method to get cuboids
+                    for (BSO::Spatial_Design::Geometry::Cuboid* cuboid : cuboids) {
+                        cuboid->remove_zone_ID(zoneID);
+                    }
+
                     //int zoned_design_ID = std::stoi(clean_str(opinionTF12.text));
                     if (Zoned->remove_zone_by_ID(zoneID)) {
                         std::cout << "Zone ID " << zoneID << " successfully removed." << std::endl;

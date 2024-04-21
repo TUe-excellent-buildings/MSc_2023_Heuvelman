@@ -53,6 +53,7 @@ public:
     unsigned int get_ID(); // added by Dennis
     Space* get_space(); // added by Dennis
     void add_zone_ID(unsigned int);
+    void remove_zone_ID(unsigned int zoneID); // added by Janneke
     unsigned int get_zone_ID(unsigned int);
 
     int get_last_zone() { return zone_IDs.back(); };

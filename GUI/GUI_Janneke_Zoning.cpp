@@ -225,9 +225,9 @@ std::vector<int> selfCreatedZoneIDs;
 void visualiseZones() { //visualizes all designs if no index is given
     unsigned int zonesCount = Zoned->get_zones().size();
     unsigned int designsCount = Zoned->get_designs().size();
-    int initial_zone_count = Zoned->get_zones().size() - ZoneCount;
+    int initial_zone_count = 10;
     //int initial_design_count = Zoned->get_designs().size() - ZonedDesignCount;
-    int initial_design_count = Zoned->get_designs().size() - GhostZonedDesignCount;
+    int initial_design_count = 5;
     std::cout << "zones in Zoned" << Zoned->get_zones().size() << std::endl;
     std::cout << "ZoneCount" << ZoneCount << std::endl;
     std::cout << "initial zone count" << initial_zone_count << std::endl;
@@ -270,7 +270,7 @@ void visualiseZones() { //visualizes all designs if no index is given
     }
     */
 
-    for (int designID = 6; designID <= 15; ++designID) {
+    for (int designID = 6; designID < Zoned->get_designs().size(); ++designID) {
         std::vector<int> zoneIDsinzoned = Zoned->get_zoned_cuboids(designID-6);
         visualise(*CF, "zones", designID, zoneIDsinzoned);
 		//std::cout << "Visualizing zoned design " << designID << std::endl;
@@ -291,10 +291,11 @@ void visualiseZonedDesigns() { //visualizes all designs if no index is given
     }
     */
 
-    for (int designID = 0; designID <= 15; ++designID) {
-        visualise(*CF, "zones", designID);
-        //std::cout << "Visualizing zoned design " << designID << std::endl;
-    }
+    // for (int designID = 0; designID <= 15; ++designID) {
+    //     std::vector<int> zoneIDsinzoned = Zoned->get_zoned_cuboids(designID);
+    //     visualise(*CF, "zones", designID, zoneIDsinzoned);
+    //     //std::cout << "Visualizing zoned design " << designID << std::endl;
+    // }
 }
 
 void checkGLError(const char* action) {

@@ -270,10 +270,21 @@ void visualiseZones() { //visualizes all designs if no index is given
     }
     */
 
-    for (int designID = 6; designID < Zoned->get_designs().size(); ++designID) {
-        std::vector<int> zoneIDsinzoned = Zoned->get_zoned_cuboids(designID-6);
-        visualise(*CF, "zones", designID, zoneIDsinzoned);
-		//std::cout << "Visualizing zoned design " << designID << std::endl;
+   std::vector<BSO::Spatial_Design::Zoning::Zoned_Design*> zonedDesignsVec;
+   std::vector<int> design_ids;
+
+    for(int designID = 5; designID < Zoned->get_designs().size(); ++designID) {
+        if(Zoned->get_designs()[designID]->get_zones().size() > 1) {
+            zonedDesignsVec.push_back(Zoned->get_designs()[designID]);
+            design_ids.push_back(designID);
+        }
+    }
+
+    for (int designID = 0; designID < zonedDesignsVec.size(); ++designID) {
+        std::vector<int> zoneIDsinzoned = Zoned->get_zoned_cuboids(designID);
+        int id = design_ids[designID];
+        visualise(*CF, "zones", id, zoneIDsinzoned);
+        std::cout << "Visualizing zoned design " << id << std::endl;
 	}
 }
 

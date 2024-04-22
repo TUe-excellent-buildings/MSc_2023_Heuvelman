@@ -29,6 +29,7 @@ private:
 	std::vector<Geometry::Space*> m_spaces;
 	std::vector<Geometry::Vertex*> m_vertices;
 	std::vector<Geometry::Rectangle*> m_rectangles;
+	std::vector<std::vector<int>> m_zonecuboids;
 	unsigned int base_type = 0;
 	double total_compliance = 0;
 
@@ -108,8 +109,9 @@ public:
 	unsigned int get_ID();
 
 	bool remove_zone_by_ID(unsigned int zoneID);
-
 	void add_zoned_design(Zoned_Design* ZD) { m_zoned.push_back(ZD); }
+	void add_zone_cuboid_IDs(std::vector<int> v) { m_zonecuboids.push_back(v); }
+	std::vector<int> get_zoned_cuboids(int ID) { return m_zonecuboids[ID]; }
 }; // Zoned_Design
 
 } // namespace Zoning

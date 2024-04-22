@@ -73,6 +73,8 @@ namespace BSO { namespace Visualisation
             
             // store zone ID's for current design (i) in vector
             std::vector<unsigned int> zone_IDs;
+            for (int k=0; k<)
+
             for (unsigned int k = 0; k < ms_conf.get_cuboid_count(); k++)
             {
                 unsigned int zone_ID = ms_conf.get_cuboid(k)->get_zone_ID(i);

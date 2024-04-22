@@ -188,9 +188,9 @@ void visualise(BSO::Spatial_Design::MS_Conformal& cf_building, std::string type)
     vpmanager_local.addviewportzoning(new BSO::Visualisation::viewport(new BSO::Visualisation::Conformal_Model(cf_building, type)));
 }
 
-void visualise(BSO::Spatial_Design::MS_Conformal& cf_building, std::string type, unsigned int i)
+void visualise(BSO::Spatial_Design::MS_Conformal& cf_building, std::string type, unsigned int i, std::vector<int> ZoneIDs)
 {
-    vpmanager_local.addviewportzoning(new BSO::Visualisation::viewport(new BSO::Visualisation::Zoning_Model(cf_building, type, i)));
+    vpmanager_local.addviewportzoning(new BSO::Visualisation::viewport(new BSO::Visualisation::Zoning_Model(cf_building, type, i, ZoneIDs)));
 }
 
 void visualise(BSO::Spatial_Design::MS_Conformal& cf_building, unsigned int i, int zone_ID)
@@ -226,7 +226,12 @@ void visualiseZones() { //visualizes all designs if no index is given
     unsigned int zonesCount = Zoned->get_zones().size();
     unsigned int designsCount = Zoned->get_designs().size();
     int initial_zone_count = Zoned->get_zones().size() - ZoneCount;
+    //int initial_design_count = Zoned->get_designs().size() - ZonedDesignCount;
     int initial_design_count = Zoned->get_designs().size() - GhostZonedDesignCount;
+    std::cout << "zones in Zoned" << Zoned->get_zones().size() << std::endl;
+    std::cout << "ZoneCount" << ZoneCount << std::endl;
+    std::cout << "initial zone count" << initial_zone_count << std::endl;
+    std::cout << "initial designs count" << initial_design_count << std::endl;
 
     // Visualize all zones
     /*
@@ -250,12 +255,9 @@ void visualiseZones() { //visualizes all designs if no index is given
 
     for (auto& zone : Zoned->get_zones()) {
         unsigned int zoneID = zone->get_ID();
-        if (zoneID > 10) { // Exclude zone IDs 1 to 10 since these were created by the toolbox zoning procedure
-            visualise(*CF, zoneID-5, 0);
+        if (zoneID > initial_zone_count) { // Exclude zone IDs created by the toolbox zoning procedure
+            visualise(*CF, zoneID - initial_design_count, 0);
             std::cout << "Visualizing zone " << zoneID << std::endl;
-        }
-        else {
-            std::cout << "Skipping visualization for zone " << zoneID << std::endl;
         }
     }
 
@@ -268,9 +270,10 @@ void visualiseZones() { //visualizes all designs if no index is given
     }
     */
 
-    for (int designID = 0; designID <= 15; ++designID) {
-		visualise(*CF, "zones", designID);
-		std::cout << "Visualizing zoned design " << designID << std::endl;
+    for (int designID = 6; designID <= 15; ++designID) {
+        std::vector<int> zoneIDsinzoned = Zoned->get_zoned_cuboids(designID-6);
+        visualise(*CF, "zones", designID, zoneIDsinzoned);
+		//std::cout << "Visualizing zoned design " << designID << std::endl;
 	}
 }
 
@@ -290,7 +293,7 @@ void visualiseZonedDesigns() { //visualizes all designs if no index is given
 
     for (int designID = 0; designID <= 15; ++designID) {
         visualise(*CF, "zones", designID);
-        std::cout << "Visualizing zoned design " << designID << std::endl;
+        //std::cout << "Visualizing zoned design " << designID << std::endl;
     }
 }
 
@@ -569,6 +572,7 @@ void changeScreen(int screen) {
 
     if (screen == 3) {
         //retrieve_SD_results();
+
         std::string ZoneCountStr = std::to_string(ZoneCount);
         writeToOutputFile("output.csv", "Zone count 1:", ZoneCountStr.c_str(), "");
         std::string ZonedDesignCountStr = std::to_string(ZonedDesignCount);
@@ -578,6 +582,8 @@ void changeScreen(int screen) {
     if (screen == 4) {
         writeToOutputFile("output.csv", "Step 2: Pick one zoned design you would like to continue with and explain why.", "", opinionTF.text);
 
+        
+        /*
         //Remove all earlier created zones, to be able to create new ones and visualize the correct ones. 
         std::vector<unsigned int> zonesToRemove;
         for (const auto& zone : Zoned->get_zones()) {
@@ -595,11 +601,15 @@ void changeScreen(int screen) {
                 std::cout << "Zone ID " << zoneID << " successfully removed." << std::endl;
             }
         }
+        */
 
+        ZoneCount = 0;
+        ZonedDesignCount = 0;
+        GhostZonedDesignCount = 0;
 
     }
     if (screen == 6) {
-        //retrieve_SD_results(); //place this in a next screen and divide over results from toolobx zoned designs and results from self created zoned designs. 
+
     }
     if (screen == 7) {
         std::string ZoneCountStr2 = std::to_string(ZoneCount2);
@@ -1432,9 +1442,12 @@ void keyboard(unsigned char key, int x, int y) {
             for (int id : zoneIDs) {
                 int actual_id = id;
                     validZoneIDs.push_back(actual_id);  // Collect valid IDs
+                    correspondingCuboidIDs.push_back(id);
+                    /*
                     for (auto cuboid : Zoned->get_zone_by_ID(id)->get_cuboids()) {
                         correspondingCuboidIDs.push_back(cuboid->get_ID());
                     }
+                    */
             }
             std::cout << "test goes into ifValid" << std::endl;
             
@@ -2063,7 +2076,7 @@ void keyboard(unsigned char key, int x, int y) {
             std::vector<int> spaceIDs;
 
             if (!opinionTF20.text.empty()) {
-                std::cout << "Entered text: " << opinionTF9.text << std::endl;
+                std::cout << "Entered text: " << opinionTF20.text << std::endl;
                 writeToProcessFile("process.csv", "Create Zone 2", opinionTF20.text);
 
                 std::stringstream ss(opinionTF20.text);
@@ -2112,11 +2125,6 @@ void keyboard(unsigned char key, int x, int y) {
                 int newZoneID = Zoned->get_zones().back()->get_ID() + 1;
 
                 BSO::Spatial_Design::Zoning::Zone* new_zone = new BSO::Spatial_Design::Zoning::Zone(all_cuboids);
-
-                //std::cout << "zone coords min 1: " << new_zone.get_min_coords(0) << " " << new_zone.get_min_coords(1) << " " << new_zone.get_min_coords(2) << std::endl;
-                //std::cout << "zone coords max 1: " << new_zone.get_max_coords(0) << " " << new_zone.get_max_coords(1) << " " << new_zone.get_max_coords(2) << std::endl;
-                //std::cout << "coords of the first curobid min " << new_zone.get_cuboids()[0]->get_min_vertex()->get_coords()[0] << new_zone.get_cuboids()[0]->get_min_vertex()->get_coords()[1] << new_zone.get_cuboids()[0]->get_min_vertex()->get_coords()[2] << std::endl;
-                //std::cout << "coords of the first curobid" << new_zone.get_cuboids()[0]->get_coords() << std::endl;
 
                 new_zone->add_ID(newZoneID);
                 for (int i = 0; i < all_cuboids.size(); i++) {
@@ -3350,6 +3358,16 @@ void yesButtonPressed(int screen) {
     changeScreen(screen);
 }
 
+void yesButtonPressed2(int screen) {
+    // Draw and display the "please wait" screen immediately
+    displayPleaseWait();
+
+    retrieve_SD_results(); //place this in a next screen and divide over results from toolobx zoned designs and results from self created zoned designs. 
+
+    // Now change the screen
+    changeScreen(screen);
+}
+
 void displayPleaseWait() {
     // Clear the screen or draw over the current content
     glClearColor(0.95f, 0.95f, 0.95f, 1.0f); // Very light gray background
@@ -3390,7 +3408,7 @@ void screenCheckNext3() {
 void screenCheckNext4() {
     screen3d();
 	screenCheckNextLonger();
-	drawButton("Yes", 790, 460, 100, 30, yesButtonPressed, 6);
+	drawButton("Yes", 790, 460, 100, 30, yesButtonPressed2, 6);
 	drawButton("No", 910, 460, 100, 30, changeScreen, 5);
 }
 

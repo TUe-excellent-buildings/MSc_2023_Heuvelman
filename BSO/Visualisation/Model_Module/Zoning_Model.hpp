@@ -4,7 +4,7 @@
 #ifndef PI
 #define PI 3.14159265359
 #endif // PI
-
+#include <vector>
 #include <BSO/Spatial_Design/Conformation.hpp>
 #include <BSO/Visualisation/Model_Module/Model.hpp>
 #include <BSO/Visualisation/BSP_Module/BSP.hpp>
@@ -19,7 +19,7 @@ namespace BSO { namespace Visualisation
     class Zoning_Model : public model
     {
     public:
-        Zoning_Model(Spatial_Design::MS_Conformal&, std::string, unsigned int);
+        Zoning_Model(Spatial_Design::MS_Conformal&, std::string, unsigned int, std::vector<int>);
         Zoning_Model(Spatial_Design::MS_Conformal& ms_conf, unsigned int i, int zone_ID_chosen);
         ~Zoning_Model();
         void render(const camera &cam) const;
@@ -58,7 +58,7 @@ namespace BSO { namespace Visualisation
     // hh, float shininess;
     // hh, bool translucent, wosided;
 
-    Zoning_Model::Zoning_Model(Spatial_Design::MS_Conformal& ms_conf, std::string type, unsigned int i)
+    Zoning_Model::Zoning_Model(Spatial_Design::MS_Conformal& ms_conf, std::string type, unsigned int i, std::vector<int> ZoneIDs2)
     {
         if (type == "zones")
         {
@@ -73,8 +73,8 @@ namespace BSO { namespace Visualisation
             
             // store zone ID's for current design (i) in vector
             std::vector<unsigned int> zone_IDs;
-            for (int k=0; k<)
-
+            //std::cout << "zoneIDs passed to the visualization model:" << zoneIDs.size() << std::endl;
+            
             for (unsigned int k = 0; k < ms_conf.get_cuboid_count(); k++)
             {
                 unsigned int zone_ID = ms_conf.get_cuboid(k)->get_zone_ID(i);
@@ -89,9 +89,9 @@ namespace BSO { namespace Visualisation
             for (unsigned int k = 0; k < ms_conf.get_cuboid_count(); k++)
             {
                 unsigned int zone_ID = ms_conf.get_cuboid(k)->get_all_zones().back();
-                std::cout << "Cuboid " << k << ": Zone ID = " << zone_ID << std::endl;
+                //std::cout << "Cuboid " << k << ": Zone ID = " << zone_ID << std::endl;
             }
-
+            
             /*
             // to show zoned design with all latest created zones
             std::vector<unsigned int> zone_IDs;
@@ -105,6 +105,18 @@ namespace BSO { namespace Visualisation
                 }
             }
             std::sort(zone_IDs.begin(), zone_IDs.end());
+            */
+
+            /*
+            for (unsigned int k = 0; k < ms_conf.get_cuboid_count(); k++)
+            {
+                auto all_zone_IDs = ms_conf.get_cuboid(k)->get_all_zones();  // Retrieve all zone IDs for the cuboid at index k
+                std::cout << "Cuboid " << k << " is associated with zone IDs: ";
+                for (auto zone_ID : all_zone_IDs) {  // Iterate over each zone ID
+                    std::cout << zone_ID << " ";
+                }
+                std::cout << std::endl;  // Print newline for better readability between cuboid entries
+            }
             */
 
             for (unsigned int k = 0; k < zone_IDs.size(); k++)

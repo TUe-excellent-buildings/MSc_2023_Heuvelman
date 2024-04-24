@@ -110,9 +110,12 @@ public:
 	bool test = false;
 
 	bool remove_zone_by_ID(unsigned int zoneID);
+	//bool remove_design_by_ID(unsigned int designID);
+	//bool remove_zone_from_design_by_ID(unsigned int zoneID);
 	void add_zoned_design(Zoned_Design* ZD) { m_zoned.push_back(ZD); }
 	void add_zone_cuboid_IDs(std::vector<int> v) { m_zonecuboids.push_back(v); }
 	std::vector<int> get_zoned_cuboids(int ID) { return m_zonecuboids[ID]; }
+	//void remove_zone_ID_from_design(unsigned int zoneID);
 }; // Zoned_Design
 
 } // namespace Zoning

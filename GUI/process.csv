@@ -1,0 +1,152 @@
+Action,User input,Time
+Create Zone,1,2,7,09:21:06
+Create Zone,3,09:21:09
+Create Zone,10,09:21:12
+Create Zone,4,5,6,8,09:21:17
+Create Zone,9,09:21:20
+Delete Zone,,09:21:29
+Create Zone,9,09:21:50
+Delete Zone,,09:22:25
+Create Zone,10,09:22:31
+Delete Zone,,09:22:40
+Delete Zone,,09:42:59
+Action,User input,Time
+Create Zone,1,10:25:44
+Create Zone,2,10:25:45
+Create Zone,5,10:25:46
+Create Zone,8,10:25:47
+Delete Zone,,10:25:58
+Create Zone,10,10:26:04
+Delete Zone,,10:26:18
+Create Zone,9,10:26:22
+Action,User input,Time
+Create Zone,1,10:28:03
+Create Zone,6,10:28:04
+Create Zone,4,10:28:04
+Delete Zone,,10:28:56
+Action,User input,Time
+Create Zone,1,10:46:19
+Create Zone,7,10:46:20
+Delete Zone,,10:46:22
+Action,User input,Time
+Create Zone,1,10:48:01
+Delete Zone,,10:48:02
+Action,User input,Time
+Create Zone,1,10:49:56
+Delete Zone,,10:49:58
+Action,User input,Time
+Create Zone,1,11:14:52
+Delete Zone,,11:14:55
+Create Zone,1,11:14:59
+Create Zone,2,11:15:01
+Delete Zone,,11:15:06
+Create Zone,10,11:15:10
+Delete Zone,,11:15:21
+Create Zone,3,11:15:26
+Create Zone,8,9,11:15:47
+Delete Zone,,11:16:01
+Create Zone,1,11:16:08
+Action,User input,Time
+Create Zone,1,16:16:17
+Create Zone,4,5,16:16:23
+Create Zone,3,5,7,9,16:16:32
+Create Zone,854237854,16:16:35
+Create Zone,dakfjdaskl,16:16:40
+Create Zone,44,3,4,16:16:49
+Create Zone,4,444,16:16:51
+Create Zone,fjdk,16:16:54
+Action,User input,Time
+Create Zone,1,16:34:05
+Create Zone,2,16:34:06
+Create Zone,3,16:34:08
+Delete Zoned Design,9,16:36:02
+Action,User input,Time
+Create Zone,1,16:57:32
+Create Zone,5,16:57:34
+Delete Zone,,16:57:40
+Action,User input,Time
+Create Zone,4,16:58:54
+Create Zone,7,16:58:55
+Delete Zoned Design,8,16:59:04
+Action,User input,Time
+Create Zone,5,17:01:49
+Create Zone,3,17:01:51
+Delete Zoned Design,8,17:01:57
+Action,User input,Time
+Create Zone,2,17:05:52
+Create Zone,6,17:05:54
+Create Zone,4,17:05:56
+Delete Zoned Design,9,17:06:05
+Action,User input,Time
+Create Zone,1,17:06:37
+Create Zone,5,17:06:38
+Delete Zoned Design,7,17:06:44
+Action,User input,Time
+Create Zone,4,17:09:53
+Create Zone,7,17:09:54
+Create Zone,9,17:09:57
+Delete Zoned Design,8,17:10:19
+Action,User input,Time
+Create Zone,4,17:16:34
+Create Zone,2,17:16:36
+Action,User input,Time
+Create Zone,1,19:09:23
+Create Zone,2,19:09:25
+Create Zone,5,19:09:26
+Delete Zoned Design,7,19:11:59
+Delete Zoned Design,8,19:12:05
+Delete Zoned Design,8,19:17:21
+Delete Zoned Design,8,19:17:44
+Action,User input,Time
+Create Zone,4,19:26:41
+Create Zone,2,19:26:43
+Create Zone,6,19:26:44
+Action,User input,Time
+Create Zone,4,19:30:00
+Create Zone,6,19:30:02
+Create Zone,8,19:30:03
+Delete Zone,,19:30:05
+Action,User input,Time
+Delete Zoned Design,7,19:41:47
+Delete Zoned Design,6,19:42:04
+Action,User input,Time
+Delete Zoned Design,5,19:47:13
+Delete Zoned Design,5,19:48:09
+Delete Zoned Design,5,19:48:39
+Delete Zoned Design,5,19:48:49
+Delete Zoned Design,4,19:48:59
+Delete Zoned Design,6,19:49:07
+Action,User input,Time
+Delete Zoned Design,7,19:51:56
+Delete Zoned Design,6,19:52:00
+Action,User input,Time
+Delete Zoned Design,6,20:20:57
+Action,User input,Time
+Delete Zoned Design,7,20:28:09
+Action,User input,Time
+Delete Zoned Design,6,20:32:41
+Action,User input,Time
+Delete Zoned Design,7,20:47:23
+Action,User input,Time
+Delete Zoned Design,6,20:48:38
+Action,User input,Time
+Delete Zoned Design,5,20:49:24
+Action,User input,Time
+Delete Zoned Design,6,20:52:36
+Delete Zoned Design,7,20:53:01
+Create Zone,7,20:53:44
+Delete Zone,,20:54:27
+Create Zone,10,20:54:54
+Action,User input,Time
+Create Zone,3,21:04:24
+Create Zone,4,5,6,21:04:28
+Delete Zone,,21:04:43
+Create Zone,8,21:04:51
+Create Zone,9,21:04:56
+Delete Zone,,21:05:18
+Create Zone,10,21:05:33
+Delete Zone,,21:06:23
+Create Zone,1,21:06:28
+Delete Zoned Design,19,21:07:26
+Delete Space,9,21:10:25
+Create Zone 2,1,21:11:21

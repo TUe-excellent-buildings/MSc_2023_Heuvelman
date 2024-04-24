@@ -107,6 +107,7 @@ public:
 
 	void add_ID(unsigned int);
 	unsigned int get_ID();
+	bool test = false;
 
 	bool remove_zone_by_ID(unsigned int zoneID);
 	void add_zoned_design(Zoned_Design* ZD) { m_zoned.push_back(ZD); }

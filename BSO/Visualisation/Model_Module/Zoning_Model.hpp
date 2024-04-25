@@ -20,8 +20,8 @@ namespace BSO { namespace Visualisation
     {
     public:
         Zoning_Model(Spatial_Design::MS_Conformal&, std::string, unsigned int);
-        Zoning_Model(Spatial_Design::MS_Conformal&, std::string, unsigned int, std::vector<int>);
-        Zoning_Model(Spatial_Design::MS_Conformal& ms_conf, unsigned int i, int zone_ID_chosen);
+        Zoning_Model(Spatial_Design::MS_Conformal&, std::string, unsigned int, std::vector<int>, int initial_zones_count);
+        Zoning_Model(Spatial_Design::MS_Conformal& ms_conf, unsigned int i, int zone_ID_chosen, int initial_zones_count);
         ~Zoning_Model();
         void render(const camera &cam) const;
         const std::string get_description();
@@ -59,7 +59,7 @@ namespace BSO { namespace Visualisation
     // hh, float shininess;
     // hh, bool translucent, wosided;
 
-    Zoning_Model::Zoning_Model(Spatial_Design::MS_Conformal& ms_conf, std::string type, unsigned int i, std::vector<int> ZoneIDs2)
+    Zoning_Model::Zoning_Model(Spatial_Design::MS_Conformal& ms_conf, std::string type, unsigned int i, std::vector<int> ZoneIDs2, int initial_zones_count)
     {
         try {
             if (type == "zones")
@@ -133,7 +133,7 @@ namespace BSO { namespace Visualisation
                     add_cube(&cluster_props[pos], &cluster_lprops[pos], min, max, polygons);
 
                     // Create a new label
-                    int modified_id = zone_color - 10; // Subtract 10 from the original integer ID
+                    int modified_id = zone_color - initial_zones_count; // Subtract 10 from the original integer ID
                     std::ostringstream out;
                     out << modified_id; // Convert the modified integer ID to a string
                     std::string modified_ID = out.str(); // Store the converted ID in a string
@@ -257,9 +257,9 @@ namespace BSO { namespace Visualisation
 
     }
 
-    Zoning_Model::Zoning_Model(Spatial_Design::MS_Conformal& ms_conf, unsigned int i, int zone_ID_chosen)
+    Zoning_Model::Zoning_Model(Spatial_Design::MS_Conformal& ms_conf, unsigned int i, int zone_ID_chosen, int initial_zones_count)
     {
-        zones_ID += i-6;
+        zones_ID += i - initial_zones_count - 1;
         is_specific_zone = true;
         double offset = 200;
 
@@ -287,7 +287,7 @@ namespace BSO { namespace Visualisation
             double green = pow((0.5 + 0.5*cos(2*PI*color_gradient - PI)), (eta/3));
             double blue = 1 - ((tanh(beta * (1 - eta)) + tanh(beta * (color_gradient - (1 - eta)))) /
                                 (tanh(beta * (1 - eta)) + tanh(beta * eta)));
-            double alpha = 0.1;
+            double alpha = 0.05;
             double alpha2 = 1.0;
 
             // assign the color values to the graphic properties structure
@@ -334,22 +334,20 @@ namespace BSO { namespace Visualisation
                 max = vect3d(temp_coords_1(0) - offset, temp_coords_1(2) - offset, -temp_coords_2(1) - offset);
                 min = vect3d(temp_coords_2(0) + offset, temp_coords_2(2) + offset, -temp_coords_1(1) + offset);
 
-                if (zone_ID == 10 + zones_ID)
+                if (zone_ID == zones_ID + initial_zones_count)
                 {
+                    std::cout << "add red cuboid to visualize zone " << zone_ID << std::endl;
                     add_cube(&cluster_props2[1], &cluster_lprops[0], min, max, polygons);
                     //Create a new label
-                    int modified_zone_ID = zone_ID - 10; // Subtract 10 from the original zone ID
+                    int modified_zone_ID = zone_ID - initial_zones_count; // Subtract 10 from the original zone ID
                     std::ostringstream out;
                     out << modified_zone_ID; // Cast the modified int value of ID as a string
                     std::string ID = out.str(); // Store the string representation of the modified ID
                     labels.push_back(create_label(&lbprops, ID, min + ((max - min) / 2.0)));
                 }
-                //if (zone_ID <= 10)
-                if (zone_ID == 2 | zone_ID == 6 | zone_ID == 7 | zone_ID == 10)
-                {
-                    add_cube(&cluster_props[0], &cluster_lprops[1], min, max, polygons);
-                    std::ostringstream out; out << zone_ID; std::string ID = out.str(); // cast the int value of ID as a string
-                }
+
+                add_cube(&cluster_props[0], &cluster_lprops[1], min, max, polygons);
+                std::ostringstream out; out << zone_ID; std::string ID = out.str(); // cast the int value of ID as a string
             }
         }
         pbsp = new random_bsp(polygons);

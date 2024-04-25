@@ -107,7 +107,7 @@ public:
 
 	void add_ID(unsigned int);
 	unsigned int get_ID();
-	bool test = false;
+	bool is_active = false;
 
 	bool remove_zone_by_ID(unsigned int zoneID);
 	//bool remove_design_by_ID(unsigned int designID);

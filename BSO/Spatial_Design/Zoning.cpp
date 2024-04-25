@@ -3115,6 +3115,13 @@ bool Zoned_Design::remove_zone_by_ID(unsigned int zoneID) {
     }
     return false; // Zone ID not found
 }
+
+bool Zoned_Design::exists_zone_by_ID(unsigned int zoneID) {
+    for (auto zone : m_zones) {
+        if (zoneID == zone->get_ID()) return true;
+    }
+	return false;
+}
 /*
 bool Zoned_Design::remove_design_by_ID(unsigned int designID) {
     std::cout << "remove_design_byID" << std::endl;

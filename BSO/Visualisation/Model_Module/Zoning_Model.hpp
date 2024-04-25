@@ -187,8 +187,15 @@ namespace BSO { namespace Visualisation
                     min = vect3d(temp_coords_2(0)+offset, temp_coords_2(2)+offset, -temp_coords_1(1)+offset);
                     add_cube(&cluster_props[pos], &cluster_lprops[pos], min, max, polygons);
 
-                    std::ostringstream out; out << zone_color; std::string ID = out.str(); // cast the int value of ID as a string
-                    labels.push_back(create_label(&lbprops, ID, min + ((max-min)/2.0)));
+                    //std::ostringstream out; out << zone_color; std::string ID = out.str(); // cast the int value of ID as a string
+                    //labels.push_back(create_label(&lbprops, ID, min + ((max-min)/2.0)));
+
+                    int modified_id = zone_color - 10; // Subtract 10 from the original integer ID
+                    std::ostringstream out;
+                    out << modified_id; // Convert the modified integer ID to a string
+                    std::string modified_ID = out.str(); // Store the converted ID in a string
+
+                    labels.push_back(create_label(&lbprops, modified_ID, min + ((max - min) / 2.0)));
 
                 }
             }
@@ -435,7 +442,13 @@ namespace BSO { namespace Visualisation
                 if (zone_ID == 10 + zones_ID)
                 {
                     add_cube(&cluster_props2[1], &cluster_lprops[0], min, max, polygons);
-                    std::ostringstream out; out << zone_ID; std::string ID = out.str(); // cast the int value of ID as a string
+                    //std::ostringstream out; out << zone_ID; std::string ID = out.str(); // cast the int value of ID as a string
+                    //labels.push_back(create_label(&lbprops, ID, min + ((max - min) / 2.0)));
+                    int modified_zone_ID = zone_ID - 10; // Subtract 10 from the original zone ID
+                    std::ostringstream out;
+                    out << modified_zone_ID; // Cast the modified int value of ID as a string
+                    std::string ID = out.str(); // Store the string representation of the modified ID
+
                     labels.push_back(create_label(&lbprops, ID, min + ((max - min) / 2.0)));
                 }
                 //if (zone_ID <= 10)

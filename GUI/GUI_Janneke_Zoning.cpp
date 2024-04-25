@@ -246,6 +246,7 @@ void visualiseZones() { //visualizes all designs if no index is given
 
     //Visualize all zoned designs
     try {
+        int index_to_show = 0;
         for(int designID = 5; designID < Zoned->get_designs().size(); ++designID) {
             std::cout << "designID" << designID << std::endl;
             std::cout << "Zoned->get_designs()[designID]->test" << Zoned->get_designs()[designID]->test << std::endl;
@@ -253,7 +254,8 @@ void visualiseZones() { //visualizes all designs if no index is given
                 try{
                     std::vector<int> zoneIDsinzoned = Zoned->get_zoned_cuboids(designID -5);
                     std::cout << zoneIDsinzoned.size() << std::endl;
-                    visualise(*CF, "zones", designID, zoneIDsinzoned);
+                    visualise(*CF, "zones", index_to_show, zoneIDsinzoned);
+                    index_to_show++;
                 }
                 catch (std::exception& e) {
 					std::cout << "Foute design erdoor geglipt: 1" << e.what() << std::endl;
@@ -269,6 +271,7 @@ void visualiseZones() { //visualizes all designs if no index is given
 
 void visualiseZonedDesigns() { //visualizes all designs if no index is given
     try {
+        int index_to_show = 0;
         for (int designID = 5; designID < Zoned->get_designs().size(); ++designID) {
             std::cout << "designID" << designID << std::endl;
             std::cout << "Zoned->get_designs()[designID]->test" << Zoned->get_designs()[designID]->test << std::endl;
@@ -276,7 +279,8 @@ void visualiseZonedDesigns() { //visualizes all designs if no index is given
                 try {
                     std::vector<int> zoneIDsinzoned = Zoned->get_zoned_cuboids(designID - 5);
                     std::cout << zoneIDsinzoned.size() << std::endl;
-                    visualise(*CF, "zones", designID, zoneIDsinzoned);
+                    visualise(*CF, "zones", index_to_show, zoneIDsinzoned);
+                    index_to_show++;
                 }
                 catch (std::exception& e) {
                     std::cout << "Foute design erdoor geglipt: 1" << e.what() << std::endl;
@@ -642,27 +646,6 @@ void changeScreen(int screen) {
     }
     if (screen == 4) {
         writeToOutputFile("output.csv", "Step 2: Pick one zoned design you would like to continue with and explain why.", "", opinionTF.text);
-
-        
-        /*
-        //Remove all earlier created zones, to be able to create new ones and visualize the correct ones. 
-        std::vector<unsigned int> zonesToRemove;
-        for (const auto& zone : Zoned->get_zones()) {
-            if (zone->get_ID() > 10) {
-                zonesToRemove.push_back(zone->get_ID());
-            }
-        }
-
-        for (unsigned int zoneID : zonesToRemove) {
-            std::vector<BSO::Spatial_Design::Geometry::Cuboid*> cuboids = Zoned->get_zone_by_ID(zoneID)->get_cuboids();
-            for (BSO::Spatial_Design::Geometry::Cuboid* cuboid : cuboids) {
-                cuboid->remove_zone_ID(zoneID);
-            }
-            if (Zoned->remove_zone_by_ID(zoneID)) {
-                std::cout << "Zone ID " << zoneID << " successfully removed." << std::endl;
-            }
-        }
-        */
 
         ZoneCount = 0;
         ZonedDesignCount = 0;
@@ -1202,7 +1185,7 @@ void keyboard(unsigned char key, int x, int y) {
                 while (getline(ss, item, ',')) {
                     try {
                         int space_ID = std::stoi(item);
-                        if (space_ID >= 0 && space_ID <= CF->get_space_count()) {
+                        if (space_ID > 0 && space_ID <= CF->get_space_count()) {
                             spaceIDs.push_back(space_ID);
                         }
                         else {
@@ -1474,7 +1457,8 @@ void keyboard(unsigned char key, int x, int y) {
             DrawInvalidInput = false;
         }
         else if (key == 13) { // Enter key
-            bool validInput = true; // Flag to track if the input is valid
+            bool validInput = false; // Flag to track if the input is valid
+            int realDesignID = 0;
             std::shared_ptr<BSO::Spatial_Design::MS_Building> msBuilding = MS;
             std::shared_ptr<BSO::Spatial_Design::MS_Conformal> msConformal = CF;
             std::shared_ptr<BSO::Spatial_Design::Zoning::Zoned_Design> zoning = Zoned;
@@ -1486,22 +1470,24 @@ void keyboard(unsigned char key, int x, int y) {
                 try {
                     int zoned_design_ID = std::stoi(clean_str(opinionTF12.text));
                     std::cout << "Zoned->get_designs().size()" << Zoned->get_designs().size() << std::endl;
-                    if (zoned_design_ID >= 0 && zoned_design_ID <= Zoned->get_designs().size()) {
-                        std::cout << "test 1 iput " << std::endl;
-                        std::cout << "Zoned->get_designs()[zoned_design_ID]->test" << Zoned->get_designs()[zoned_design_ID]->test << std::endl;
-                        if (Zoned->get_designs()[zoned_design_ID]->test == true) {
-                            validInput = true;
-                            std::cout << "test 2 iput true" << std::endl;
+                    
+                    int index_to_show = 1;
+                    for (int designID = 5; designID < Zoned->get_designs().size(); ++designID) {
+                        std::cout << "designID" << designID << std::endl;
+                        std::cout << "Zoned->get_designs()[designID]->test" << Zoned->get_designs()[designID]->test << std::endl;
+                        if (Zoned->get_designs()[designID]->test == true) {
+                            if (index_to_show == zoned_design_ID) {
+                                std::cout << index_to_show << " " << index_to_show << std::endl;
+								zoned_design_ID = designID;
+                                validInput = true;
+                                realDesignID = designID;
+								break;
+							}
+							index_to_show++;
                         }
-                        else {
-							std::cout << "Error: zoned design ID " << zoned_design_ID << " is not a valid zoned design." << std::endl;
-							validInput = false;
-							DrawInvalidInput = true;
-						}   
                     }
-                    else {
+                    if (validInput == false) {
                         std::cout << "Error: zoned design ID " << zoned_design_ID << " is out of valid range." << std::endl;
-                        validInput = false;
                         DrawInvalidInput = true;
                     }
                 }
@@ -1519,27 +1505,15 @@ void keyboard(unsigned char key, int x, int y) {
 
             if (validInput) {
                 //Turn off visualization of the inputted design
-                int zoned_design_ID = std::stoi(clean_str(opinionTF12.text));
-                auto design_to_delete = Zoned->get_designs()[zoned_design_ID];
+                auto design_to_delete = Zoned->get_designs()[realDesignID];
                 design_to_delete->test = false;
-			    std::cout << "Zoned Design ID " << zoned_design_ID << " successfully removed." << std::endl;
+			    std::cout << "realDesignID " << realDesignID << " successfully removed." << std::endl;
 
                 opinionTF12.text = ""; // Clear the input string after processing
                 changeScreen(2);
                 ZonedDesignCount--;
                 GhostZonedDesignCount--;
             }
-        }
-
-        if (!Zoned->get_designs().empty()) {
-            std::cout << "Design IDs in Zoned: ";
-            for (auto& design : Zoned->get_designs()) {
-                std::cout << design->get_ID() << " ";
-            }
-            std::cout << std::endl;
-        }
-        else {
-            std::cout << "No zones currently in Zoned." << std::endl;
         }
     }
 

@@ -399,73 +399,6 @@ void retrieve_SD_results() {
     std::cout << "initial_designs: " << initial_designs << std::endl;
 }
 
-// Function to get SD related outputs from the toolbox for own created zones and designs
-void retrieve_SD_results_from_new_designs() {
-    //CF = std::make_shared<BSO::Spatial_Design::MS_Conformal>(*MS, &(BSO::Grammar::grammar_zoning));
-    //(*CF).make_conformal();
-    //Zoned = std::make_shared<BSO::Spatial_Design::Zoning::Zoned_Design>(CF.get());
-    //(*Zoned).make_zoning();
-    std::shared_ptr<BSO::Spatial_Design::MS_Building> msBuilding = MS;
-    std::shared_ptr<BSO::Spatial_Design::MS_Conformal> msConformal = CF;
-    std::shared_ptr<BSO::Spatial_Design::Zoning::Zoned_Design> zoning = Zoned;
-    std::cout << "Zoned->get_designs().size()" << Zoned->get_designs().size() << std::endl;
-    // Define vectors to store compliance and volumes for all designs
-    std::vector<double> all_compliance;
-    std::vector<double> all_volume;
-
-    /*
-    // SD-analysis unzoned design
-    Zoned->reset_SD_model();
-    Zoned->prepare_unzoned_SD_model();
-    SD_Building = std::make_shared<BSO::Structural_Design::SD_Analysis>(*CF);
-    (*SD_Building).analyse();
-    BSO::Structural_Design::SD_Building_Results sd_results = (*SD_Building).get_results();
-    BSO::SD_compliance_indexing(sd_results);
-    std::cout << std::endl << "Total compliance in the unzoned design: " << sd_results.m_total_compliance
-        << std::endl << "Structural volume: " << sd_results.m_struct_volume << std::endl;
-    Zoned->add_unzoned_compliance(sd_results.m_total_compliance);
-
-    //outputs to excel:
-    writeToOutputFile("output.csv", "Total compliance in the unzoned design:", std::to_string(sd_results.m_total_compliance), "");
-    writeToOutputFile("output.csv", "Structural volume in the unzoned design:", std::to_string(sd_results.m_struct_volume), "");
-    */
-
-    // SD-analysis zoned designs
-    std::vector<double> m_compliance;
-    std::vector<double> m_volume;
-
-    //Zoned = std::make_shared<BSO::Spatial_Design::Zoning::Zoned_Design>(CF.get());
-    //(*Zoned).make_zoning();
-    for (unsigned int i = 0; i < Zoned->get_designs().size(); i++)
-    {
-        if (Zoned->get_designs()[i]->is_active == true) {
-            Zoned->reset_SD_model();
-            Zoned->prepare_zoned_SD_model(i);
-            SD_Building = std::make_shared<BSO::Structural_Design::SD_Analysis>(*CF);
-            (*SD_Building).analyse();
-            BSO::Structural_Design::SD_Building_Results sd_results = (*SD_Building).get_results(); // Reuse existing sd_results object
-            BSO::SD_compliance_indexing(sd_results);
-            std::cout << "Total compliance in zoned design " << i + 1 << ": "
-                << sd_results.m_total_compliance << std::endl << "Structural volume: " << sd_results.m_struct_volume << std::endl;
-            Zoned->add_compliance(sd_results.m_total_compliance, i);
-            m_compliance.push_back(sd_results.m_total_compliance);
-            m_volume.push_back(sd_results.m_struct_volume);
-        }
-    }
-    std::cout << std::endl << "Compliances:" << std::endl;
-    for (unsigned int i = 0; i < m_compliance.size(); i++)
-    {
-        std::cout << m_compliance[i] << std::endl;
-        writeToOutputFile("output.csv", "Total compliance in zoned design " + std::to_string(i + 1) + ":", std::to_string(m_compliance[i]), "");
-    }
-    std::cout << std::endl << "Volumes:" << std::endl;
-    for (unsigned int i = 0; i < m_volume.size(); i++)
-    {
-        std::cout << m_volume[i] << std::endl;
-        writeToOutputFile("output.csv", "Structural volume in zoned design " + std::to_string(i + 1) + ":", std::to_string(m_volume[i]), "");
-    }
-}
-
 //Declare a global variable to store the selected button label
 std::string selectedButtonLabel = "";
 
@@ -632,19 +565,56 @@ void changeScreen(int screen) {
     }
 
     if (screen == 3) {
-        // number of zones and zoned designs found in the first time zoning
-        std::string ZoneCountStr = std::to_string(ZoneCount);
-        writeToOutputFile("output.csv", "Zone count 1:", ZoneCountStr.c_str(), "");
-        std::string ZonedDesignCountStr = std::to_string(ZonedDesignCount);
-        writeToOutputFile("output.csv", "Zoned design count 1:", ZonedDesignCountStr.c_str(), "");
-        //print which spaces are in the zones, and which zones in which zoned design (to compare if they are correct)
+        //number of zones and designs found by the toolbox/AI
+        writeToOutputFile("output.csv", "initial zones", std::to_string(initial_zones), "");
+        writeToOutputFile("output.csv", "initial designs", std::to_string(initial_designs), "");
 
+        // number of zones and zoned designs found in the first time zoning
+        std::string ZoneCountStr = std::to_string(Zoned->get_zones().size() - initial_zones);
+        writeToOutputFile("output.csv", "Zone count user:", ZoneCountStr.c_str(), "");
+        int ActiveDesignCount = 0;
+        for (auto zonedDesign : Zoned->get_designs()) {
+            if (zonedDesign->is_active) {
+                ActiveDesignCount++;
+            }
+        }
+        std::string ZonedDesignCountStr = std::to_string(ActiveDesignCount);
+        writeToOutputFile("output.csv", "Zoned design count user:", ZonedDesignCountStr.c_str(), "");
+
+        for (auto zone : Zoned->get_zones()) {
+            std::string zoneID = std::to_string(zone->get_ID());
+            std::vector<int> cuboidIDs;
+            for (auto cuboid : zone->get_cuboids()) {
+                cuboidIDs.push_back(cuboid->get_ID());
+            }
+            std::sort(cuboidIDs.begin(), cuboidIDs.end());
+            std::string zoneCuboids = "";
+            for (int id : cuboidIDs) {
+                zoneCuboids += std::to_string(id) + ", ";
+            }
+            // Remove the trailing comma and space, if any
+            if (!zoneCuboids.empty()) {
+                zoneCuboids.pop_back();  // Remove last space
+                zoneCuboids.pop_back();  // Remove last comma
+            }
+            writeToOutputFile("output.csv", "Zone " + zoneID + " cuboids:", zoneCuboids, "");
+        }
+
+        //print which zones are in which zoned design
+        for (auto zonedDesign : Zoned->get_designs()) {
+            if (zonedDesign->is_active || zonedDesign->get_ID() < initial_designs) {
+                std::string designID = std::to_string(zonedDesign->get_ID());
+                std::string designZones = "";
+                for (auto zone : zonedDesign->get_zones()) {
+                    designZones += std::to_string(zone->get_ID()) + ", ";
+                }
+                writeToOutputFile("output.csv", "Design " + designID + " zones:", designZones, "");
+			}
+        }
     }
     if (screen == 4) {
         writeToOutputFile("output.csv", "Step 2: Pick one zoned design you would like to continue with and explain why.", "", opinionTF.text);
-        // Reset the counters for the second time zoning
-        ZoneCount = 0;
-        ZonedDesignCount = 0;
+
     }
     if (screen == 6) {
 
@@ -661,12 +631,54 @@ void changeScreen(int screen) {
         writeToOutputFile("output3.csv", "Moved count:", MovedCountStr.c_str(), "");
         std::string ResizedCountStr = std::to_string(ResizedCount);
         writeToOutputFile("output3.csv", "Resized count:", ResizedCountStr.c_str(), "");
-        
-        // write zones and zoned designs found in the second time zoning
-        std::string ZoneCountStr2 = std::to_string(ZoneCount);
-        writeToOutputFile("output.csv", "Zone count 2:", ZoneCountStr2.c_str(), "");
-        std::string ZonedDesignCountStr2 = std::to_string(ZonedDesignCount);
-        writeToOutputFile("output.csv", "Zoned design count 2:", ZonedDesignCountStr2.c_str(), "");
+
+        //number of zones and designs found by the toolbox/AI
+        writeToOutputFile("output.csv", "initial zones", std::to_string(initial_zones), "");
+        writeToOutputFile("output.csv", "initial designs", std::to_string(initial_designs), "");
+
+        // number of zones and zoned designs found in the first time zoning
+        std::string ZoneCountStr = std::to_string(Zoned->get_zones().size() - initial_zones);
+        writeToOutputFile("output.csv", "Zone count user:", ZoneCountStr.c_str(), "");
+        int ActiveDesignCount = 0;
+        for (auto zonedDesign : Zoned->get_designs()) {
+            if (zonedDesign->is_active) {
+                ActiveDesignCount++;
+            }
+        }
+        std::string ZonedDesignCountStr = std::to_string(ActiveDesignCount);
+        writeToOutputFile("output.csv", "Zoned design count user:", ZonedDesignCountStr.c_str(), "");
+
+        for (auto zone : Zoned->get_zones()) {
+            std::string zoneID = std::to_string(zone->get_ID());
+            std::vector<int> cuboidIDs;
+            for (auto cuboid : zone->get_cuboids()) {
+                cuboidIDs.push_back(cuboid->get_ID());
+            }
+            std::sort(cuboidIDs.begin(), cuboidIDs.end());
+            std::string zoneCuboids = "";
+            for (int id : cuboidIDs) {
+                zoneCuboids += std::to_string(id) + ", ";
+            }
+            // Remove the trailing comma and space, if any
+            if (!zoneCuboids.empty()) {
+                zoneCuboids.pop_back();  // Remove last space
+                zoneCuboids.pop_back();  // Remove last comma
+            }
+            writeToOutputFile("output.csv", "Zone " + zoneID + " cuboids:", zoneCuboids, "");
+        }
+
+        //print which zones are in which zoned design
+        for (int i = 0; i < Zoned->get_designs().size(); i++) {
+            auto zonedDesign = Zoned->get_designs()[i];
+            if (zonedDesign->is_active || i < initial_designs) {
+                std::string designID = std::to_string(zonedDesign->get_ID());
+                std::string designZones = "";
+                for (auto zone : zonedDesign->get_zones()) {
+                    designZones += std::to_string(zone->get_ID()) + ", ";
+                }
+                writeToOutputFile("output.csv", "Design " + designID + " zones:", designZones, "");
+            }
+        }
 	}
     if (screen == 8) {
         writeToOutputFile("output.csv", "Step 3: This time pick the one of which you think its structural design has the highest stiffness. Explain your reasoning.", "", opinionTF2.text);
@@ -3195,6 +3207,7 @@ void screenCreateZone() {
     glColor3f(1.0, 0.0, 0.0); //red color
     drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
     glColor3f(0.0, 0.0, 0.0); //back to black color
+    drawText("Separate items with a comma (e.g. 1,2,3).", screenWidth - 120, 200, 500);
 
     //draw lines around it
     boxAroundPopUp();
@@ -3229,6 +3242,7 @@ void screenCreateZonedDesign() {
     glColor3f(1.0, 0.0, 0.0); //red color
     drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
     glColor3f(0.0, 0.0, 0.0); //back to black color
+    drawText("Separate items with a comma (e.g. 1,2,3).", screenWidth - 120, 200, 500);
 
     //draw lines around it
     boxAroundPopUp();
@@ -3344,7 +3358,7 @@ void screenCreateZone2() {
     glColor3f(1.0, 0.0, 0.0); //red color)
     drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
     glColor3f(0.0, 0.0, 0.0); //back to black color
-
+    drawText("Separate items with a comma (e.g. 1,2,3).", screenWidth - 120, 200, 500);
     //draw lines around it
     boxAroundPopUp();
 }
@@ -3378,7 +3392,7 @@ void screenCreateZonedDesign2() {
     glColor3f(1.0, 0.0, 0.0); //red color
     drawTextRed("Press enter to submit", screenWidth - 60, 370, 500);
     glColor3f(0.0, 0.0, 0.0); //back to black color
-
+    drawText("Separate items with a comma (e.g. 1,2,3).", screenWidth - 120, 200, 500);
     //draw lines around it
     boxAroundPopUp();
 }
@@ -3444,6 +3458,8 @@ void screenCheckNextLonger() {
     drawText("Are you sure you want to continue? Once you continue to the next step, you cannot go back to this step.      Continuing can take a minute.", 880, 620, 200);
 }
 
+bool performing_zoning = false;
+
 void yesButtonPressed(int screen) {
     // Draw and display the "please wait" screen immediately
     displayPleaseWait();
@@ -3469,8 +3485,13 @@ void displayPleaseWait() {
     // Setup for 2D drawing
     setup2D();
 
-    // Use a simple function to draw centered text
-    drawText("Loading...", 950, 500, 200);
+    if (performing_zoning == false) {
+        drawText("Loading...", 950, 500, 200);
+    }
+    else {
+        drawText("Loading...", 950, 500, 200);
+        drawText("Please wait. Loading can take a minute.", 900, 470, 300);
+    }
 
     // Flush the OpenGL commands and swap buffers to display the text immediately
     glFlush();  // Ensure all OpenGL commands are processed
@@ -3480,6 +3501,7 @@ void displayPleaseWait() {
 void screenCheckNext1() {
     screen3a();
     screenCheckNext();
+    performing_zoning = false;
     drawButton("Yes", 790, 510, 100, 30, yesButtonPressed, 3);
     drawButton("No", 910, 510, 100, 30, changeScreen, 2);
 }
@@ -3487,6 +3509,7 @@ void screenCheckNext1() {
 void screenCheckNext2() {
     screen3b();
     screenCheckNext();
+    performing_zoning = false;
     drawButton("Yes", 790, 510, 100, 30, yesButtonPressed, 4);
     drawButton("No", 910, 510, 100, 30, changeScreen, 3);
 }
@@ -3494,6 +3517,7 @@ void screenCheckNext2() {
 void screenCheckNext3() {
     screen3c();
 	screenCheckNext();
+    performing_zoning = false;
 	drawButton("Yes", 790, 510, 100, 30, yesButtonPressed, 5);
 	drawButton("No", 910, 510, 100, 30, changeScreen, 4);
 }
@@ -3501,6 +3525,7 @@ void screenCheckNext3() {
 void screenCheckNext4() {
     screen3d();
 	screenCheckNextLonger();
+    performing_zoning = true;
 	drawButton("Yes", 790, 460, 100, 30, yesButtonPressed2, 6);
 	drawButton("No", 910, 460, 100, 30, changeScreen, 5);
 }
@@ -3508,6 +3533,7 @@ void screenCheckNext4() {
 void screenCheckNext5() {
     screen3e();
 	screenCheckNext();
+    performing_zoning = false;
 	drawButton("Yes", 790, 510, 100, 30, yesButtonPressed, 7);
 	drawButton("No", 910, 510, 100, 30, changeScreen, 6);
 }
@@ -3515,6 +3541,7 @@ void screenCheckNext5() {
 void screenCheckNext6() {
     assignmentDescriptionScreen();
     screenCheckNext();
+    performing_zoning = false;
     drawButton("Yes", 790, 510, 100, 30, yesButtonPressed, 2);
     drawButton("No", 910, 510, 100, 30, changeScreen, 1);
 }

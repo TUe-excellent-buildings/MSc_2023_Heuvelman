@@ -2641,12 +2641,12 @@ void displayPleaseWait() {
     // Setup for 2D drawing
     setup2D();
 
-    // Use a simple function to draw centered text
     if (performing_zoning == false) {
         drawText("Loading...", 950, 500, 200);
     }
     else {
 		drawText("Performing zoning...", 950, 500, 200);
+        drawText("Please wait. It can take a minute.", 920, 470, 200);
 	}
 
     // Flush the OpenGL commands and swap buffers to display the text immediately
@@ -2665,6 +2665,7 @@ void screenCheckNext1() {
 void screenCheckNext2() {
     screen3b();
     screenCheckNext();
+    performing_zoning = false;
     drawButton("Yes", 790, 510, 100, 30, yesButtonPressed, 4);
     drawButton("No", 910, 510, 100, 30, changeScreen, 3);
 }
@@ -2672,6 +2673,7 @@ void screenCheckNext2() {
 void screenCheckNext3() {
     screen3c();
 	screenCheckNext();
+    performing_zoning = false;
 	drawButton("Yes", 790, 510, 100, 30, yesButtonPressed, 38);
 	drawButton("No", 910, 510, 100, 30, changeScreen, 4);
 }
@@ -2687,6 +2689,7 @@ void screenCheckNext4() {
 void screenCheckNext5() {
     screen3e();
 	screenCheckNext();
+    performing_zoning = false;
 	drawButton("Yes", 790, 510, 100, 30, yesButtonPressed, 33);
 	drawButton("No", 910, 510, 100, 30, changeScreen, 6);
 }
@@ -2694,6 +2697,7 @@ void screenCheckNext5() {
 void screenCheckNext6() {
     assignmentDescriptionScreen();
     screenCheckNext();
+    performing_zoning = false;
     drawButton("Yes", 790, 510, 100, 30, yesButtonPressed, 2);
     drawButton("No", 910, 510, 100, 30, changeScreen, 1);
 }
@@ -2701,6 +2705,7 @@ void screenCheckNext6() {
 void screenCheckNext7() {
     screen3f();
     screenCheckNext();
+    performing_zoning = false;
     drawButton("Yes", 790, 510, 100, 30, yesButtonPressed, 34);
     drawButton("No", 910, 510, 100, 30, changeScreen, 33);
 }
@@ -2708,6 +2713,7 @@ void screenCheckNext7() {
 void screenCheckNext8() {
     screen3c2();
     screenCheckNext();
+    performing_zoning = false;
     drawButton("Yes", 790, 510, 100, 30, yesButtonPressed, 5);
     drawButton("No", 910, 510, 100, 30, changeScreen, 38);
 }

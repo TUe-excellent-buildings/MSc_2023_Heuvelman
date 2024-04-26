@@ -103,6 +103,9 @@ int ModificationCount = 0;
 // Draw a message when input is invalid
 bool DrawInvalidInput = false;
 
+// initial volume of the structure
+double initial_volume = 0.0;
+
 // Text margin as a percentage of the window width
 const float MARGIN_PERCENT = 5.0f; // Margin as a percentage of the window width
 
@@ -165,6 +168,10 @@ void setup_pointers() {
     (*CF).make_conformal();
     SD_Building = std::make_shared<BSO::Structural_Design::SD_Analysis>(*CF);
     Stab_model = std::make_shared<BSO::Structural_Design::Stabilization::Stabilize>(SD_Building.get(), CF.get());
+    // retrieve the initial volume of the structure
+    BSO::Structural_Design::SD_Building_Results& SD_results = SD_Building.get()->get_results();
+    BSO::SD_compliance_indexing(SD_results);
+    initial_volume = SD_results.m_struct_volume;
 }
 
 void checkGLError(const char* action) {
@@ -313,11 +320,7 @@ void changeScreen(int screen) {
         writeToOutputFile("output4.csv", "Total modifications/iterations:", ModificationCountStr.c_str(), "");
 
         //write toolbox outputs
-        //BSO::Structural_Design::SD_Building_Results& SD_results = SD_Building.get()->get_results();
-        //BSO::SD_compliance_indexing(SD_results);
-        //double initial_volume = SD_results.m_struct_volume;
-        double initial_volume = 1.65;
-
+        std::cout << "initial_volume: " << initial_volume << std::endl;
         SD_Building.get()->remesh();
         SD_Building.get()->analyse();
         BSO::Structural_Design::SD_Building_Results& sd_results = SD_Building.get()->get_results();

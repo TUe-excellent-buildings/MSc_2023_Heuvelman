@@ -96,6 +96,7 @@ TextField opinionTF24;
 TextField opinionTF25;
 TextField opinionTF26;
 TextField opinionTF27;
+TextField opinionTF28;
 
 // Global variables for current screen and screen dimensions
 int currentScreen = 0;
@@ -124,6 +125,7 @@ void assignmentDescriptionScreen();
 void screen3a();
 void screen3b();
 void screen3c();
+void screen3c2();
 void screen3d();
 void screen3e();
 void screen3f();
@@ -150,6 +152,7 @@ void screenCheckNext4();
 void screenCheckNext5();
 void screenCheckNext6();
 void screenCheckNext7();
+void screenCheckNext8();
 void drawText(const char *text, float x, float y);
 void drawButton(const char *text, float x, float y, float width, float height, ButtonCallback callback, int variable);
 void drawButtonWithBackgroundColor(const char* text, float x, float y, float width, float height, ButtonCallback callback, int variable, float r, float g, float b);
@@ -259,6 +262,9 @@ void writeToIQDFile(std::string IQDFileName, std::string question, std::string u
     IQDFile.close();
 }
 
+std::vector<double> m_compliance;
+std::vector<double> m_volume;
+
 // Function to get SD related outputs from the toolbox
 void retrieve_SD_results() {
     CF = std::make_shared<BSO::Spatial_Design::MS_Conformal>(*MS, &(BSO::Grammar::grammar_zoning));
@@ -286,8 +292,6 @@ void retrieve_SD_results() {
     writeToOutputFile("output3.csv", "Structural volume in the unzoned design:", std::to_string(sd_results.m_struct_volume), "");
 
     // SD-analysis zoned designs
-    std::vector<double> m_compliance;
-    std::vector<double> m_volume;
 
     Zoned = std::make_shared<BSO::Spatial_Design::Zoning::Zoned_Design>(CF.get());
     (*Zoned).make_zoning();
@@ -418,12 +422,6 @@ void visualiseZones(unsigned int indexToVisualize = -1) {
     }
 }
 
-//Function to visualize a single zone
-//void visualiseZone(unsigned int indexToVisualize = 1) 
-//{
- //       visualise(*CF, "zone", indexToVisualize);
-//}
-
 bool visualisationActive_3a = false;
 bool visualisationActive_3b = false;
 bool visualisationActive_3c = false;
@@ -463,6 +461,9 @@ void changeScreen(int screen) {
     }
     else if (screen == 32 || screen == 33) {
         visualisationActive_3f = true; //Screens second time zoning (screen 3f and pop ups)
+    }
+    else if (screen == 38 || screen == 39) {
+        visualisationActive_3c = true;
     }
 
     // Based on the flags, activate/deactivate visualization for each group
@@ -534,7 +535,9 @@ void changeScreen(int screen) {
         visualisationActive_3f = false;
     }
 
-
+    if (screen == 3) {
+        retrieve_SD_results();
+    }
     if (screen == 4) {
         writeToOutputFile("output3.csv", "Step 2: Pick one zoned design you would like to continue with and explain why.", "", opinionTF.text);
     }
@@ -544,6 +547,7 @@ void changeScreen(int screen) {
     }
     if (screen == 33) {
         writeToOutputFile("output3.csv", "Step 3: This time pick the one of which you think its structural design has the highest stiffness. Explain your reasoning.", "", opinionTF2.text);
+        writeToOutputFile("output3.csv", "Step 3b: Pick one to continue with, structural volume and compliance are given. Explain your reasoning.", "", opinionTF28.text);
         writeToOutputFile("output3.csv", "Step 5: Pick one to continue with out of the two most diverse zoned designs. Explain your reasoning.", "", opinionTF25.text);
     }
     if (screen == 34) {
@@ -894,6 +898,8 @@ void display() {
         case 35: screen3g2(); break;
         case 36: screen4g(); break;
         case 37: screen5b(); break;
+        case 38: screen3c2(); break;
+        case 39: screenCheckNext8(); break;
         // Ensure you have a default case, even if it does nothing,
         // to handle any unexpected values of currentScreen
         default: break;
@@ -978,6 +984,15 @@ void keyboard(unsigned char key, int x, int y) {
         }
         else if (key == 8 && opinionTF2.text != "") { // Backspace key
             opinionTF2.text.pop_back(); // Remove the last character from input string
+        }
+    }
+
+    if (currentScreen == 38) {
+        if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
+            opinionTF28.text += key; // Append the character to the input string
+        }
+        else if (key == 8 && opinionTF28.text != "") { // Backspace key
+            opinionTF28.text.pop_back(); // Remove the last character from input string
         }
     }
 
@@ -1770,6 +1785,7 @@ void onMouseClick(int button, int state, int x, int y) {
         checkTextFieldClick(opinionTF25, mouseX, mouseY);
         checkTextFieldClick(opinionTF26, mouseX, mouseY);
         checkTextFieldClick(opinionTF27, mouseX, mouseY);
+        checkTextFieldClick(opinionTF28, mouseX, mouseY);
 
         // Check for button clicks
 
@@ -1976,6 +1992,20 @@ void ReadInstructions4() {
     glEnd();
 }
 
+void ReadInstructions5() {
+    //Message to summarize most important information and to refer to the full information in the instructions
+    drawText("Please refer to the information sheet for more information about zoning, SD, and compliance.  ", 1550, screenHeight - 235, 250);
+    //underline INSTRUCTIONS
+    glLineWidth(1.4);
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(1582.0, 763.0);
+    glVertex2f(1678.0, 763.0);
+    glVertex2f(1428.0, 745.0);
+    glVertex2f(1481.0, 745.0);
+    glEnd();
+}
+
 void screen3a() {
     // Screen layout and colors should be adjusted as necessary.
 
@@ -2044,7 +2074,7 @@ void screen3c() {
     //drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 1570, 750, 275);
 
     // Draw the message at the bottom of the structure illustration
-    drawBoldText("Step 3: This time, pick one based on the expected structural performace of the zoned designs. Say aloud what your reasoning is.", 1550, screenHeight - 50, 250, 1);
+    drawBoldText("Step 3a: This time, pick one based on the expected structural performace of the zoned designs. Say aloud what your reasoning is.", 1550, screenHeight - 50, 250, 1);
 
     //step vs steps to go as a time indication for the user
     drawText("Step 3/8", screenWidth, screenHeight - 25, 180);
@@ -2055,27 +2085,41 @@ void screen3c() {
     drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 28);
 }
 
-void screen3d() {
-    // Draw structural design illustration placeholder (left side)
+void screen3c2() {
     LineDivisionScreen();
+    //Draw text and a textfield(textbox)
+    drawText("Zoned design:", screenWidth - 180, 660, 200);
+    drawTextField(1510, 600, 150, 50, opinionTF28);
 
-/*
-    // Draw counter area
-    //drawText("Modifications: 0/7", 1300, screenHeight - 100, 200);
-    std::string modificationCountStr = "Modifications: " + std::to_string(modificationCount) + "/7";
-    drawText(modificationCountStr.c_str(), 1300, screenHeight - 100, 200);
+    // Draw the message at the bottom of the structure illustration
+    drawBoldText("Step 3b: Again, pick one of the zoned designs. The structural volume and compliance of the structural design that would result from the zoned design are given. Say aloud what your reasoning is.", 1550, screenHeight - 50, 250, 1);
+    //step vs steps to go as a time indication for the user
+    drawText("Step 3/8", screenWidth, screenHeight - 25, 180);
+    ReadInstructions5();
+    // Draw the "Next step" button in the bottom right corner
+    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 39);
 
-    // Draw the buttons, they work until the modification count reaches 7
-    if (modificationCount == 7) {
-        // If modification count reaches 7, change the message on screen3d
-        drawText("7/7 modifications reached", 1590, 300, 200);
-        // Draw control buttons without them working
-        drawButton("Add space", screenWidth - 310, 610, 200, 50, buttonClicked, 1);
-        drawButton("Delete space", screenWidth - 310, 550, 200, 50, buttonClicked, 1);
-        drawButton("Move space", screenWidth - 310, 490, 200, 50, buttonClicked, 1);
-        drawButton("Resize space", screenWidth - 310, 430, 200, 50, buttonClicked, 1);
+    //Draw the structural values in the screen
+    int startY = 380; // Starting Y position for drawing compliance and volume
+    int stepY = 25;  // Vertical space between lines
+
+    for (int i = m_compliance.size() - 1; i >= 0; i--) {
+        // Convert float to int to remove the fractional part
+        int complianceValue = static_cast<int>(m_compliance[i]);
+        int volumeValue = static_cast<int>(m_volume[i]);
+
+        // Create the display text with integers
+        std::string complianceText = "Zoned Design " + std::to_string(i + 1) + " Compliance: " + std::to_string(complianceValue);
+        std::string volumeText = "Zoned Design " + std::to_string(i + 1) + " Volume: " + std::to_string(volumeValue);
+
+        // Draw the texts on the screen
+        drawText2(complianceText.c_str(), 1170, startY + (m_compliance.size() - 1 - i) * stepY * 2, 200);
+        drawText2(volumeText.c_str(), 1170, startY + (m_compliance.size() - 1 - i) * stepY * 2 + stepY, 200);
     }
-*/
+}
+
+void screen3d() {
+    LineDivisionScreen();
 
     //draw a message when input is invalid. it is handled in the keyboard function
     if (DrawInvalidInput == true) {
@@ -2580,6 +2624,8 @@ void screenCheckNextLonger() {
     drawText("Are you sure you want to continue? Once you continue to the next step, you cannot go back to this step.      Continuing can take a minute.", 880, 620, 200);
 }
 
+bool performing_zoning = false;
+
 void yesButtonPressed(int screen) {
     // Draw and display the "please wait" screen immediately
     displayPleaseWait();
@@ -2596,7 +2642,12 @@ void displayPleaseWait() {
     setup2D();
 
     // Use a simple function to draw centered text
-    drawText("Loading...", 950, 500, 200);
+    if (performing_zoning == false) {
+        drawText("Loading...", 950, 500, 200);
+    }
+    else {
+		drawText("Performing zoning...", 950, 500, 200);
+	}
 
     // Flush the OpenGL commands and swap buffers to display the text immediately
     glFlush();  // Ensure all OpenGL commands are processed
@@ -2605,9 +2656,10 @@ void displayPleaseWait() {
 
 void screenCheckNext1() {
     screen3a();
-    screenCheckNext();
-    drawButton("Yes", 790, 510, 100, 30, yesButtonPressed, 3);
-    drawButton("No", 910, 510, 100, 30, changeScreen, 2);
+    screenCheckNextLonger();
+    performing_zoning = true;
+    drawButton("Yes", 790, 460, 100, 30, yesButtonPressed, 3);
+    drawButton("No", 910, 460, 100, 30, changeScreen, 2);
 }
 
 void screenCheckNext2() {
@@ -2620,13 +2672,14 @@ void screenCheckNext2() {
 void screenCheckNext3() {
     screen3c();
 	screenCheckNext();
-	drawButton("Yes", 790, 510, 100, 30, yesButtonPressed, 5);
+	drawButton("Yes", 790, 510, 100, 30, yesButtonPressed, 38);
 	drawButton("No", 910, 510, 100, 30, changeScreen, 4);
 }
 
 void screenCheckNext4() {
     screen3d();
 	screenCheckNextLonger();
+    performing_zoning = true;
 	drawButton("Yes", 790, 460, 100, 30, yesButtonPressed, 6);
 	drawButton("No", 910, 460, 100, 30, changeScreen, 5);
 }
@@ -2650,6 +2703,13 @@ void screenCheckNext7() {
     screenCheckNext();
     drawButton("Yes", 790, 510, 100, 30, yesButtonPressed, 34);
     drawButton("No", 910, 510, 100, 30, changeScreen, 33);
+}
+
+void screenCheckNext8() {
+    screen3c2();
+    screenCheckNext();
+    drawButton("Yes", 790, 510, 100, 30, yesButtonPressed, 5);
+    drawButton("No", 910, 510, 100, 30, changeScreen, 38);
 }
 
 int main(int argc, char** argv) {

@@ -287,7 +287,7 @@ namespace BSO { namespace Visualisation
             double green = pow((0.5 + 0.5*cos(2*PI*color_gradient - PI)), (eta/3));
             double blue = 1 - ((tanh(beta * (1 - eta)) + tanh(beta * (color_gradient - (1 - eta)))) /
                                 (tanh(beta * (1 - eta)) + tanh(beta * eta)));
-            double alpha = 0.05;
+            double alpha = 0.025;
             double alpha2 = 1.0;
 
             // assign the color values to the graphic properties structure
@@ -345,9 +345,10 @@ namespace BSO { namespace Visualisation
                     std::string ID = out.str(); // Store the string representation of the modified ID
                     labels.push_back(create_label(&lbprops, ID, min + ((max - min) / 2.0)));
                 }
-
-                add_cube(&cluster_props[0], &cluster_lprops[1], min, max, polygons);
-                std::ostringstream out; out << zone_ID; std::string ID = out.str(); // cast the int value of ID as a string
+                else {
+                    add_cube(&cluster_props[0], &cluster_lprops[1], min, max, polygons);
+                    std::ostringstream out; out << zone_ID; std::string ID = out.str(); // cast the int value of ID as a string
+                }
             }
         }
         pbsp = new random_bsp(polygons);

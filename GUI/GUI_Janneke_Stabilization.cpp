@@ -23,7 +23,8 @@ std::shared_ptr <BSO::Spatial_Design::MS_Conformal> CF = nullptr;
 std::shared_ptr <BSO::Structural_Design::SD_Analysis_Vars> SD_Building = nullptr;
 std::shared_ptr <BSO::Structural_Design::Stabilization::Stabilize> Stab_model = nullptr;
 
-float initial_volume = 0;
+// initial volume of the structure
+double initial_volume = 0.0;
 
 // Global variables for visualisation
 bool visualisationActive = false; // Flag to control when to activate visualisation
@@ -163,9 +164,9 @@ void setup_pointers() {
     (*CF).make_conformal();
     SD_Building = std::make_shared<BSO::Structural_Design::SD_Analysis>(*CF);
     Stab_model = std::make_shared<BSO::Structural_Design::Stabilization::Stabilize>(SD_Building.get(), CF.get());
-    
+    // retrieve the initial volume of the structure
     BSO::Structural_Design::SD_Building_Results& SD_results = SD_Building.get()->get_results();
-    SD_results.obtain_results();
+    BSO::SD_compliance_indexing(SD_results);
     initial_volume = SD_results.m_struct_volume;
 }
 
@@ -329,10 +330,8 @@ void changeScreen(int screen) {
         std::string ChangeCountStr = std::to_string(ChangeCount);
         writeToOutputFile("output2.csv", "Total modifications/iterations:", ChangeCountStr.c_str(), "");
         
-        //retrieve and write the toolbox outputs as measurements
-        //double initial_volume = SD_results.m_struct_volume;
-        double initial_volume = 1.65;
-
+        //write toolbox outputs
+        std::cout << "initial_volume: " << initial_volume << std::endl;
         SD_Building.get()->remesh();
         SD_Building.get()->analyse();
         BSO::Structural_Design::SD_Building_Results& sd_results = SD_Building.get()->get_results();

@@ -1606,7 +1606,7 @@ void screen4c() {
 
 // ID 6: Screen 4d
 void screen4d() {
-    drawText("4. Do you think it would have gone better with the assistance of an AI tool that you could ask for eight member placement suggestions?", 600, 800, 600);
+    drawText("4. Do you think it would have gone better with the assistance of an AI tool that you could ask for seven suggestions? A suggestion either places a stabilization member or displays 'The structure is stable'.", 600, 800, 600);
     drawButton("Yes", 300, 725, 75, 30, buttonClicked, 6);
     drawButton("No", 375, 725, 75, 30, buttonClicked, 7);
     drawButton("No idea", 450, 725, 75, 30, buttonClicked, 8);
@@ -1665,7 +1665,7 @@ void screen4f() {
 
 // ID 9: Screen 4g
 void screen5() {
-    drawText("Please leave your email below if you want us to send you the results from this research and include you in the acknowledgments. Nevertheless, no results will be linked to your name since all results are pseudomized.", 600, 520, 600);
+    drawText("Please leave your email below if you want us to send you the results from this research and include you in the acknowledgments. Nevertheless, no results will be linked to your name since all results are anonymized.", 600, 520, 600);
     drawTextField(300, 420, 500, 50, opinionTF12);
 
     LineDivisionScreen();

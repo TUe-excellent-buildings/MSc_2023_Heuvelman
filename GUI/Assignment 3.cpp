@@ -2453,7 +2453,7 @@ void screen4g() {
 }
 
 void screen5() {
-    drawText("Please leave your email below if you want us to send you the results from this research and include you in the acknowledgments. Nevertheless, no results will be linked to your name since all results are pseudomized.", 600, 520, 600);
+    drawText("Please leave your email below if you want us to send you the results from this research and include you in the acknowledgments. Nevertheless, no results will be linked to your name since all results are anonymized.", 600, 520, 600);
     drawTextField(300, 420, 500, 50, opinionTF24);
 
     LineDivisionScreen();

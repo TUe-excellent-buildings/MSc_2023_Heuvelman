@@ -1072,19 +1072,13 @@ heightss = [defaultdict(None, {0: 4, 1: 3, 2: 1, 3: 4}),
  defaultdict(None, {0: 1, 1: 1, 2: 3, 3: 4}),
  defaultdict(None, {0: 4, 1: 3, 2: 4, 3: 2})]
 
-building_1, heights_1 = read_building2('comparison1.txt')
-building_2, heights_2 = read_building2('comparison2.txt')
 
-print(read_building2('comparison2.txt'))
+def main_func():
+    building_1, heights_1 = read_building2('comparison1.txt')
+    building_2, heights_2 = read_building2('comparison2.txt')
 
-#building_1 = make_coords_positive(building_1)
+    result = scal_dis(building_2, heights_2, building_1, heights_1, 1, 1, 1, 1)
+    print(result)
+    return result
 
-#print(building_1, heights_1)
-
-
-#print("------------------------")
-
-#print(buildings[0], heightss[0])
-
-print(scal_dis(building_2, heights_2, building_1, heights_1, 1, 1, 1, 1))
-#print(scal_dis(buildings[0], heightss[0], buildings[1], heightss[1], 1, 1, 1, 1))
+main_func()

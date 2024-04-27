@@ -6,13 +6,13 @@ NAME 	 = GUI_Janneke
 # -> source files to compile
 ALLFILES = GUI_Janneke_Stabilization\ -\ AI.cpp
 # -> location of the releases version of the toolbox
-CUR_LIB  = /home/kknopp/Documents/MSc_2023_Heuvelman
+CUR_LIB  = /Users/kknopp/Documents/Work/MSc_2023_Heuvelman
 # -> location of the development branch of the toolbox
-DEV_LIB  = /home/kknopp/Documents/MSc_2023_Heuvelman
+DEV_LIB  = /Users/kknopp/Documents/Work/MSc_2023_Heuvelman
 # -> location of the eigen libraries
-EIGEN    = /usr/include/eigen
+EIGEN    = /Users/kknopp/Documents/includes/eigen
 # -> location of the boost libraries
-BOOST    = /usr/include/boost
+BOOST    = /Users/kknopp/Documents/includes/boost
 
 ####################################
 # Compiler flags, don't touch this #
@@ -20,15 +20,15 @@ BOOST    = /usr/include/boost
 # -> which compiler will be used
 CC 	     = g++ -std=c++11
 # -> common flags (visualisation and multithreading)
-ALLFLAGS = -lglut -lGL -lGLU -lpthread
+ALLFLAGS = -lglut -lGL -lGLU -lpthread -framework GLUT -framework OpenGL
 # -> release flags
 R_FLAGS  = -O3 -march=native
 # -> debug flags
 D_FLAGS  = -g -Og -Wall
 # -> location of the grammars
-GRAMMARS = /home/kknopp/Documents/MSc_2023_Heuvelman/BSO_grammars
+GRAMMARS = /Users/kknopp/Documents/Work/MSc_2023_Heuvelman/BSO_grammars
 # -> location of the toolbox
-TOOLBOX  = /home/kknopp/Documents/MSc_2023_Heuvelman
+TOOLBOX  = /Users/kknopp/Documents/Work/MSc_2023_Heuvelman
 # -> program name for release version
 CUR_NAME = $NAME
 # -> program name for development version
@@ -44,7 +44,7 @@ cls:
 	@clear
 	@clear
 all:
-	$(CC) $(ALLFILES) -o $(NAME) -I$(GRAMMARS) -I$(TOOLBOX) -I$(EIGEN) -I$(BOOST) $(ALLFLAGS) $(R_FLAGS)
+	$(CC) $(ALLFILES) -o $(NAME) -I$(GRAMMARS) -I$(TOOLBOX) -I$(FREEGLUT) -I$(EIGEN) -I$(BOOST) $(ALLFLAGS) $(R_FLAGS)
 dbg:
 	$(CC) $(ALLFILES) -o $(DBG_NAME) -I$(DEV_LIB)$(GRAMMARS) -I$(DEV_LIB)$(TOOLBOX) -I$(EIGEN) -I$(BOOST) $(ALLFLAGS) $(D_FLAGS)
 dev:

@@ -2638,6 +2638,108 @@ void screenCheckNext() {
     drawText("Are you sure you want to continue? Once you continue to the next step, you cannot go back to this step.", 880, 620, 200);
 }
 
+//Functions for IQD
+std::vector<BSO::Spatial_Design::Geometry::Vertex*> boundaryVertices(std::vector<BSO::Spatial_Design::Geometry::Vertex*> vertices) {
+    std::unordered_map<BSO::Spatial_Design::Geometry::Vertex*, int> vertexCount;
+
+    // Count each vertex's appearances
+    for (auto vertex : vertices) {
+        vertexCount[vertex]++;
+    }
+
+    std::vector<BSO::Spatial_Design::Geometry::Vertex*> uniqueVertices;
+    // Add vertices that appear exactly once to the result
+    for (const auto& pair : vertexCount) {
+        if (pair.second == 1) {
+            uniqueVertices.push_back(pair.first);
+        }
+    }
+
+    return uniqueVertices;
+}
+
+std::pair<BSO::Spatial_Design::Geometry::Vertex*, BSO::Spatial_Design::Geometry::Vertex*> getDiagonal(std::vector<BSO::Spatial_Design::Geometry::Vertex*> points) {
+    // Based on the provided 8 points for a 3D figure, we want to get the diagonal in the 2D projection
+    // The diagonal is the line that connects the two points that are farthest from each other
+    BSO::Spatial_Design::Geometry::Vertex* v1 = points[0];
+    BSO::Spatial_Design::Geometry::Vertex* v2 = points[1];
+    for (auto point : points) {
+        double p2x = v2->get_coords()[0];
+        double p2y = v2->get_coords()[1];
+        double p1x = v1->get_coords()[0];
+        double p1y = v1->get_coords()[1];
+
+        double p3x = point->get_coords()[0];
+        double p3y = point->get_coords()[1];
+
+        if ((p1x - p2x) * (p1x - p2x) + (p1y - p2y) * (p1y - p2y) < (p1x - p3x) * (p1x - p3x) + (p1y - p3y) * (p1y - p3y)) {
+            v2 = point;
+        }
+    }
+    return std::make_pair(v1, v2);
+}
+
+void printPrisms2(std::vector<BSO::Spatial_Design::Geometry::Vertex*> points,
+    std::pair<BSO::Spatial_Design::Geometry::Vertex*, BSO::Spatial_Design::Geometry::Vertex*> diag,
+    std::ofstream& outfile, int design, int zone) {
+    outfile << zone << ",";
+    for (auto point : points) {
+        for (int i = 0; i < 2; i++) {
+            outfile << point->get_coords()[i] << ",";
+        }
+    }
+
+    double z_base = points[0]->get_coords()[2];
+    double z_difference = points[1]->get_coords()[2];
+
+    for (auto point : points) {
+        if (point->get_coords()[2] != z_base) {
+            z_difference = point->get_coords()[2];
+            std::cout << "Different z";
+            break;
+        }
+    }
+
+    outfile << z_base << "," << z_difference << std::endl;
+}
+
+void printZonedDesign(BSO::Spatial_Design::Zoning::Zoned_Design ZD, int design) {
+    std::ofstream outFile("comparison" + std::to_string(design) + ".txt");
+
+    std::cout << "Zoned Design" << std::endl;
+    BSO::Spatial_Design::Zoning::Zoned_Design* ZD2 = &ZD;
+    std::cout << "Zones: " << ZD2->get_zones().size() << std::endl;
+    int k = 0;
+    for (auto zone : ZD2->get_zones()) {
+        std::cout << "Zone" << std::endl;
+        std::vector<BSO::Spatial_Design::Geometry::Vertex*> vertices;
+        for (auto cuboid : zone->get_cuboids()) {
+            for (auto vertex : cuboid->get_vertices()) {
+                vertices.push_back(vertex);
+            }
+        }
+        std::vector<BSO::Spatial_Design::Geometry::Vertex*> bound = boundaryVertices(vertices);
+        std::cout << "Zone vertices: " << bound.size() << std::endl;
+        std::pair<BSO::Spatial_Design::Geometry::Vertex*, BSO::Spatial_Design::Geometry::Vertex*> diag = getDiagonal(bound);
+        //printPrisms(bound, diag, outFile, design, k);
+        printPrisms2(bound, diag, outFile, design, k);
+        k++;
+    }
+}
+
+std::string exec(const char* cmd) {
+    std::array<char, 128> buffer;
+    std::string result;
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+    if (!pipe) {
+        throw std::runtime_error("popen() failed!");
+    }
+    while (fgets(buffer.data(), static_cast<int>(buffer.size()), pipe.get()) != nullptr) {
+        result += buffer.data();
+    }
+    return result;
+}
+
 void screenCheckNextLonger() {
     glColor3f(1.0f, 1.0f, 1.0f); // Set color to white
     glRectf(750.0f, 450.0f, 1050.0f, 650.0f); // Draw rectangle covering the entire screen
@@ -2701,6 +2803,35 @@ void yesButtonPressed2(int screen) {
     changeScreen(screen);
 }
 
+void yesButtonPressed3(int screen) {
+    // Draw and display the "please wait" screen immediately, then retrieve the zoning results
+    displayPleaseWait();
+    retrieve_SD_results();
+
+    //IQD
+    std::cout << "Models constructed" << std::endl;
+    std::cout << "Zonings made" << std::endl;
+    for (int i = 0; i < Zoned->get_designs().size(); i++) {
+        for (int j = 0; j < Zoned->get_designs().size(); j++) {
+            if (i == j) {
+                continue;
+            }
+            printZonedDesign(*Zoned->get_designs()[i], 1);
+            printZonedDesign(*Zoned->get_designs()[j], 2);
+            //sleep(10);
+
+            std::cout << "Post sleep\n";
+
+            std::cout << exec("python dissimilarity.py");
+
+            std::cout << "Executed python\n";
+        }
+    }
+    //double result = std::stod(exec("source ../env/bin/activate && python3 dissimilarity.py")); //save it to a vector 
+
+    changeScreen(screen);
+}
+
 void displayPleaseWait() {
     // Clear the screen or draw over the current content
     glClearColor(0.95f, 0.95f, 0.95f, 1.0f); // Very light gray background
@@ -2750,7 +2881,7 @@ void screenCheckNext4() {
     screen3d();
 	screenCheckNextLonger2();
     performing_zoning = true;
-	drawButton("Yes", 790, 410, 100, 30, yesButtonPressed2, 6);
+	drawButton("Yes", 790, 410, 100, 30, yesButtonPressed3, 6);
 	drawButton("No", 910, 410, 100, 30, changeScreen, 5);
 }
 

@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <fstream>
 
+
 #include <BSO/Spatial_Design/Movable_Sizable.hpp>
 #include <BSO/Spatial_Design/Conformation.hpp>
 #include <BSO/Spatial_Design/Zoning.hpp>
@@ -81,57 +82,108 @@ std::pair<BSO::Spatial_Design::Geometry::Vertex*, BSO::Spatial_Design::Geometry:
     return std::make_pair(v1, v2);
 }
 
-void printPrisms(std::vector<BSO::Spatial_Design::Geometry::Vertex*> points, std::pair<BSO::Spatial_Design::Geometry::Vertex*, BSO::Spatial_Design::Geometry::Vertex*> diag, std::ofstream& outfile, int design, int zone) {
-    // There will be 2 prisms, split by the diagonal points
-    double z_difference;
+bool areNonCollinear(BSO::Spatial_Design::Geometry::Vertex* a, BSO::Spatial_Design::Geometry::Vertex* b, BSO::Spatial_Design::Geometry::Vertex* c) {
+    double x1 = b->get_coords()[0] - a->get_coords()[0];
+    double y1 = b->get_coords()[1] - a->get_coords()[1];
+    double x2 = c->get_coords()[0] - a->get_coords()[0];
+    double y2 = c->get_coords()[1] - a->get_coords()[1];
+    double determinant = x1 * y2 - y1 * x2;
+    return std::abs(determinant) > 1e-5; // Small epsilon to handle floating point precision issues
+}
+
+void printPrisms(std::vector<BSO::Spatial_Design::Geometry::Vertex*> points, 
+                 std::pair<BSO::Spatial_Design::Geometry::Vertex*, BSO::Spatial_Design::Geometry::Vertex*> diag, 
+                 std::ofstream& outfile, int design, int zone) {
+    // Base and difference calculations for z coordinates
+    double z_base = diag.first->get_coords()[2];
+    double z_difference = diag.second->get_coords()[2];
+
     for(auto point : points) {
-        z_difference = point->get_coords()[2] - diag.first->get_coords()[2];
-        if (z_difference > 0) {
+        if (point->get_coords()[2] != z_base) {
+            z_difference = point->get_coords()[2];
             break;
-        } 
+        }
     }
+
+    double p1_x = diag.first->get_coords()[0];
+    double p1_y = diag.first->get_coords()[1];
+
+    double p2_x = diag.second->get_coords()[0];
+    double p2_y = diag.second->get_coords()[1];
+
+    bool p3set = false;
 
     BSO::Spatial_Design::Geometry::Vertex* p3;
     BSO::Spatial_Design::Geometry::Vertex* p4;
-    bool p3set = false;
-    bool p4set = false;
 
     for(auto point : points) {
-        if (point->get_coords()[0] != diag.first->get_coords()[0] && point->get_coords()[1] != diag.first->get_coords()[1] && 
-            point->get_coords()[0] == diag.second->get_coords()[0] && point->get_coords()[1] == diag.second->get_coords()[1] &&
-            !p3set) {
-            p3 = point;
-            continue;
-        }
-        if (point->get_coords()[0] != diag.first->get_coords()[0] && point->get_coords()[1] != diag.first->get_coords()[1] && 
-            point->get_coords()[0] == diag.second->get_coords()[0] && point->get_coords()[1] == diag.second->get_coords()[1] &&
-            !p4set) {
-            p4 = point;
-            continue;
+        double p_temp_x = point->get_coords()[0];
+        double p_temp_y = point->get_coords()[1];
+        double p_temp_z = point->get_coords()[2];
+
+        if (p_temp_z != z_difference && (p_temp_x != p1_x || p_temp_y != p1_y) && (p_temp_x != p2_x || p_temp_y != p2_y)) {
+            if(!p3set){
+                p3 = point;
+                p3set = true;
+            } else {
+                p4 = point;
+                break;
+            }
         }
     }
-    outfile << zone << "," << diag.first->get_coords()[0] << "," << diag.first->get_coords()[1] << "," <<  
-            diag.first->get_coords()[2] << "," << diag.second->get_coords()[0] << "," << diag.second->get_coords()[1] << "," <<  diag.first->get_coords()[2] <<
-            "," << p3->get_coords()[0] << "," << p3->get_coords()[1] << "," <<  diag.first->get_coords()[2]
-            << "," << diag.first->get_coords()[0] << "," << diag.first->get_coords()[1] << "," <<  
-            diag.first->get_coords()[2] + z_difference << "," << diag.second->get_coords()[0] << "," << diag.second->get_coords()[1] << "," <<  diag.first->get_coords()[2] + z_difference <<
-            "," << p3->get_coords()[0] << "," << p3->get_coords()[1] << "," <<  diag.first->get_coords()[2] + z_difference << std::endl;
 
-    outfile << zone << "," << diag.first->get_coords()[0] << "," << diag.first->get_coords()[1] << "," <<  
-            diag.first->get_coords()[2] << "," << diag.second->get_coords()[0] << "," << diag.second->get_coords()[1] << "," <<  diag.first->get_coords()[2] <<
-            "," << p4->get_coords()[0] << "," << p4->get_coords()[1] << "," <<  diag.first->get_coords()[2]
-            << "," << diag.first->get_coords()[0] << "," << diag.first->get_coords()[1] << "," <<  
-            diag.first->get_coords()[2] + z_difference << "," << diag.second->get_coords()[0] << "," << diag.second->get_coords()[1] << "," <<  diag.first->get_coords()[2] + z_difference <<
-            "," << p4->get_coords()[0] << "," << p4->get_coords()[1] << "," <<  diag.first->get_coords()[2] + z_difference << std::endl;
+    double p3_x = p3->get_coords()[0];
+    double p3_y = p3->get_coords()[1];
+
+    double p4_x = p4->get_coords()[0];
+    double p4_y = p4->get_coords()[1];
+
+    // Output each prism with 19 numbers
+    // Prism with p3 as the third vertex
+    outfile << zone << "," << p1_x << "," << p2_x << "," << p1_y << "," << p2_y << "," << p3_x << "," << p3_y << "," << z_base << "," << z_difference << std::endl;
+
+    outfile << zone << "," << p1_x << "," << p2_x << "," << p1_y << "," << p2_y << "," << p4_x << "," << p4_y << "," << z_base << "," << z_difference << std::endl;
+    // Prism with p4 as the third vertex
+    
+
+    // Cleaning up dynamically allocated vertices
+    delete p3;
+    delete p4;
 }
+
+void printPrisms2(std::vector<BSO::Spatial_Design::Geometry::Vertex*> points, 
+                 std::pair<BSO::Spatial_Design::Geometry::Vertex*, BSO::Spatial_Design::Geometry::Vertex*> diag, 
+                 std::ofstream& outfile, int design, int zone) {
+    outfile << zone << ",";
+    for(auto point : points) {
+        for(int i = 0; i < 2; i++) {
+            outfile << point->get_coords()[i] << ",";
+        }
+    }
+
+    double z_base = points[0]->get_coords()[2];
+    double z_difference = points[1]->get_coords()[2];
+
+    for(auto point : points) {
+        if (point->get_coords()[2] != z_base) {
+            z_difference = point->get_coords()[2];
+            std::cout << "Different z";
+            break;
+        }
+    }
+
+    outfile << z_base << "," << z_difference << std::endl;
+}
+
 
 void printZonedDesign(BSO::Spatial_Design::Zoning::Zoned_Design ZD, int design) {
     std::ofstream outFile("comparison" + std::to_string(design) + ".txt");
 
     std::cout << "Zoned Design" << std::endl;
-    std::cout << "Zones: " << ZD.get_zones().size() << std::endl;
+    BSO::Spatial_Design::Zoning::Zoned_Design* ZD2 = ZD.get_designs()[0];
+    std::cout << "Zones: " << ZD2->get_zones().size() << std::endl;
     int k = 0;
-    for (auto zone : ZD.get_zones()) {
+    for (auto zone : ZD2->get_zones()) {
         std::cout << "Zone" << std::endl;
         std::vector<BSO::Spatial_Design::Geometry::Vertex*> vertices;
         for (auto cuboid : zone->get_cuboids()) {
@@ -142,18 +194,45 @@ void printZonedDesign(BSO::Spatial_Design::Zoning::Zoned_Design ZD, int design) 
         std::vector<BSO::Spatial_Design::Geometry::Vertex*> bound = boundaryVertices(vertices);
         std::cout << "Zone vertices: " << bound.size() << std::endl;
         std::pair<BSO::Spatial_Design::Geometry::Vertex*, BSO::Spatial_Design::Geometry::Vertex*> diag = getDiagonal(bound);
-        printPrisms(bound, diag, outFile, design, k);
+        //printPrisms(bound, diag, outFile, design, k);
+        printPrisms2(bound, diag, outFile, design, k);
         k++;
     }
 }
 
+std::string exec(const char* cmd) {
+    std::array<char, 128> buffer;
+    std::string result;
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+    if (!pipe) {
+        throw std::runtime_error("popen() failed!");
+    }
+    while (fgets(buffer.data(), static_cast<int>(buffer.size()), pipe.get()) != nullptr) {
+        result += buffer.data();
+    }
+    return result;
+}
+
 int main() {
+
     std::cout << "Models constructed" << std::endl;
-    BSO::Spatial_Design::Zoning::Zoned_Design ZD1 = makeZoning1();
-    BSO::Spatial_Design::Zoning::Zoned_Design ZD2 = makeZoning2();
     std::cout << "Zonings made" << std::endl;
-    printZonedDesign(ZD1, 1);
-    printZonedDesign(ZD2, 2);
+    for (int i = 0; i < Zoned->get_designs().size(); i++) {
+        for (int j = 0; j < Zoned->get_designs().size() ; j++) {
+            if (i == j) {
+				continue;
+			}
+            printZonedDesign(Zoned->get_designs()[i], 1);
+            printZonedDesign(Zoned->get_designs()[j], 2);
+            sleep(10);
+
+            std::cout << "Post sleep\n";
+
+            std::cout << exec("source ../env/bin/activate && python3 dissimilarity.py");
+
+            std::cout << "Executed python\n";
+		}
+    }
 
     return 0;
 }

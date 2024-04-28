@@ -131,8 +131,6 @@ void screen3d();
 void screen3e();
 void screen3f();
 void screen3f2();
-void screen3g();
-void screen3g2();
 void screen4a();
 void screen4b();
 void screen4c();
@@ -215,7 +213,6 @@ void checkGLError(const char* action) {
 //declare outputfile at global scope
 std::ofstream outputFile;
 std::ofstream processFile;
-std::ofstream IQDFile;
 
 //creating output in excel file
 void writeToOutputFile(std::string outputFileName, std::string question, std::string userAnswer, std::string userExplanation) {
@@ -254,19 +251,10 @@ void writeToProcessFile(std::string processFileName, std::string action, std::st
     processFile.close();
 }
 
-void writeToIQDFile(std::string IQDFileName, std::string question, std::string userAnswer) {
-    static bool headerPrinted = false;
-    IQDFile.open("IQD assessments.csv", std::ios::app); // Use the provided IQDFileName instead of hardcoding "output3.csv"
-    if (!headerPrinted) {
-        IQDFile << "Question,User Answer\n";
-        headerPrinted = true;
-    }
-    IQDFile << question << "," << userAnswer << "\n";
-    IQDFile.close();
-}
-
 std::vector<double> m_compliance;
 std::vector<double> m_volume;
+//Two most extreme volumes
+unsigned int minVolumeIndex = 0, maxVolumeIndex = 0;
 
 // Function to get SD related outputs from the toolbox
 void retrieve_SD_results() {
@@ -326,6 +314,44 @@ void retrieve_SD_results() {
     }
 }
 
+// Function to get SD related outputs from the toolbox
+void retrieve_SD_results_volumes() {
+    m_compliance.clear();
+    m_volume.clear();
+    retrieve_SD_results();
+
+    //Two most extreme volumes
+    double minVolume = std::numeric_limits<double>::max();
+    double maxVolume = std::numeric_limits<double>::min();
+
+    for (unsigned int i = 0; i < m_volume.size(); i++) {
+        if (m_volume[i] < minVolume) {
+            minVolume = m_volume[i];
+            minVolumeIndex = i;
+        }
+        if (m_volume[i] > maxVolume) {
+            maxVolume = m_volume[i];
+            maxVolumeIndex = i;
+        }
+    }
+
+    std::vector<int> indicesToVisualize = { static_cast<int>(minVolumeIndex), static_cast<int>(maxVolumeIndex) };
+
+    // Output the extreme volumes to the excel file
+    writeToOutputFile("output3.csv",
+        "Structural volume for design with minimal volume (" + std::to_string(minVolumeIndex + 1) + "):",
+        std::to_string(m_volume[minVolumeIndex]), "");
+    writeToOutputFile("output3.csv",
+        "Structural volume for design with maximal volume (" + std::to_string(maxVolumeIndex + 1) + "):",
+        std::to_string(m_volume[maxVolumeIndex]), "");
+    //also print compliance as extra check
+    writeToOutputFile("output3.csv",
+        "Total compliance for design with minimal volume (" + std::to_string(minVolumeIndex + 1) + "):",
+        std::to_string(m_compliance[minVolumeIndex]), "");
+    writeToOutputFile("output3.csv",
+        "Total compliance for design with maximal volume (" + std::to_string(maxVolumeIndex + 1) + "):",
+        std::to_string(m_compliance[maxVolumeIndex]), "");
+}
 
 //Declare a global variable to store the selected button label
 std::string selectedButtonLabel = "";
@@ -393,10 +419,6 @@ void buttonClicked(int variable) {
     if (currentScreen == 36) {
         writeToOutputFile("output3.csv", "7.  Did you prefer choosing from the limited zoned design options or from all zoned design options?", getSelectedButtonLabel(), opinionTF26.text);
     }
-
-    if (currentScreen == 35) {
-		writeToIQDFile("IQD assessments.csv", "Assessment 1", getSelectedButtonLabel());
-	}
 }
 
 void initializeScreen() {
@@ -425,12 +447,33 @@ void visualiseZones(unsigned int indexToVisualize = -1) {
     }
 }
 
+void visualiseZonedDesigns(const std::vector<int>& indicesToVisualize) {
+    if (indicesToVisualize.empty()) {
+        std::cout << "No indices provided, visualizing all designs by default." << std::endl;
+        for (unsigned int i = 0; i < Zoned->get_designs().size(); i++) {
+            visualise(*CF, "zones", i);
+        }
+    }
+    else {
+        for (int index : indicesToVisualize) {
+            if (index >= 0 && index < static_cast<int>(Zoned->get_designs().size())) {
+                std::cout << "Visualizing design " << index << std::endl;
+                visualise(*CF, "zones", index);
+            }
+            else {
+                std::cout << "Index " << index << " is out of range, not visualizing." << std::endl;
+            }
+        }
+    }
+}
+
 bool visualisationActive_3a = false;
 bool visualisationActive_3b = false;
 bool visualisationActive_3c = false;
 bool visualisationActive_3d = false;
 bool visualisationActive_3e = false;
 bool visualisationActive_3f = false;
+bool visualisationActive_3f2 = false;
 
 void changeScreen(int screen) {
     currentScreen = screen;
@@ -438,6 +481,7 @@ void changeScreen(int screen) {
     selectedButtonLabel = "";
     DrawInvalidInput = false;
     initializeScreen();
+    std::vector<int> indicesToVisualize = { static_cast<int>(minVolumeIndex), static_cast<int>(maxVolumeIndex) };
 
     // Define separate flags for each group of screens
     visualisationActive_3a = false;
@@ -446,6 +490,7 @@ void changeScreen(int screen) {
     visualisationActive_3d = false;
     visualisationActive_3e = false;
     visualisationActive_3f = false;
+    visualisationActive_3f2 = false;
 
     if (screen == 2 || (screen >= 14 && screen <= 17) || (screen == 26)) {
         visualisationActive_3a = true; //Screens first time zoning (screen 3a and pop ups)
@@ -462,11 +507,14 @@ void changeScreen(int screen) {
     else if (screen == 6 || (screen >= 22 && screen <= 25) || screen == 30) {
         visualisationActive_3e = true; //Screens second time zoning (screen 3e and pop ups)
     }
-    else if (screen == 32 || screen == 33 || screen == 40 || screen == 41) {
-        visualisationActive_3f = true; //Screens second time zoning (screen 3f and 3f2 and pop ups)
+    else if (screen == 32 || screen == 33) {
+        visualisationActive_3f = true; //Screens second time zoning (screen 3f and pop ups)
     }
     else if (screen == 38 || screen == 39) {
         visualisationActive_3c = true;
+    }
+    else if (screen == 40 || screen == 41) {
+        visualisationActive_3f2 = true;
     }
 
     // Based on the flags, activate/deactivate visualization for each group
@@ -483,7 +531,6 @@ void changeScreen(int screen) {
         // visualise(*SD_Building, 4);
     }
     else if (visualisationActive_3b) {
-        // Activate visualization for group 3a
         if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
             setup_pointers();
         }
@@ -492,7 +539,6 @@ void changeScreen(int screen) {
         visualiseZones();
     }
     else if (visualisationActive_3c) {
-        // Activate visualization for group 3a
         if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
             setup_pointers();
         }
@@ -501,7 +547,6 @@ void changeScreen(int screen) {
         visualiseZones();
     }
     else if (visualisationActive_3d) {
-        // Activate visualization for group 3a
         if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
             setup_pointers();
         }
@@ -509,24 +554,29 @@ void changeScreen(int screen) {
         visualise(*MS);
     }
     else if (visualisationActive_3e) {
-        // Activate visualization for group 3a
         if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
             setup_pointers();
         }
         vpmanager_local.clearviewports();
         visualise(*MS);
         update_CF();
-        //visualise(*CF, "rectangles");
-        visualiseZones(); //should become only the most diverse 2
+        visualiseZonedDesigns(indicesToVisualize);
     }
     else if (visualisationActive_3f) {
-        // Activate visualization for group 3a
         if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
             setup_pointers();
         }
         vpmanager_local.clearviewports();
         visualise(*MS);
-        visualiseZones(); //should be all, but based on the new BSD
+        visualiseZones();
+    }
+    else if (visualisationActive_3f2) {
+        if (MS == nullptr || CF == nullptr || Zoned == nullptr) {
+            setup_pointers();
+        }
+        vpmanager_local.clearviewports();
+        visualise(*MS);
+        visualiseZones();
     }
     else {
         vpmanager_local.clearviewports(); // Deactivate visualization if none of the groups match
@@ -536,6 +586,7 @@ void changeScreen(int screen) {
         visualisationActive_3d = false;
         visualisationActive_3e = false;
         visualisationActive_3f = false;
+        visualisationActive_3f2 = false;
     }
 
     if (screen == 3) {
@@ -855,7 +906,7 @@ void display() {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    bool active = visualisationActive_3a || visualisationActive_3b || visualisationActive_3c || visualisationActive_3d || visualisationActive_3e || visualisationActive_3f;
+    bool active = visualisationActive_3a || visualisationActive_3b || visualisationActive_3c || visualisationActive_3d || visualisationActive_3e || visualisationActive_3f || visualisationActive_3f2;
 
     if (active) {
         // Set viewport for the left half of the screen
@@ -898,8 +949,6 @@ void display() {
 		case 31: screenCheckNext6(); break;
         case 32: screenCheckNext7(); break;
         case 33: screen3f(); break;
-        case 34: screen3g(); break;
-        case 35: screen3g2(); break;
         case 36: screen4g(); break;
         case 37: screen5b(); break;
         case 38: screen3c2(); break;
@@ -2023,27 +2072,12 @@ void ReadInstructions5() {
 }
 
 void screen3a() {
-    // Screen layout and colors should be adjusted as necessary.
-
-    // Draw structural design illustration placeholder (left side)
-    // BSO::Spatial_Design::MS_Building MS("MS_Input.txt");
-
-    // BSO::Visualisation::init_visualisation_without();
-    // BSO::Visualisation::visualise(MS);
-    // BSO::Visualisation::end_visualisation();
-
     LineDivisionScreen();
-
-    // Draw the bottom area where zones and zoned designs are displayed
-    std::string number_zones = std::string("Zones: ") + std::to_string(Zoned->get_designs().size());
-    //drawText(number_zones.c_str(), 100, 300, 200);
-    //drawText("Zoned designs: 0", 100, 150, 200);
-
     // Draw the message at the top of the structure illustration
     drawBoldText("Step 1: The visualization on the left shows a BSD. AI has found all zones and zoned designs for this BSD; you can continue to the next step.", 1550, screenHeight - 50, 250, 1);
 
     //step vs steps to go as a time indication for the user
-    drawText("Step 1/10", screenWidth, screenHeight - 25, 180);
+    drawText("Step 1/9", screenWidth, screenHeight - 25, 180);
 
     ReadInstructions2();
 
@@ -2063,7 +2097,7 @@ void screen3b() {
     drawBoldText("Step 2: Pick one zoned design you would like to continue with. Say aloud what you think.", 1550, screenHeight - 50, 250, 1);
 
     //step vs steps to go as a time indication for the user
-    drawText("Step 2/10", screenWidth, screenHeight - 25, 180);
+    drawText("Step 2/9", screenWidth, screenHeight - 25, 180);
 
     ReadInstructions();
 
@@ -2083,7 +2117,7 @@ void screen3c() {
     drawBoldText("Step 3: From every zoned design a structural design can be made. This time, pick one zoned design based on the expected structural performance of the corresponding structural design. Say aloud what your reasoning is.", 1550, screenHeight - 50, 250, 1);
 
     //step vs steps to go as a time indication for the user
-    drawText("Step 3/10", screenWidth, screenHeight - 25, 180);
+    drawText("Step 3/9", screenWidth, screenHeight - 25, 180);
 
     ReadInstructions4();
 
@@ -2100,7 +2134,7 @@ void screen3c2() {
     // Draw the message at the bottom of the structure illustration
     drawBoldText("Step 4: Pick one of the zoned designs and say aloud what your reasoning is. If you want, you can use the given structural mass and compliance of the structural design that would results from each zoned design. ", 1550, screenHeight - 50, 250, 1);
     //step vs steps to go as a time indication for the user
-    drawText("Step 4/10", screenWidth, screenHeight - 25, 180);
+    drawText("Step 4/9", screenWidth, screenHeight - 25, 180);
     ReadInstructions5();
     // Draw the "Next step" button in the bottom right corner
     drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 39);
@@ -2157,7 +2191,7 @@ void screen3d() {
     drawBoldText("Step 5: Adapt the BSD to create a new BSD you desire, with max. ten modifications. You can do this by adding, deleting, moving, and resizing spaces. In the next step, AI will create zoned designs for your new BSD. Say aloud everything you think and do..", 1550, screenHeight - 50, 250, 1);
 
     //step vs steps to go as a time indication for the user
-    drawText("Step 5/10", screenWidth, screenHeight - 25, 180);
+    drawText("Step 5/9", screenWidth, screenHeight - 25, 180);
 
     ReadInstructions4();
 
@@ -2252,7 +2286,7 @@ void screen3e() {
     glEnd();
 
     //step vs steps to go as a time indication for the user
-    drawText("Step 6/10", screenWidth, screenHeight - 25, 180);
+    drawText("Step 6/9", screenWidth, screenHeight - 25, 180);
 
     // Draw the "Next step" button in the bottom right corner
     drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 30);
@@ -2279,14 +2313,13 @@ void screen3f() {
     ReadInstructions2();
 
     //step vs steps to go as a time indication for the user
-    drawText("Step 7/10", screenWidth, screenHeight - 25, 180);
+    drawText("Step 7/9", screenWidth, screenHeight - 25, 180);
 
     // Draw the "Next step" button in the bottom right corner
     drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 32);
 }
 
 void screen3f2() {
-    // Draw structural design illustration placeholder (left side)
     LineDivisionScreen();
 
     //Draw text and a textfield(textbox)
@@ -2306,7 +2339,7 @@ void screen3f2() {
     ReadInstructions2();
 
     //step vs steps to go as a time indication for the user
-    drawText("Step 8/10", screenWidth, screenHeight - 25, 180);
+    drawText("Step 8/9", screenWidth, screenHeight - 25, 180);
 
     // Draw the "Next step" button in the bottom right corner
     drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 41);
@@ -2331,7 +2364,7 @@ void screen4a() {
     // Draw the message at the bottom of the structure illustration
     drawBoldText("Step 9: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
     //step vs steps to go as a time indication for the user
-    drawText("Step 9/10, Question 1/7", screenWidth - 115, screenHeight - 25, 180);
+    drawText("Step 9/9, Question 1/7", screenWidth - 115, screenHeight - 25, 180);
 
     LineDivisionScreen();
 
@@ -2355,7 +2388,7 @@ void screen4b() {
 
     drawBoldText("Step 9: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
     //step vs steps to go as a time indication for the user
-    drawText("Step 9/10, Question 2/7", screenWidth - 115, screenHeight - 25, 180);
+    drawText("Step 9/9, Question 2/7", screenWidth - 115, screenHeight - 25, 180);
     LineDivisionScreen();
 
     drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 9);
@@ -2378,7 +2411,7 @@ void screen4c() {
 
     drawBoldText("Step 9: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
     //step vs steps to go as a time indication for the user
-    drawText("Step 9/10, Question 3/7", screenWidth - 115, screenHeight - 25, 180);
+    drawText("Step 9/9, Question 3/7", screenWidth - 115, screenHeight - 25, 180);
     LineDivisionScreen();
 
     drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 10);
@@ -2396,7 +2429,7 @@ void screen4d() {
 
     drawBoldText("Step 9: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
     //step vs steps to go as a time indication for the user
-    drawText("Step 9/10, Question 4/7", screenWidth - 115, screenHeight - 25, 180);
+    drawText("Step 9/9, Question 4/7", screenWidth - 115, screenHeight - 25, 180);
     LineDivisionScreen();
 
     drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 11);
@@ -2414,7 +2447,7 @@ void screen4e() {
 
     drawBoldText("Step 9: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
     //step vs steps to go as a time indication for the user
-    drawText("Step 9/10, Question 5/7", screenWidth - 115, screenHeight - 25, 180);
+    drawText("Step 9/9, Question 5/7", screenWidth - 115, screenHeight - 25, 180);
     LineDivisionScreen();
 
     drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 12);
@@ -2446,7 +2479,7 @@ void screen4g() {
 
     drawBoldText("Step 9: Finally, please complete the questionnaire. You no longer need to speak aloud; simply provide your opinion in the designated fields.", 1550, screenHeight - 50, 250, 1);
     //step vs steps to go as a time indication for the user
-    drawText("Step 9/10, Question 6/7", screenWidth - 115, screenHeight - 25, 180);
+    drawText("Step 9/9, Question 6/7", screenWidth - 115, screenHeight - 25, 180);
     LineDivisionScreen();
 
     drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 13);
@@ -2457,47 +2490,7 @@ void screen5() {
     drawTextField(300, 420, 500, 50, opinionTF24);
 
     LineDivisionScreen();
-    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 34);
-}
-
-
-void screen3g() {
-    // Draw structural design illustration placeholder (left side)
-    LineDivisionScreen();
-
-    // Draw the message at the top of the structure illustration
-    drawBoldText("Step 10: In the next steps, you will need to assess the similarity between these BSDs. Spend max. 5-10 seconds per assessment. You no longer need to speak aloud.", 1550, screenHeight - 50, 250, 1);
-
-    //VISUALS OF ALL BUIDLINGS TO BE ASSESSED
-
-    //step vs steps to go as a time indication for the user
-    drawText("Step 10/10, Assessment 0/21", screenWidth - 160, screenHeight - 25, 210);
-
-    // Draw the "Next step" button in the bottom right corner
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 35);
-}
-
-void screen3g2() {
-    // Draw structural design illustration placeholder (left side)
-    LineDivisionScreen();
-
-    // Draw the message at the top of the structure illustration
-    drawBoldText("Step 10: Assess the similarity between these two BSDs. Spend max. 5-10 seconds per assessment. You no longer need to speak aloud.", 1550, screenHeight - 50, 250, 1);
-
-    drawButton("1", 1450, 725, 50, 30, buttonClicked, 1);
-    drawButton("2", 1500, 725, 50, 30, buttonClicked, 2);
-    drawButton("3", 1550, 725, 50, 30, buttonClicked, 3);
-    drawButton("4", 1600, 725, 50, 30, buttonClicked, 4);
-    drawButton("5", 1650, 725, 50, 30, buttonClicked, 5);
-
-    drawText("1: Very different", 1550, 700, 200);
-    drawText("5: Very similar", 1550, 670, 200);
-
-    //step vs steps to go as a time indication for the user
-    drawText("Step 10/10, Assessment 1/21", screenWidth - 160, screenHeight - 25, 210);
-
-    // Draw the "Next step" button in the bottom right corner
-    drawButton("-> | Next step", 1590, 50, 200, 50, changeScreen, 37);
+    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 37);
 }
 
 void screen5b() {
@@ -2806,8 +2799,13 @@ void yesButtonPressed2(int screen) {
 void yesButtonPressed3(int screen) {
     // Draw and display the "please wait" screen immediately, then retrieve the zoning results
     displayPleaseWait();
-    retrieve_SD_results();
+    retrieve_SD_results_volumes();
 
+    //Get two zones designs only, based on the two most diverse volumes
+
+
+
+    /*
     //IQD
     std::cout << "Models constructed" << std::endl;
     std::cout << "Zonings made" << std::endl;
@@ -2828,8 +2826,16 @@ void yesButtonPressed3(int screen) {
         }
     }
     //double result = std::stod(exec("source ../env/bin/activate && python3 dissimilarity.py")); //save it to a vector 
+    */
 
-    changeScreen(screen);
+    // Check if there are enough designs to proceed
+    if (Zoned->get_designs().size() >= 3) {
+        changeScreen(6);  // Go to screen 6 if there are three or more designs
+    }
+    else {
+        changeScreen(33);  // Otherwise, go to the screen after that immediately
+    }
+    //changeScreen(screen);
 }
 
 void displayPleaseWait() {
@@ -2881,7 +2887,7 @@ void screenCheckNext4() {
     screen3d();
 	screenCheckNextLonger2();
     performing_zoning = true;
-	drawButton("Yes", 790, 410, 100, 30, yesButtonPressed3, 6);
+	drawButton("Yes", 790, 410, 100, 30, yesButtonPressed3, -1);
 	drawButton("No", 910, 410, 100, 30, changeScreen, 5);
 }
 

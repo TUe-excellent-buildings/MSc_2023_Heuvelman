@@ -932,10 +932,16 @@ def read_building(filename):
     return final_buildings, defaultdict(None, height_diff)
     #return final_buildings, defaultdict(None, z_diff)
 
+# def create_triangles(vertices):
+#     # Assuming the vertices are [bottom-left, bottom-right, top-right, top-left]
+#     triangle1 = [vertices[0], vertices[1], vertices[3]]  # Using bottom-left, bottom-right, top-left
+#     triangle2 = [vertices[1], vertices[2], vertices[3]]  # Using bottom-right, top-right, top-left
+#     return triangle1, triangle2
+
 def create_triangles(vertices):
-    # Assuming the vertices are [bottom-left, bottom-right, top-right, top-left]
-    triangle1 = [vertices[0], vertices[1], vertices[3]]  # Using bottom-left, bottom-right, top-left
-    triangle2 = [vertices[1], vertices[2], vertices[3]]  # Using bottom-right, top-right, top-left
+    vertices.sort(key=lambda x: (x[0], x[1]))
+    triangle1 = [vertices[0], vertices[2], vertices[1]]
+    triangle2 = [vertices[1], vertices[2], vertices[3]]
     return triangle1, triangle2
 
 def read_building2(filename):

@@ -163,7 +163,7 @@ void visualise(BSO::Structural_Design::SD_Analysis_Vars* SD_building, int vis_sw
 }
 
 void setup_pointers() {
-    MS = std::make_shared<BSO::Spatial_Design::MS_Building>("JH_Stabilization_Assignment_GUI_new/MS_Input.txt");
+    MS = std::make_shared<BSO::Spatial_Design::MS_Building>("files_stabilization/MS_Input.txt");
     CF = std::make_shared<BSO::Spatial_Design::MS_Conformal>(*MS, BSO::Grammar::grammar_stabilize);
     (*CF).make_conformal();
     SD_Building = std::make_shared<BSO::Structural_Design::SD_Analysis>(*CF);
@@ -1526,8 +1526,8 @@ GLuint imgZoningRender;
 GLuint imgStabilizationRender;
 
 void initializeTextures() {
-    imgZoningRender = loadImageAsTexture("Zoning BSD render.png");
-    imgStabilizationRender = loadImageAsTexture("Stabilization BSD render.png");
+    imgZoningRender = loadImageAsTexture("files_zoning/Zoning BSD render.png");
+    imgStabilizationRender = loadImageAsTexture("files_stabilization/Stabilization BSD render.png");
     // Load more textures as needed
 }
 

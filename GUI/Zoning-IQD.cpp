@@ -14,10 +14,10 @@
 #include <AEI_Grammar/Grammar_zoning.hpp>
 
 
-BSO::Spatial_Design::MS_Building MS1("JH_Zoning_Assignment_GUI/MS_Input.txt");
+BSO::Spatial_Design::MS_Building MS1("files_zoning/MS_Input.txt");
 BSO::Spatial_Design::MS_Conformal CF1(MS1, &(BSO::Grammar::grammar_zoning));
 
-BSO::Spatial_Design::MS_Building MS2("JH_Zoning_Assignment_GUI/Designs and settings/Design 3/MS_Input.txt");
+BSO::Spatial_Design::MS_Building MS2("files_zoning/Designs and settings/Design 3/MS_Input.txt");
 BSO::Spatial_Design::MS_Conformal CF2(MS2, &(BSO::Grammar::grammar_zoning));
 
 void makeConformal1() {

@@ -207,7 +207,7 @@ void visualise(BSO::Spatial_Design::MS_Conformal& cf_building, unsigned int i, i
 
 
 void setup_pointers() {
-    MS = std::make_shared<BSO::Spatial_Design::MS_Building>("JH_Zoning_Assignment_GUI/MS_Input.txt");
+    MS = std::make_shared<BSO::Spatial_Design::MS_Building>("files_zoning/MS_Input.txt");
     CF = std::make_shared<BSO::Spatial_Design::MS_Conformal>(*MS, &(BSO::Grammar::grammar_zoning));
     (*CF).make_conformal();
     Zoned = std::make_shared<BSO::Spatial_Design::Zoning::Zoned_Design>(CF.get());
@@ -638,6 +638,24 @@ void changeScreen(int screen) {
         std::string ResizedCountStr = std::to_string(ResizedCount);
         writeToOutputFile("output3.csv", "Resized count:", ResizedCountStr.c_str(), "");
 
+        //end result BSD
+        std::shared_ptr<BSO::Spatial_Design::MS_Building> msBuilding = MS;
+        for (int i = 0; i < MS->obtain_space_count(); ++i) {
+            BSO::Spatial_Design::MS_Space space = msBuilding->obtain_space(i);
+            int width_int = static_cast<int>(space.width);
+            int depth_int = static_cast<int>(space.depth);
+            int height_int = static_cast<int>(space.height);
+            int x_int = static_cast<int>(space.x);
+            int y_int = static_cast<int>(space.y);
+            int z_int = static_cast<int>(space.z);
+            // Format the space details into strings
+            std::string spaceIDStr = std::to_string(space.ID);
+            std::string sizeStr = "," + std::to_string(width_int) + "," + std::to_string(depth_int) + "," + std::to_string(height_int);
+            std::string locationStr = "," + std::to_string(x_int) + "," + std::to_string(y_int) + "," + std::to_string(z_int);
+            // Write space details to output file
+            writeToOutputFile("spaces_output.csv", "Space ID: " + spaceIDStr, "Size: " + sizeStr, "Location: " + locationStr);
+        }
+
         //number of zones and designs found by the toolbox/AI
         writeToOutputFile("output.csv", "initial zones", std::to_string(initial_zones), "");
         writeToOutputFile("output.csv", "initial designs", std::to_string(initial_designs), "");
@@ -654,6 +672,7 @@ void changeScreen(int screen) {
         std::string ZonedDesignCountStr = std::to_string(ActiveDesignCount);
         writeToOutputFile("output.csv", "Zoned design count user:", ZonedDesignCountStr.c_str(), "");
 
+        //print which cuboids are in which zone
         for (auto zone : Zoned->get_zones()) {
             std::string zoneID = std::to_string(zone->get_ID());
             std::vector<int> cuboidIDs;
@@ -2720,8 +2739,8 @@ GLuint imgZoningRender;
 GLuint imgStabilizationRender;
 
 void initializeTextures() {
-    imgZoningRender = loadImageAsTexture("Zoning BSD render.png");
-    imgStabilizationRender = loadImageAsTexture("Stabilization BSD render.png");
+    imgZoningRender = loadImageAsTexture("files_zoning/Zoning BSD render.png");
+    imgStabilizationRender = loadImageAsTexture("files_stabilization/Stabilization BSD render.png");
     // Load more textures as needed
 }
 

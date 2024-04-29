@@ -64,7 +64,7 @@ namespace BSO { namespace Grammar {
     void grammar_zoning(Spatial_Design::MS_Conformal* MS) // assign geometric types to the building geometry in a conformal building model
     {
 
-        grammar_settings = read_grammar_settings("JH_Stabilization_Assignment_GUI_new/Settings/Grammar_Settings.txt");
+        grammar_settings = read_grammar_settings("files_stabilization/Settings/Grammar_Settings.txt");
 
         #ifdef SD_ANALYSIS_HPP
         MS->add_grammars(&SD_grammar_zoning);

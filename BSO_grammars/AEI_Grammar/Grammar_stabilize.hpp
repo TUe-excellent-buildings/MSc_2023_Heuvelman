@@ -68,7 +68,7 @@ namespace BSO { namespace Grammar
 		#endif // ndef ZONING_HPP
 	
 		#ifdef ZONING_HPP
-		Zoning_Settings zoning_settings = read_zoning_settings("JH_Stabilization_Assignment_GUI_new/Settings/Zoning_Settings.txt"); // read the zoning settings file
+		Zoning_Settings zoning_settings = read_zoning_settings("files_stabilization/Settings/Zoning_Settings.txt"); // read the zoning settings file
 		bool unzoned = zoning_settings.unzoned;
 		void SD_grammar_zoning(Spatial_Design::MS_Conformal*, Structural_Design::SD_Analysis_Vars*);
 		#endif // ZONING_HPP
@@ -76,7 +76,7 @@ namespace BSO { namespace Grammar
     #endif // SD_ANALYSIS_HPP
 
 	#ifdef STABILIZE_HPP
-		Stabilize_Settings stabilize_settings = read_stabilize_settings("JH_Stabilization_Assignment_GUI_new/Settings/Stabilize_Settings.txt"); // read the stabilize settings file
+		Stabilize_Settings stabilize_settings = read_stabilize_settings("files_stabilization/Settings/Stabilize_Settings.txt"); // read the stabilize settings file
 		unsigned int method = stabilize_settings.method;
 		double singular = stabilize_settings.singular;
 		unsigned int point_it_unzoned = stabilize_settings.point_it_unzoned;
@@ -98,7 +98,7 @@ namespace BSO { namespace Grammar
     // function definition
     void grammar_stabilize(Spatial_Design::MS_Conformal* MS) // assign geometric types to the building geometry in a conformal building model
     {
-        grammar_settings = read_grammar_settings("JH_Stabilization_Assignment_GUI_new/Settings/Grammar_Settings.txt"); // read the grammar settings file
+        grammar_settings = read_grammar_settings("files_stabilization/Settings/Grammar_Settings.txt"); // read the grammar settings file
         #ifdef SD_ANALYSIS_HPP
 		
 			#ifndef ZONING_HPP
@@ -133,7 +133,7 @@ namespace BSO { namespace Grammar
 	    {
 			using namespace Structural_Design;
 	        // read file with structural design settings
-	        BSO::Structural_Design::read_SD_settings("JH_Stabilization_Assignment_GUI_new/Settings/SD_Settings.txt", SD);
+	        BSO::Structural_Design::read_SD_settings("files_stabilization/Settings/SD_Settings.txt", SD);
 	
 			// initialise some containers and variables
 	        std::map<Spatial_Design::Geometry::Vertex*, Components::Point*> point_map;
@@ -462,7 +462,7 @@ namespace BSO { namespace Grammar
 				}
 				
 				using namespace Structural_Design;
-		        BSO::Structural_Design::read_SD_settings("JH_Stabilization_Assignment_GUI_new/Settings/SD_Settings.txt", SD); // read file with structural design settings
+		        BSO::Structural_Design::read_SD_settings("files_stabilization/Settings/SD_Settings.txt", SD); // read file with structural design settings
 		
 		        /*
 		        for (unsigned int i = 0; i < CF->get_rectangle_count(); i++)

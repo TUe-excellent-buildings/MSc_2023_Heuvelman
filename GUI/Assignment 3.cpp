@@ -186,7 +186,7 @@ void visualise(BSO::Spatial_Design::MS_Conformal& cf_building, std::string type,
 }
 
 void setup_pointers() {
-    MS = std::make_shared<BSO::Spatial_Design::MS_Building>("JH_Zoning_Assignment_GUI/MS_Input.txt");
+    MS = std::make_shared<BSO::Spatial_Design::MS_Building>("files_zoning/MS_Input.txt");
     CF = std::make_shared<BSO::Spatial_Design::MS_Conformal>(*MS, &(BSO::Grammar::grammar_zoning));
     (*CF).make_conformal();
     Zoned = std::make_shared<BSO::Spatial_Design::Zoning::Zoned_Design>(CF.get());
@@ -605,7 +605,7 @@ void changeScreen(int screen) {
         writeToOutputFile("output3.csv", "Step 3: This time pick the one of which you think its structural design has the highest stiffness. Explain your reasoning.", "", opinionTF2.text);
         writeToOutputFile("output3.csv", "Step 4: Pick one to continue with. Structural volume and compliance are given. Explain your reasoning.", "", opinionTF28.text);
     }
-    if (screen == 34) {
+    if (screen == 7) {
         writeToOutputFile("output3.csv", "Step 6: Pick one to continue with out of the two most diverse zoned designs. Explain your reasoning.", "", opinionTF25.text);
         writeToOutputFile("output3.csv", "Step 7: This time pick again out of all zoned designs. Explain your reasoning.", "", opinionTF27.text);
         writeToOutputFile("output3.csv", "Step 8: Pick one to continue with based on expected SD performance. Explain your reasoning.", "", opinionTF29.text);
@@ -620,6 +620,55 @@ void changeScreen(int screen) {
         writeToOutputFile("output3.csv", "Moved count:", MovedCountStr.c_str(), "");
         std::string ResizedCountStr = std::to_string(ResizedCount);
         writeToOutputFile("output3.csv", "Resized count:", ResizedCountStr.c_str(), "");
+
+        //end result BSD
+        std::shared_ptr<BSO::Spatial_Design::MS_Building> msBuilding = MS;
+        for (int i = 0; i < MS->obtain_space_count(); ++i) {
+            BSO::Spatial_Design::MS_Space space = msBuilding->obtain_space(i);
+            int width_int = static_cast<int>(space.width);
+            int depth_int = static_cast<int>(space.depth);
+            int height_int = static_cast<int>(space.height);
+            int x_int = static_cast<int>(space.x);
+            int y_int = static_cast<int>(space.y);
+            int z_int = static_cast<int>(space.z);
+            // Format the space details into strings
+            std::string spaceIDStr = std::to_string(space.ID);
+            std::string sizeStr = "," + std::to_string(width_int) + "," + std::to_string(depth_int) + "," + std::to_string(height_int);
+            std::string locationStr = "," + std::to_string(x_int) + "," + std::to_string(y_int) + "," + std::to_string(z_int);
+            // Write space details to output file
+            writeToOutputFile("spaces_output3.csv", "Space ID: " + spaceIDStr, "Size: " + sizeStr, "Location: " + locationStr);
+        }
+
+        //print which cuboids are in which zone by AI
+        for (auto zone : Zoned->get_zones()) {
+            std::string zoneID = std::to_string(zone->get_ID());
+            std::vector<int> cuboidIDs;
+            for (auto cuboid : zone->get_cuboids()) {
+                cuboidIDs.push_back(cuboid->get_ID());
+            }
+            std::sort(cuboidIDs.begin(), cuboidIDs.end());
+            std::string zoneCuboids = "";
+            for (int id : cuboidIDs) {
+                zoneCuboids += std::to_string(id) + ", ";
+            }
+            // Remove the trailing comma and space, if any
+            if (!zoneCuboids.empty()) {
+                zoneCuboids.pop_back();  // Remove last space
+                zoneCuboids.pop_back();  // Remove last comma
+            }
+            writeToOutputFile("output3.csv", "Zone " + zoneID + " cuboids:", zoneCuboids, "");
+        }
+
+        //print which zones are in which zoned design by AI
+        for (int i = 0; i < Zoned->get_designs().size(); i++) {
+            auto zonedDesign = Zoned->get_designs()[i];
+            std::string designID = std::to_string(zonedDesign->get_ID());
+            std::string designZones = "";
+            for (auto zone : zonedDesign->get_zones()) {
+                designZones += std::to_string(zone->get_ID()) + ", ";
+            }
+            writeToOutputFile("output3.csv", "Design " + designID + " zones:", designZones, "");
+        }
     }
     if (screen == 8) {
         writeToOutputFile("output3.csv", "1..", getSelectedButtonLabel(), opinionTF3.text);
@@ -1944,8 +1993,8 @@ GLuint imgZoningRender;
 GLuint imgStabilizationRender;
 
 void initializeTextures() {
-    imgZoningRender = loadImageAsTexture("Zoning BSD render.png");
-    imgStabilizationRender = loadImageAsTexture("Stabilization BSD render.png");
+    imgZoningRender = loadImageAsTexture("files_zoning/Zoning BSD render.png");
+    imgStabilizationRender = loadImageAsTexture("files_stabilization/Stabilization BSD render.png");
     // Load more textures as needed
 }
 
@@ -2272,7 +2321,8 @@ void screen3e() {
     //drawText("Press enter to submit. Feel free to resubmit as needed; only your last submission will count.", 1565, 740, 275);
 
     // Draw the message at the top of the structure illustration
-    drawBoldText("Step 6: AI found all zoned designs for the modified BSD. However, only the two most diverse zoned designs are shown, selected with IQD. Pick one zoned design you would like to continue with. Say aloud what you think.", 1550, screenHeight - 50, 250, 1);
+    drawBoldText("Step 6: AI found all zoned designs for the modified BSD. However, only the two most diverse zoned designs are shown. Pick one zoned design you would like to continue with. Say aloud what you think.", 1550, screenHeight - 50, 250, 1);
+    //, selected with IQD.
     //underline two
     glLineWidth(2.0);
     glColor3f(0.0, 0.0, 0.0);
@@ -2282,7 +2332,8 @@ void screen3e() {
     glEnd();
 
 
-    drawText("Please refer to the information sheet for more information about zoning, SD and IQD.  ", 1550, screenHeight - 200, 250);
+    drawText("Please refer to the information sheet for more information about zoning and SD.  ", 1550, screenHeight - 200, 250);
+    //zoning, SD, and IQD.
     glLineWidth(1.4);
     glColor3f(0.0, 0.0, 0.0);
     glBegin(GL_LINES);
@@ -2471,7 +2522,13 @@ void screen4f() {
     drawText("Step 9/10, Question 6/7", screenWidth - 115, screenHeight - 25, 180);
     LineDivisionScreen();
 
-    drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 36);
+    //only go to the next question if that step was actually shown. If not, go to the next screen.
+    if (Zoned->get_designs().size() >= 3) {
+        drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 36);
+    }
+    else {
+        drawButton("-> | Next", 1590, 50, 200, 50, changeScreen, 13);
+    }
 }
 
 void screen4g() {
@@ -2813,7 +2870,7 @@ void yesButtonPressed3(int screen) {
 
     //Get two zones designs only, based on the two most diverse volumes
 
-    
+    /*
     //IQD
     std::cout << "Models constructed" << std::endl;
     std::cout << "Zonings made" << std::endl;
@@ -2828,15 +2885,16 @@ void yesButtonPressed3(int screen) {
 
             std::cout << "Post sleep\n";
 
-            std::cout << exec("source ../env/bin/activate && python3 dissimilarity.py");
+            std::cout << exec("python dissimilarity.py");
 
             std::cout << "Executed python\n";
         }
     }
-    double result = std::stod(exec("source ../env/bin/activate && python3 dissimilarity.py")); //save it to a vector 
-    
+    double result = std::stod(exec("python dissimilarity.py")); //save it to a vector 
+    */
 
     // Check if there are enough designs to proceed
+    std::cout << "Zoned designs size: " << Zoned->get_designs().size() << std::endl;
     if (Zoned->get_designs().size() >= 3) {
         changeScreen(6);  // Go to screen 6 if there are three or more designs
     }

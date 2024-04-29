@@ -4,7 +4,7 @@
 # -> program name
 NAME 	 = GUI_Janneke
 # -> source files to compile
-ALLFILES = GUI_Janneke_Zoning.cpp
+ALLFILES = Assignment\ 3.cpp
 # -> location of the releases version of the toolbox
 CUR_LIB  = /home/kknopp/Documents/MSc_2023_Heuvelman
 # -> location of the development branch of the toolbox

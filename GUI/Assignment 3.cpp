@@ -4,6 +4,7 @@
 #include <iostream>
 #include <chrono>
 #include <ctime>
+#include <unordered_map>
 
 #include <BSO/Spatial_Design/Movable_Sizable.hpp>
 #include <BSO/Spatial_Design/Conformation.hpp>
@@ -167,6 +168,7 @@ void initializeTextures();
 void displayTexture(GLuint texture, float x, float y, float width, float height);
 void yesButtonPressed(int screen);
 void displayPleaseWait();
+void yesButtonPressed3(int screen);
 
 void visualise(BSO::Spatial_Design::MS_Building& ms_building)
 {
@@ -1022,6 +1024,11 @@ void keyboard(unsigned char key, int x, int y) {
     GLenum err;
     while ((err = glGetError()) != GL_NO_ERROR) {
         std::cerr << "OpenGL error: " << gluErrorString(err) << std::endl;
+    }
+
+    // Manual switch to a screen on @ key press
+    if(key == '@') {
+        yesButtonPressed3(1);
     }
 
     if(currentScreen == 3) {
@@ -2797,15 +2804,16 @@ void yesButtonPressed2(int screen) {
 }
 
 void yesButtonPressed3(int screen) {
+    std::cout << "started";
     // Draw and display the "please wait" screen immediately, then retrieve the zoning results
     displayPleaseWait();
+    std::cout << "waiting";
     retrieve_SD_results_volumes();
+    std::cout << "retrieved results";
 
     //Get two zones designs only, based on the two most diverse volumes
 
-
-
-    /*
+    
     //IQD
     std::cout << "Models constructed" << std::endl;
     std::cout << "Zonings made" << std::endl;
@@ -2820,13 +2828,13 @@ void yesButtonPressed3(int screen) {
 
             std::cout << "Post sleep\n";
 
-            std::cout << exec("python dissimilarity.py");
+            std::cout << exec("source ../env/bin/activate && python3 dissimilarity.py");
 
             std::cout << "Executed python\n";
         }
     }
-    //double result = std::stod(exec("source ../env/bin/activate && python3 dissimilarity.py")); //save it to a vector 
-    */
+    double result = std::stod(exec("source ../env/bin/activate && python3 dissimilarity.py")); //save it to a vector 
+    
 
     // Check if there are enough designs to proceed
     if (Zoned->get_designs().size() >= 3) {

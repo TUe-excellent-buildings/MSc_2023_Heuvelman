@@ -1075,10 +1075,12 @@ void keyboard(unsigned char key, int x, int y) {
         std::cerr << "OpenGL error: " << gluErrorString(err) << std::endl;
     }
 
+    /*
     // Manual switch to a screen on @ key press
     if(key == '@') {
         yesButtonPressed3(1);
     }
+    */
 
     if(currentScreen == 3) {
         if (key >= 32 && key <= 126) { // Check if it's a printable ASCII character
@@ -2695,6 +2697,7 @@ void screenCheckNext() {
     drawText("Are you sure you want to continue? Once you continue to the next step, you cannot go back to this step.", 880, 620, 200);
 }
 
+/*
 //Functions for IQD
 std::vector<BSO::Spatial_Design::Geometry::Vertex*> boundaryVertices(std::vector<BSO::Spatial_Design::Geometry::Vertex*> vertices) {
     std::unordered_map<BSO::Spatial_Design::Geometry::Vertex*, int> vertexCount;
@@ -2796,6 +2799,7 @@ std::string exec(const char* cmd) {
     }
     return result;
 }
+*/
 
 void screenCheckNextLonger() {
     glColor3f(1.0f, 1.0f, 1.0f); // Set color to white
@@ -2865,10 +2869,9 @@ void yesButtonPressed3(int screen) {
     // Draw and display the "please wait" screen immediately, then retrieve the zoning results
     displayPleaseWait();
     std::cout << "waiting";
+    //Get two zones designs only, based on the two most diverse volumes
     retrieve_SD_results_volumes();
     std::cout << "retrieved results";
-
-    //Get two zones designs only, based on the two most diverse volumes
 
     /*
     //IQD

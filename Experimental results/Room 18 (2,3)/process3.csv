@@ -1,0 +1,26 @@
+Action,User input,Time
+Add Space: size,60,30,30,16:20:52
+Add Space: location,60,90,30,16:20:52
+Delete Space,11,16:21:05
+Add Space: size,120;60;30,16:21:52
+Add Space: location,120;180;60,16:21:52
+,above input invalid,16:21:52
+Add Space: size,120;60;30,16:22:54
+Add Space: location,120,120;30,16:22:54
+,above input invalid,16:22:54
+Add Space: size,60;120;30,16:23:30
+Add Space: location,60;120;30,16:23:30
+,above input invalid,16:23:30
+Add Space: size,60,120,30,16:23:41
+Add Space: location,60,120,30,16:23:41
+Resize Space: space,11,16:24:18
+Resize Space: new size,120,120,30,16:24:18
+Move Space: space,11,16:24:31
+Move Space: new location,0,120,30,16:24:31
+Delete Space,5,16:24:37
+Add Space: size,120,60,30,16:25:26
+Add Space: location,240,0,0,16:25:26
+Resize Space: space,5,16:25:48
+Resize Space: new size,60,120,30,16:25:48
+Add Space: size,60,60,30,16:26:37
+Add Space: location,240,-60,0,16:26:37

@@ -1,0 +1,23 @@
+Question,User Answer,User Explanation
+Truss count:,3,
+Beam count:,35,
+AI suggestions count:,3,
+Free DOFs:,0,
+Total compliance:,384767731560198.750000,
+Initial volume:,1.650000,
+Total structural volume:,6.399787,
+Structural volume added for stabilization:,4.749787,
+1. How much did you enjoy performing this assignment?,4,
+1..,,I like the AI assistence, as it is an easy tool to indentify unstable directions and offers an solution. Classic FEM solvers only say that the structure is unstable in a direction, but can sometimes be difficult to interp.
+2. How would you rate the level of ease in performing this assignment?,3,
+2..,,The assignment is straight forward, but requires some familiarity with the concept of stability
+3. How well do you think you performed the assignment?,5,
+3. How well do you think you performed the assignment?,4,I Dont think that there are any redundant members 
+3. How well do you think you performed the assignment?,3,Considerring that the beams are considered as fixed connections, it should probablly enough to only fix the outer beams
+3..,,Considerring that the beams are considered as fixed connections, it should probablly enough to only fix the outer beams
+4. Do you think it would have gone better without the AI tool?,No,
+4..,,The AI tool is useful to check for instability. Designing a structure without such help requires experience, and my structural designing skills are a bit rusty
+5. Do you think the AI tool itself can perform stabilization better than you?,No idea,
+5..,,It can probably theoretically, however there are practical considerations when it comes to structural designing. I dont know if the AI can take that into account
+6. What criteria did you keep in mind while performing this assignment?,,Functionality, makebility and usability.
+e-mail adress:,,h.baarssen@tue.nl

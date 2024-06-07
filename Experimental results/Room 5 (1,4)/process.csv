@@ -1,0 +1,32 @@
+Action,User input,Time
+Delete Zone,5,16:58:13
+Delete Zone,5,16:58:26
+Delete Zone,4,16:58:31
+Create Zone,3,16:58:35
+Create Zone,2,16:58:54
+Delete Zone,2,16:59:01
+Create Zone,1,16:59:07
+Delete Zone,2,16:59:11
+Create Zoned Design,9,16:59:30
+Create Zoned Design,1,16:59:34
+Delete Zoned Design,1,16:59:40
+Create Zoned Design,1,16:59:43
+Create Zoned Design,1,16:59:46
+Delete Zoned Design,1,16:59:47
+Delete Zoned Design,1,16:59:49
+Create Zone,1,16:59:52
+Create Zone,3,17:00:06
+Delete Zoned Design,3,17:00:11
+Delete Zone,3,17:00:14
+Create Zone,9,17:00:25
+Create Zone,3,17:00:40
+Delete Zone,3,17:00:45
+Delete Zone,4,17:00:47
+Action,User input,Time
+Create Zone,3,17:01:30
+Create Zoned Design,1,17:01:39
+Add Space: size,240,120,30,17:03:17
+Add Space: location,0,120,30,17:03:17
+Add Space: size,120,60,30,17:03:49
+Add Space: location,120,-60,30,17:03:49
+Create Zone 2,3,17:04:27

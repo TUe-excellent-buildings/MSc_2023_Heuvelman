@@ -1,0 +1,34 @@
+Question,User Answer,User Explanation
+Truss count:,28,
+Beam count:,7,
+AI suggestions count:,0,
+Total modifications/iterations:,43,
+Free DOFs:,28,
+Total compliance:,44938031.89,
+Initial volume:,1.65,
+Total structural volume:,2.956649,
+Structural volume added for stabilization:,1.306649,
+1. How much did you enjoy performing this assignment?,5,
+1..,,"The functionality of replacing rod with beam and placing diagonals are easy to use, realtime update is also nice."
+2. How would you rate the level of ease in performing this assignment?,4,
+2. How would you rate the level of ease in performing this assignment?,5,
+2. How would you rate the level of ease in performing this assignment?,4,
+2. How would you rate the level of ease in performing this assignment?,5,
+2. How would you rate the level of ease in performing this assignment?,4,I thought of adding diagonal rod by 
+2..,,"At the location where a column sits directly on two horizontal rods, it's not possible to add diagonal bracings there, because there isn't a ""top of the column"" for the program to find. Maybe it'll be possible if the diagonal bracings are inserted by assigning two nodes instead of top and bottom location of two columns."
+3. How well do you think you performed the assignment?,5,
+3. How well do you think you performed the assignment?,4,
+3. How well do you think you performed the assignment?,5,
+3. How well do you think you performed the assignment?,4,
+3. How well do you think you performed the assignment?,5,
+3. How well do you think you performed the assignment?,4,
+3. How well do you think you performed the assignment?,5,
+3. How well do you think you performed the assignment?,4,
+3. How well do you think you performed the assignment?,5,
+3..,,"I tried to minimize the use of beam compared to diagonal rods because it's more economical to use diagonal rods, so I only replace columns on two sides of the structure with beam element because they're far away from the adjacent columns."
+4. Do you think it would have gone better without the AI tool?,No idea,
+4..,,"emmm....maybe, maybe not"
+5. Do you think the AI tool itself can perform stabilization better than you?,No idea,
+5..,,"I think genetic algorithm can perform statbilization better than me, but that's not AI."
+6. What criteria did you keep in mind while performing this assignment?,,"economic reasons. Both adding diagonal bracings and replacing column with beam elements help stabilize the structure, so I tried to minimize the cost (sort of...) by choosing diagonal bracings."
+e-mail adress:,,

@@ -1,0 +1,66 @@
+Action,User input,Time
+Starting time, assignment chosen,,16:43:13
+Replace rod by beam,259,16:45:06
+,above input invalid,16:45:54
+Replace rod by beam,158,16:46:06
+Replace rod by beam,155,16:46:19
+Replace beam by rod,266,16:46:47
+Replace beam by rod,265,16:46:50
+Replace beam by rod,264,16:46:53
+Add diagonal: member 1,177,16:47:48
+Add diagonal: member 2,144,16:47:48
+Add diagonal: member 1,165,16:48:19
+Add diagonal: member 2,179,16:48:19
+Add diagonal: member 1,155,16:48:48
+Add diagonal: member 2,193,16:48:48
+Add diagonal: member 1,201,16:49:05
+Add diagonal: member 2,181,16:49:06
+Delete diagonal rod,269,16:49:21
+Delete diagonal rod,267,16:49:27
+Add diagonal: member 1,144,16:49:32
+Add diagonal: member 2,177,16:49:32
+Add diagonal: member 1,193,16:49:41
+Add diagonal: member 2,155,16:49:41
+Replace rod by beam,175,16:51:16
+Replace rod by beam,172,16:51:25
+Replace rod by beam,145,16:51:53
+Replace rod by beam,168,16:52:03
+Replace rod by beam,218,16:53:08
+Replace rod by beam,157,16:53:12
+Replace rod by beam,180,16:53:19
+Replace beam by rod,266,16:53:37
+Replace beam by rod,264,16:53:47
+Replace rod by beam,164,16:53:55
+Replace rod by beam,160,16:54:07
+Replace rod by beam,159,16:54:21
+Add diagonal: member 1,146,16:55:48
+Add diagonal: member 2,202,16:55:48
+Replace rod by beam,209,16:56:33
+Replace rod by beam,157,16:56:36
+Replace rod by beam,164,16:56:45
+Replace beam by rod,269,16:57:21
+Replace rod by beam,220,16:57:25
+Replace rod by beam,219,16:57:34
+Replace rod by beam,245,16:57:38
+Add diagonal: member 1,145,16:57:59
+Add diagonal: member 2,249,16:57:59
+Add diagonal: member 1,249,16:58:22
+Add diagonal: member 2,241,16:58:22
+Add diagonal: member 1,166,16:59:47
+Add diagonal: member 2,161,16:59:48
+Delete diagonal rod,252,16:59:55
+Add diagonal: member 1,166,17:00:17
+Add diagonal: member 2,250,17:00:17
+Delete diagonal rod,274,17:00:24
+Add diagonal: member 1,166,17:00:39
+Add diagonal: member 2,260,17:00:39
+Delete diagonal rod,273,17:00:50
+Add diagonal: member 1,190,17:01:50
+Add diagonal: member 2,171,17:01:50
+Replace rod by beam,155,17:02:33
+Replace rod by beam,153,17:02:37
+Replace rod by beam,233,17:02:41
+Replace rod by beam,233,17:03:19
+Replace beam by rod,274,17:03:30
+Replace rod by beam,274,17:03:53
+Replace rod by beam,232,17:03:58

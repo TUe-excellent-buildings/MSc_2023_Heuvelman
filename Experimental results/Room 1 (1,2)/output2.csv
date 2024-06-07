@@ -1,0 +1,21 @@
+Question,User Answer,User Explanation
+Truss count:,19,
+Beam count:,35,
+Total modifications/iterations:,64,
+Free DOFs:,0,
+Total compliance:,518812754.3,
+Initial volume:,1.65,
+Total structural volume:,5.946307,
+Structural volume added for stabilization:,4.296307,
+1. How much did you enjoy performing this assignment?,5,
+1..,,It was challenging but fun to think about stability planes and which connection affect the behaviour of the building and where which connections where necessary in combination with the elements
+2. How would you rate the level of ease in performing this assignment?,4,
+2..,,"The only difficult part was looking for the numbers of the elements to modify, add or delete them but apart from that it was very easy!"
+3. How well do you think you performed the assignment?,4,
+3..,,I think i have too much redundancy in some parts and some parts are too instable
+4. Do you think it would have gone better with an AI tool that identifies all zoned designs for you?,Yes,
+4..,,That would definitely have helped with figuring out which parts were over dimensioned and which parts are not because i think that is the case with my proposed design
+5. Do you think the AI tool itself can perform zoning better than you?,No idea,
+"5..,",,Probably if enough variation in structures are given as data to train the model it should be able to perform this task much better than humans because in the end its about thinking which connection are necessary in which places and looking at the flow of forces and i think AI can be pretty well trained in this
+6. What criteria did you keep in mind while performing this assignment?,,Stability and structural requirements
+e-mail adress:,,

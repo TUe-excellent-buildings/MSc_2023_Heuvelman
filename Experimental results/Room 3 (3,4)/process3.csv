@@ -1,0 +1,7 @@
+Action,User input,Time
+Resize Space: space,9,16:19:32
+Resize Space: new size,180,120,30,16:19:32
+Add Space: size,60,60,30,16:20:37
+Add Space: location,60,0,60,16:20:37
+Add Space: size,120,60,60,16:21:38
+Add Space: location,120,0,60,16:21:38

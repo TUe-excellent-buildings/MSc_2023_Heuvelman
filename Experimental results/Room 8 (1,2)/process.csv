@@ -1,0 +1,53 @@
+Action,User input,Time
+Create Zone,8,9,16:41:38
+Create Zone,4,5,6,16:42:12
+Create Zone,4,5,6,8,16:42:19
+Create Zone,9,16:42:24
+Create Zone,7,10,16:44:15
+Create Zone,3,16:44:26
+Create Zone,10,16:44:39
+Create Zone,1,2,16:44:51
+Create Zone,1,2,3,7,16:45:00
+Create Zoned Design,7,9,1,2,16:45:55
+Create Zoned Design,7,9,3,4,16:46:17
+Create Zoned Design,5,6,8,1,2,16:47:26
+Create Zoned Design,5,6,8,3,4,16:47:39
+Create Zone,4,5,6,1,2,16:48:38
+Delete Zoned Design,3,16:49:36
+Create Zoned Design,10,5,6,1,16:50:33
+Create Zone,7,8,16:51:04
+Create Zone,1,2,4,5,6,7,8,16:52:12
+Create Zoned Design,12,4,6,7,16:52:48
+Delete Zone,4,16:53:38
+Create Zone,9,16:54:34
+Create Zoned Design,9,7,3,13,16:56:37
+Create Zoned Design,12,7,3,13,16:57:24
+Delete Zoned Design,4,16:57:35
+Create Zoned Design,12,13,7,6,16:57:50
+Delete Zoned Design,2,16:59:49
+Resize Space: space,10,17:03:31
+Resize Space: new size,120,120,30,17:03:31
+Move Space: space,10,17:04:02
+Move Space: new location,120,-120,0,17:04:02
+Add Space: size,120,120,30,17:04:46
+Add Space: location,120,0,60,17:04:46
+Create Zone 2,1,2,7,3,17:06:03
+Create Zone 2,7,8,11,17:06:30
+Create Zone 2,1,2,4,5,6,7,8,17:06:57
+Create Zone 2,10,17:07:08
+Create Zone 2,9,17:07:19
+Create Zone 2,11,17:07:25
+Create Zone 2,3,17:07:28
+Create Zone 2,1,2,4,5,6,17:07:42
+Create Zoned Design 2,2,5,4,8,7,17:08:16
+Create Zoned Design 2,3,6,4,7,5,17:08:49
+Create Zone 2,8,11,17:09:12
+Create Zone 2,9,8,17:09:18
+Create Zone 2,4,5,6,8,17:09:28
+Create Zone 2,4,5,6,17:10:07
+Create Zoned Design 2,1,4,9,5,12,17:10:38
+Create Zoned Design 2,1,4,10,12,6,17:11:07
+Create Zoned Design 2,1,4,11,5,6,17:11:22
+Create Zone 2,10,7,17:12:18
+Create Zoned Design 2,13,7,8,9,5,17:13:13
+Create Zoned Design 2,13,8,7,10,6,17:13:48

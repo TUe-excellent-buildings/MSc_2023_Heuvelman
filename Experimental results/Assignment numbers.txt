@@ -1,0 +1,4 @@
+Assignment 1 = zoning human
+Assignment 2 = stabilization human
+Assignment 3 = zoning human-AI
+Assignment 4 = stabilization human-AI

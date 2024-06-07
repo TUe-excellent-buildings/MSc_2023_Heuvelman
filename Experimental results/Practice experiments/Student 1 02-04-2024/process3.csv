@@ -1,0 +1,41 @@
+Action,User input,Time
+Delete Space,10,13:46:10
+Add Space: size,1,1,1,13:46:16
+Add Space: location,1,1,1,13:46:16
+Action,User input,Time
+Add Space: size,1,1,1,14:13:41
+Add Space: location,1,1,1,14:13:41
+Action,User input,Time
+Add Space: size,1,1,1,14:20:07
+Add Space: location,1,1,1,14:20:07
+Delete Space,11,14:20:14
+Move Space: space,10,14:20:22
+Move Space: new location,0,0,0,14:20:22
+Resize Space: space,10,14:20:31
+Resize Space: new size,1,1,1,14:20:31
+Action,User input,Time
+Add Space: size,32432143,15:15:53
+,above input invalid,15:15:53
+Move Space: space,54545454,15:15:55
+,above input invalid,15:15:55
+Resize Space: space,5454454,15:15:57
+,above input invalid,15:15:57
+Delete Space,545667,15:15:59
+,above input invalid,15:15:59
+Action,User input,Time
+Delete Space,10,09:19:33
+Action,User input,Time
+Delete Space,10,09:54:45
+Action,User input,Time
+Add Space: size,6,12,3,14:26:58
+Add Space: location,0,0,3,14:26:58
+Delete Space,11,14:27:11
+Move Space: space,4,14:29:05
+Move Space: new location,6,0,0,14:29:05
+Resize Space: space,2,14:29:50
+Resize Space: new size,6,6,3,14:29:50
+Move Space: space,6,14:30:24
+Move Space: new location,6,6,0,14:30:24
+Resize Space: space,6,14:31:25
+Resize Space: new size,6,6,3,14:31:25
+Delete Space,4,14:31:36

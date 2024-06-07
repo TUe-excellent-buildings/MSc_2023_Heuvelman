@@ -7,7 +7,7 @@ namespace BSO { namespace Spatial_Design { namespace Zoning {
 Zoned_Design::Zoned_Design(MS_Conformal* CF)
 {
 	m_CF = CF;
-	zoning_settings = Grammar::read_zoning_settings("Settings/Zoning_Settings.txt"); // read the zoning settings file
+	zoning_settings = Grammar::read_zoning_settings("files_zoning/Settings/Zoning_Settings.txt"); // read the zoning settings file
 	max_span = zoning_settings.max_span;
 	min_span = zoning_settings.min_span;
 	whole_space_zones = zoning_settings.whole_space_zones;
@@ -57,6 +57,19 @@ void Zoned_Design::add_zone(Zone* zone, unsigned int n)
     zone->add_type(n);
     m_zones.push_back(zone);
 } // add_zone()
+
+void Zoned_Design::add_ID(unsigned int n)
+{
+    ID = n;
+} // add_ID()
+
+
+unsigned int Zoned_Design::get_ID()
+{
+    //std::cout << "return design ID" << ID << std::endl;
+    return ID;
+} // get_ID()
+
 
 void Zoned_Design::prepare_zone(Zone* zone)
 {
@@ -2777,6 +2790,45 @@ void Zoned_Design::make_zoning()
 
 } // make_zoning()
 
+Zoned_Design* Zoned_Design::make_zoning2(const std::vector<unsigned int>& zoneIDs) {
+    std::cout << "test 0 start make zoning" << std::endl;
+    Zoned_Design* newZonedDesign = new Zoned_Design(m_CF);
+    std::cout << "input: ";
+    for (const auto& id : zoneIDs) {
+        std::cout << id << " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "Current Zone IDs in m_zones: ";
+    for (const auto& zone : m_zones) {
+        std::cout << zone->get_ID() << " ";
+    }
+    std::cout << std::endl;
+
+
+    std::cout << "test 1 new zoned design defined" << std::endl;
+    for (auto zoneID : zoneIDs) {
+        std::cout << "inside forloop. Checking zone with ID " << zoneID << "." << std::endl;
+        Zone* zone = get_zone_by_ID(zoneID); 
+        std::cout << "inside foloop. Zone with ID " << zoneID << " found." << std::endl;
+        newZonedDesign->m_zones.push_back(zone);
+        std::cout << "inside forloop. zones pushed into m_zones . test 2" << std::endl;
+        newZonedDesign->add_cuboids(zone);
+        std::cout << "inside. cuboids added. test 3" << std::endl;
+        std::cout << "newZonedDesign : " << newZonedDesign << std::endl;
+        //m_zoned.push_back(newZonedDesign);
+    }
+    std::cout << "zoned in m_zoned" << m_zoned.size() << std::endl;
+    return newZonedDesign;
+}
+
+Zone* Zoned_Design::get_zone_by_ID(int ID) {
+	for (auto zone : m_zones) {
+		if (ID == zone->get_ID()) return zone;
+	}
+    throw std::runtime_error("Zone with ID " + std::to_string(ID) + " not found. get zone by ID");
+}
+
 void Zoned_Design::prepare_cuboids()
 {
     unsigned int cuboid_count = m_CF->get_cuboid_count();
@@ -3051,6 +3103,58 @@ std::vector<int> Zoned_Design::get_floor_coords()
 	return m_floor_coords;
 }
 
+bool Zoned_Design::remove_zone_by_ID(unsigned int zoneID) {
+    auto it = std::find_if(m_zones.begin(), m_zones.end(),
+        [zoneID](Zone* zone) { return zone->get_ID() == zoneID; });
+
+    if (it != m_zones.end()) {
+        std::cout << "it" << *it << std::endl;
+        delete* it;
+        m_zones.erase(it);
+        return true; // Successfully removed
+    }
+    return false; // Zone ID not found
+}
+
+bool Zoned_Design::exists_zone_by_ID(unsigned int zoneID) {
+    for (auto zone : m_zones) {
+        if (zoneID == zone->get_ID()) return true;
+    }
+	return false;
+}
+/*
+bool Zoned_Design::remove_design_by_ID(unsigned int designID) {
+    std::cout << "remove_design_byID" << std::endl;
+    auto it = std::find_if(m_zoned.begin(), m_zoned.end(),
+        [designID](Zoned_Design* design) { return design->get_ID() == designID; });
+    std::cout << "designID: " << designID << std::endl;
+
+    if (it != m_zoned.end()) {
+        std::cout << "delete zones from design 1 " << designID << m_zoned[designID]->get_zones().size() << std::endl;
+
+        for (Zone* zone : m_zoned[designID]->get_zones()) {
+            m_zoned[designID]->remove_zone_ID_from_design(zone->get_ID());
+		}
+
+        std::cout << "size after delete 2 " << designID << m_zoned[designID]->get_zones().size() << std::endl;
+
+        std::cout << "it  " << *it << std::endl;
+        delete* it;
+        m_zoned.erase(it);
+        return true; // Successfully removed
+    }
+    return false; // Zone ID not found
+
+}
+
+void Zoned_Design::remove_zone_ID_from_design(unsigned int zoneID) {
+    auto it = std::find_if(m_zones.begin(), m_zones.end(),
+        [zoneID](Zone* zone) { return zone->get_ID() == zoneID; });
+    if (it != m_zones.end()) {
+        m_zones.erase(it);
+    }
+}
+*/
 
 } // namespace Zoning
 } // namespace Spatial_Design

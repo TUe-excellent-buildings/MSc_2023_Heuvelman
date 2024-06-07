@@ -1,0 +1,11 @@
+Action,User input,Time
+Add Space: size,120,16:50:06
+Add Space: location,120,16:50:06
+,above input invalid,16:50:06
+Add Space: size,120,120,120,16:50:40
+Add Space: location,120,120,0,16:50:40
+Delete Space,11,16:51:00
+Add Space: size,60,60,60,16:52:04
+Add Space: location,0,-60,0,16:52:04
+Add Space: size,120,120,30,16:52:57
+Add Space: location,0,0,60,16:52:57

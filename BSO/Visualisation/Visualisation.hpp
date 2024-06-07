@@ -179,6 +179,62 @@ namespace BSO { namespace Visualisation
 
     } // init_visualisation()
 
+    void init_visualisation_without()
+    {
+
+
+        /*
+        //trace memory allocation (leak testing)
+        setenv("MALLOC_TRACE", "mtrace.log", 1);
+        mtrace();
+
+        createbsp();
+
+        cout << "deleting" << endl;
+        delete_bsp(testbsp);
+        */
+
+        //init random seed with the current time
+        srand(time(NULL));
+
+        int argc = 1;
+        char *argv[1] = {(char*)"Something"};
+
+        //init glut
+        // glutInit(&argc, argv);
+        //glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
+        //glutInitWindowSize(600, 300);
+        //glutInitWindowPosition(100, 100);
+        //glutCreateWindow("Test");
+        //maximize window (not fullscreen)
+        int scrw = glutGet(GLUT_SCREEN_WIDTH)/1.5,
+            scrh = glutGet(GLUT_SCREEN_HEIGHT)/1.5;
+        if (scrw > 0 && scrh > 0)
+            glutReshapeWindow(scrw, scrh);
+
+        glutReshapeFunc(reshape);
+        glutDisplayFunc(display);
+        //glutKeyboardFunc(keyboard);
+        glutMouseFunc(mouse);
+        glutMotionFunc(motion);
+        glutPassiveMotionFunc(passive_motion);
+
+        //init gl
+        glShadeModel(GL_SMOOTH);
+        glEnable(GL_LIGHTING);
+        glEnable(GL_LIGHT0);
+
+
+
+        if(1 == 1){glClearColor(1.0, 1.0, 1.0, 1.0);} // toggles white background, I deleted the input possibility
+        else      {glClearColor(0.8, 0.8, 0.8, 1.0);}
+
+
+        glClearDepth(1000.0);
+
+
+    } // init_visualisation_without()
+
 
     void end_visualisation()
     {

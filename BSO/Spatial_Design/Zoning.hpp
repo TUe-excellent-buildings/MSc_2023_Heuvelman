@@ -29,6 +29,7 @@ private:
 	std::vector<Geometry::Space*> m_spaces;
 	std::vector<Geometry::Vertex*> m_vertices;
 	std::vector<Geometry::Rectangle*> m_rectangles;
+	std::vector<std::vector<int>> m_zonecuboids;
 	unsigned int base_type = 0;
 	double total_compliance = 0;
 
@@ -46,6 +47,7 @@ private:
 	bool delete_non_combined_appendix_zones = false; // set false when combine_appendix_zones == false (or whole_spaces_only == true)
 	bool zone_cores = true;
 	bool always_use_cores = false;
+	int ID;
 	// switches
 
 public:
@@ -96,10 +98,25 @@ public:
 	std::pair<double, unsigned int> get_min_compliance();
 	double get_compliance(unsigned int);
 
+	Zone* get_zone_by_ID(int ID);
 	void make_zoning();
+	Zoned_Design* make_zoning2(const std::vector<unsigned int>& zoneIDs);
 	void prepare_cuboids();
 	std::vector<int> get_zoned_floors();
 	std::vector<int> get_floor_coords();
+
+	void add_ID(unsigned int);
+	unsigned int get_ID();
+	bool is_active = false;
+
+	bool remove_zone_by_ID(unsigned int zoneID);
+	//bool remove_design_by_ID(unsigned int designID);
+	//bool remove_zone_from_design_by_ID(unsigned int zoneID);
+	void add_zoned_design(Zoned_Design* ZD) { m_zoned.push_back(ZD); }
+	void add_zone_cuboid_IDs(std::vector<int> v) { m_zonecuboids.push_back(v); }
+	std::vector<int> get_zoned_cuboids(int ID) { return m_zonecuboids[ID]; }
+	bool exists_zone_by_ID(unsigned int zoneID);
+	//void remove_zone_ID_from_design(unsigned int zoneID);
 }; // Zoned_Design
 
 } // namespace Zoning

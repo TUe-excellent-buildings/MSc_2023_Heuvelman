@@ -26,19 +26,57 @@ namespace BSO { namespace Visualisation
         void render(const camera &cam) const;
         const std::string get_description();
 
+        vertex calculateCoordAverage(const std::vector<Eigen::Vector3d>& coords);
+
         bool key_pressed(int key);
+
+        // Method to draw a cone, used for the GUI JH (hinges)
+        void drawCone(float radius, float height, int numSegments, float x, float y, float z) const {
+            glPushMatrix();
+            glTranslatef(x, y, z); // Translate to the specified position
+            glColor3f(0.0, 0.0, 0.0);
+            glBegin(GL_TRIANGLE_FAN);
+            glVertex3f(0.0f, height, 0.0f); // Apex of the cone
+            for (int i = 0; i <= numSegments; ++i) {
+                float theta = (2.0f * M_PI * i) / numSegments;
+                float xx = radius * cos(theta);
+                float zz = radius * sin(theta);
+                glVertex3f(xx, 0.0f, zz); // Base vertices
+            }
+            glEnd();
+            glPopMatrix();
+        }
+
+        // Method to draw a line between two points, used for the GUI JH (axes)
+        void drawLine(float x, float y, float z, float x1, float y1, float z1) const {
+            glLineWidth(2.5);
+            glColor3f(1.0, 0.0, 0.0);
+            glBegin(GL_LINES);
+            glVertex3f(x, y, z);
+            glVertex3f(x1, y1, z1);
+            glEnd();
+        }
+
+        void drawRenderedTextBig(const char* text, float x, float y, float z) const {
+            glRasterPos3f(x, y, z); // Position where to start the text
+            while (*text) {
+                glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *text);
+                ++text;
+            }
+        }
 
     protected:
 
     private:
         std::list<polygon*> polygons;
+        std::list<label*>   labels;
 
         polygon_props  colprops, trussprops, shellprops, colprops_t, trussprops_t, shellprops_t;
         std::vector<polygon_props> cluster_props;
         std::vector<line_props> cluster_lprops;
 
         line_props     lprops, lprops_t;
-//        label_props    lbprops;
+        label_props    lbprops;
         random_bsp     *pbsp;
     };
 
@@ -154,9 +192,33 @@ namespace BSO { namespace Visualisation
                     create_column_Juan(polygons, cprop_ptr,  lprop_ptr,
                                        vis_coords[0], vis_coords[1], thickness);
                 }
+
+                vertex v = calculateCoordAverage(coords);
+                lbprops.textcolor.v[0] = 0.0f;
+                lbprops.textcolor.v[1] = 0.0f;
+                lbprops.textcolor.v[2] = 0.0f;
+                lbprops.textcolor.v[3] = 1.0f;
+
+                labels.push_back(create_label(&lbprops, std::to_string(i), v));
+
+                // Leave this
                 coords.clear();
                 vis_coords.clear();
             }
+
+            // for(unsigned int i = 0; i < SDA->get_points().size(); i++)
+            // {
+            //     Structural_Design::Components::Point* point = SDA->get_points()[i];
+            //     // std::cout << "point: " << point->get_coords() << std::endl;
+
+            //     vertex v(point->get_coords().x() + 0.1f, point->get_coords().z() + 0.1f, -point->get_coords().y() - 0.1f);
+            //     lbprops.textcolor.v[0] = 0.0f;
+            //     lbprops.textcolor.v[1] = 0.0f;
+            //     lbprops.textcolor.v[2] = 0.0f;
+            //     lbprops.textcolor.v[3] = 1.0f;
+
+            //     labels.push_back(create_label(&lbprops, std::to_string(i), v));
+            // }
         }
 
         else
@@ -194,11 +256,45 @@ namespace BSO { namespace Visualisation
         glDisable(GL_DEPTH_TEST);
 
         pbsp->render_btf(cam);
-/*
+
         std::list<label*>::const_iterator lbit;
         for (lbit = labels.begin(); lbit != labels.end(); lbit++)
             (*lbit)->render();
-*/
+
+        // Draw the hinges for the GUI JH
+        drawCone(250.0f, 400.0f, 30, 0.0f, 0.0f, 0.0f);
+        drawCone(250.0f, 400.0f, 30, 6000.0f, 0.0f, 0.0f);
+        drawCone(250.0f, 400.0f, 30, 12000.0f, 0.0f, 0.0f);
+        drawCone(250.0f, 400.0f, 30, 24000.0f, 0.0f, 0.0f);
+        drawCone(250.0f, 400.0f, 30, 0.0f, 0.0f, -6000.0f);
+        drawCone(250.0f, 400.0f, 30, 6000.0f, 0.0f, -6000.0f);
+        drawCone(250.0f, 400.0f, 30, 24000.0f, 0.0f, -6000.0f);
+        drawCone(250.0f, 400.0f, 30, 0.0f, 0.0f, -12000.0f);
+        drawCone(250.0f, 400.0f, 30, 6000.0f, 0.0f, -12000.0f);
+        drawCone(250.0f, 400.0f, 30, 12000.0f, 0.0f, -12000.0f);
+        drawCone(250.0f, 400.0f, 30, 24000.0f, 0.0f, -12000.0f);
+        drawCone(250.0f, 400.0f, 30, 0.0f, 0.0f, -24000.0f);
+        drawCone(250.0f, 400.0f, 30, 6000.0f, 0.0f, -24000.0f);
+        drawCone(250.0f, 400.0f, 30, 12000.0f, 0.0f, -24000.0f);
+        drawCone(250.0f, 400.0f, 30, 24000.0f, 0.0f, -24000.0f);
+
+        // Draw axes in for the GUI JH
+        // x axis
+        drawLine(2500.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+        drawLine(2500.0f, 0.0f, 0.0f, 2200.0f, 0.0f, -300.0f);
+        drawLine(2500.0f, 0.0f, 0.0f, 2200.0f, 0.0f, 300.0f);
+        drawRenderedTextBig("X", 1500.0f, 0.0f, 600.0f); // Label X axis
+        // y axis (z in the model)
+        drawLine(0.0f, 2500.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+        drawLine(0.0f, 2500.0f, 0.0f, 0.0f, 2200.0f, -300.0f);
+        drawLine(0.0f, 2500.0f, 0.0f, 0.0f, 2200.0f, 300.0f);
+        drawRenderedTextBig("Z", 0.0f, 1500.0f, 400.0f); // Label Z axis
+        // z axis (y in the model)
+        drawLine(0.0f, 0.0f, -2500.0f, 0.0f, 0.0f, 0.0f);
+        drawLine(0.0f, 0.0f, -2500.0f, -300.0f, 0.0f, -2200.0f);
+        drawLine(0.0f, 0.0f, -2500.0f, 300.0f, 0.0f, -2200.0f);
+        drawRenderedTextBig("Y", -600.0f, 0.0f, -1500.0f); // Label Y axis
+
         glPopAttrib();
     }
 
@@ -244,6 +340,25 @@ namespace BSO { namespace Visualisation
         }
 
 	return false;
+    }
+
+    vertex Stabilization_Model::calculateCoordAverage(const std::vector<Eigen::Vector3d>& coords) {
+        if (coords.empty()) {
+            return vertex(0, 0, 0); // Return a default vertex if the input is empty
+        }
+
+        float sumX = 0.0f, sumY = 0.0f, sumZ = 0.0f;
+        for (Eigen::Vector3d point : coords) {
+            sumX += point(0);
+            sumY += point(1);
+            sumZ += point(2);
+        }
+
+        float avgX = sumX / coords.size();
+        float avgY = sumY / coords.size();
+        float avgZ = sumZ / coords.size();
+
+        return vertex(avgX + 250.0f, avgZ + 250.0f, -avgY - 250.0f);
     }
 
 } // namespace Visualisation

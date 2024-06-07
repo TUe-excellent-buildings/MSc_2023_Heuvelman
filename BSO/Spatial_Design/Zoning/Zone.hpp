@@ -52,6 +52,10 @@ public:
     unsigned int get_dimensions(unsigned int);
     void add_spaces();
     void check_spaces();
+    static Geometry::Cuboid* find_cuboid_by_id(MS_Conformal* ms_conformal, unsigned int cuboid_id);
+    std::vector<Geometry::Cuboid*> get_cuboids_from_spaces(MS_Conformal*);
+    void get_cuboid_space(unsigned int);
+    std::vector<Geometry::Cuboid*> get_cuboids_space(unsigned int);
     bool get_whole_spaces();
     bool get_part_spaces();
     void add_type(unsigned int);

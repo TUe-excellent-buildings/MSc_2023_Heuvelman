@@ -1,0 +1,22 @@
+Question,User Answer,User Explanation
+Truss count:,12,
+Beam count:,8,
+Total modifications/iterations:,34,
+Free DOFs:,15,
+Total compliance:,374358440.8,
+Initial volume:,1.65,
+Total structural volume:,3.522492,
+Structural volume added for stabilization:,1.872492,
+1. How much did you enjoy performing this assignment?,3,
+1..,,"The assignment itself was nice, but stabilization itself is not a topic in which my interest lay, there only a 3"
+2. How would you rate the level of ease in performing this assignment?,4,
+2. How would you rate the level of ease in performing this assignment?,2,You need knowledge of stability yourself and have to predict what happens to the structure. Therefore I think the assignment was 
+2..,,You need knowledge of stability yourself and have to predict what happens to the structure. Therefore I think the assignment was quite difficult to preform. 
+3. How well do you think you performed the assignment?,3,
+3..,,"I think I put in too much stability members, and as I have mentioned before, stability is not a great topic for me so I think the results are not that well"
+4. Do you think it would have gone better with an AI tool that identifies all zoned designs for you?,Yes,
+4..,,I think it is helpfull if the tool would display  the structure is stable. This because I was really doubting if I needed more element and ended up adding more and more elements. Suggestions of elements would be less helpfull because this is easy to do yourself. 
+5. Do you think the AI tool itself can perform zoning better than you?,Yes,
+"5..,",,"I think AI tools can run stabilization test quick, and therefore get more results. But I still think these results should be checked. Maybe if I had more knowlegde about stabilization this would not be the case "
+6. What criteria did you keep in mind while performing this assignment?,,Only stability elements considering mostly wind loads
+e-mail adress:,,

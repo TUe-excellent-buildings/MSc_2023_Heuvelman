@@ -1,0 +1,39 @@
+Question,User Answer,User Explanation
+Truss count:,1,
+Beam count:,0,
+AI suggestions count:,1,
+Total modifications/iterations:,1,
+Free DOFs:,25,
+Total compliance:,53105990.41,
+Initial volume:,1.65,
+Total structural volume:,1.683541,
+Structural volume added for stabilization:,0.033541,
+1..,,
+2..,,
+3..,,
+4..,,
+5..,,
+6. What criteria did you keep in mind while performing this assignment?,,
+e-mail adress:,,
+Question,User Answer,User Explanation
+Truss count:,19,
+Beam count:,0,
+AI suggestions count:,19,
+Total modifications/iterations:,22,
+Free DOFs:,5,
+Total compliance:,8.05E+13,
+Initial volume:,1.65,
+Total structural volume:,2.598513,
+Structural volume added for stabilization:,0.948513,
+1. How much did you enjoy performing this assignment?,4,
+1..,,It was fun to do
+2. How would you rate the level of ease in performing this assignment?,4,
+2..,,"It worked pretty well, it is just a shame that I used the AI option before I wanted to."
+3. How well do you think you performed the assignment?,3,
+3..,,I am not entirely sure if the complete higher part is stable. And I am not sure if it is the most efficient way either. I think it is not
+4. Do you think it would have gone better without the AI tool?,No,
+4..,,"No, it was really nice to help me start and confirm my thoughts"
+5. Do you think the AI tool itself can perform stabilization better than you?,Yes,
+5..,,"At this point, yes. Because I only know I need three planes to make it stable, but not yet how many in each direction for example"
+6. What criteria did you keep in mind while performing this assignment?,,"Stability only, functionality was really poor in the way I currently did it"
+e-mail adress:,,

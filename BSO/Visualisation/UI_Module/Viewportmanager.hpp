@@ -13,7 +13,7 @@
 
 #elif defined(_WIN32) || defined(WIN32)     /* _Win32 is usually defined by compilers targeting 32 or   64 bit Windows systems */
 
-#include <glut.h>
+#include <GL/freeglut.h>
 
 #endif
 
@@ -39,6 +39,8 @@ namespace BSO { namespace Visualisation
             lmousestate(GLUT_UP), lclicktime(0) { }
 
         void addviewport(viewport *pviewport);
+        void addviewportzoning(viewport *pviewport);
+        void clearviewports();
 
         //event handlers
         void render(camera &cam);
@@ -82,9 +84,24 @@ namespace BSO { namespace Visualisation
     void viewportmanager::addviewport(viewport *pviewport)
     {
         if (pviewport){
-            viewports.push_back(pviewport);
+            if(viewports.empty()) viewports.push_back(pviewport);
+            else{
+                viewports.clear();
+                viewports.push_back(pviewport);
+            }
             update_viewport_sizes();
         }
+    }
+
+    void viewportmanager::addviewportzoning(viewport *pviewport)
+    {
+        viewports.push_back(pviewport);
+        update_viewport_sizes();
+    }
+
+    void viewportmanager::clearviewports()
+    {
+        viewports.clear();
     }
 
     /*

@@ -1,0 +1,23 @@
+Question,User Answer,User Explanation
+Truss count:,8,
+Beam count:,35,
+Total modifications/iterations:,49,
+Free DOFs:,0,
+Total compliance:,533195816,
+Initial volume:,1.65,
+Total structural volume:,6.489939,
+Structural volume added for stabilization:,4.839939,
+1. How much did you enjoy performing this assignment?,4,
+1..,,"The assignment was clear, but changing the elements was a bit difficult at times, as it was sometimes hard to read the element id numbers. The view also kept resetting which was a bit of an annoyance."
+2. How would you rate the level of ease in performing this assignment?,3,
+2. How would you rate the level of ease in performing this assignment?,4,The stabilization process was quite straightforward
+2..,,The stabilization process was quite straightforward
+3. How well do you think you performed the assignment?,2,
+3. How well do you think you performed the assignment?,3,
+3..,,"I think I performed reasonably well. I made sure that there were bracings in the structure in both X and Y direction. I was not sure however how many bracing would exactly be needed. I also did not take into account rotational stability. I also converted all the horizontal elements to beams since I assumed they would transfer bending moments as well, but this could probably also have been reduced. "
+4. Do you think it would have gone better with an AI tool that identifies all zoned designs for you?,Yes,
+4..,,"I believe providing a suggestion would have helped, because now I was not sure whether the total structure would have been stable"
+5. Do you think the AI tool itself can perform zoning better than you?,Yes,
+"5..,",,I think creating a stable structure could be straightforward as it only needs to adhere to a certain set of rules or follow a certain set of steps. AI would probably be better at performing these steps better than me
+6. What criteria did you keep in mind while performing this assignment?,,horizontal stability in both directions as well as beams that can carry the bending moments introduced by the floor
+e-mail adress:,,

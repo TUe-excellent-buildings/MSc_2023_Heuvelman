@@ -1,0 +1,22 @@
+Question,User Answer,User Explanation
+Truss count:,13,
+Beam count:,3,
+AI suggestions count:,,
+Total modifications/iterations:,16,
+Free DOFs:,7,
+Total compliance:,7.61E+11,
+Initial volume:,1.65,
+Total structural volume:,2.549733,
+Structural volume added for stabilization:,0.899733,
+1. How much did you enjoy performing this assignment?,3,
+1..,,I have no clue if my structure is stable now
+2. How would you rate the level of ease in performing this assignment?,5,
+2..,,That works very well
+3. How well do you think you performed the assignment?,2,
+3..,,"Very bad, i had no proper reasoning and just added some stuff everywhere"
+4. Do you think it would have gone better without the AI tool?,No,
+4..,,"It was nice, and the propositions were good"
+5. Do you think the AI tool itself can perform stabilization better than you?,Yes,
+5..,,"I had no proper reasoning, and AI can be programmed i assume to have the required stiffness in the structure."
+6. What criteria did you keep in mind while performing this assignment?,,I only held functional/ stability requirements in mind
+e-mail adress:,,

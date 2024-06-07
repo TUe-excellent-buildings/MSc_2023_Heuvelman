@@ -1,0 +1,17 @@
+Action,User input,Time
+Delete Space,10,17:28:39
+Add Space: size,60, 120, 30,17:31:26
+Add Space: location,120, 120, 30,17:31:26
+Move Space: space,10,17:32:08
+Move Space: new location,60,120, 30,17:32:08
+Delete Space,10,17:32:49
+Add Space: size,120, 60,30,17:33:35
+Add Space: location,120, 120, 30,17:33:35
+Move Space: space,10,17:33:52
+Move Space: new location,120, 120,30,17:33:52
+Delete Space,10,17:33:59
+Add Space: size,60,60,30,17:34:25
+Add Space: location,120,60,30,17:34:25
+Delete Space,10,17:34:31
+Add Space: size,60,60,30,17:34:51
+Add Space: location,120,120,30,17:34:51

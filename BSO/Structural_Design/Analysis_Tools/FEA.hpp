@@ -561,14 +561,32 @@ namespace BSO { namespace Structural_Design {
 		return nodes_with_free_dofs;
 	}
 
+    
     void FEA::solve()
     {
         // SparseLLT decomposition
         Eigen::SimplicialLLT<Eigen::SparseMatrix<double> > solver;
         solver.compute(m_sp_GSM);
 
+        int zeroRows = 0;
+        for (int i = 0; i < m_sp_GSM.rows(); i++) {
+            bool rowIsZero = true;
+            for (int j = 0; j < m_sp_GSM.cols(); j++) {
+                if (m_sp_GSM.coeff(i, j) != 0) {
+                    rowIsZero = false;
+                    break; // Exit the loop early if we find a non-zero element
+                }
+            }
+            if (rowIsZero) {
+                zeroRows++;
+            }
+        }
+        std::cout << "Number of zero rows: " << zeroRows << std::endl;
+
+
         if(solver.info() != Eigen::Success)
         {
+            std::cout << solver.info() << std::endl;
             std::cerr << "Solver failed GSM decomposition, exiting now..." << std::endl;
             exit(1);
         }
@@ -583,71 +601,6 @@ namespace BSO { namespace Structural_Design {
                 exit(1);
             }
         }
-
-        // BiCGSTAB with scaling
-        //Eigen::BiCGSTAB<Eigen::SparseMatrix<double>/*, Eigen::DiagonalPreconditioner<double> */> solver;
-        /*for (unsigned int i = 0; i < m_load_cases.size(); i++)
-        { // for each load case
-            // pre-compute some solver values
-            solver.compute(m_sp_GSM);
-
-            if(solver.info() != Eigen::Success)
-            {
-                std::cerr << "Solver failed GSM decomposition, exiting now..." << std::endl;
-                exit(1);
-            }
-
-            // get a rough solution so the GSm can be scaled as such that it contains values with equal magnitudes
-            solver.setMaxIterations(3);
-            m_all_displacements[m_load_cases[i] ] = solver.solve(m_all_loads[m_load_cases[i] ]);
-
-            // scaling of the GSM to a temporary GSM matrix 'C'
-            Eigen::VectorXd w_inv = (m_all_displacements[m_load_cases[i] ].array().abs()+1e-6).inverse();
-            Eigen::SparseMatrix<double> C;
-            C.resize(m_dof_count, m_dof_count);
-            C = m_sp_GSM * w_inv.asDiagonal();
-
-            // solving the scaled system to a temporary displacement vector 'y'
-            solver.setMaxIterations(m_dof_count*10);
-            solver.compute(C);
-
-            if(solver.info() != Eigen::Success)
-            {
-                std::cerr << "Solver failed scaled GSM decomposition, exiting now..." << std::endl;
-                exit(1);
-            }
-
-            Eigen::VectorXd y(m_dof_count);
-            y = solver.solve(m_all_loads[m_load_cases[i] ]);
-
-            if(solver.info() != Eigen::Success)
-            {
-                std::cerr << std::endl << std::endl << "WARNING: BiCGSTAB probably did NOT converge successfully!" << std::endl << std::endl;
-            }
-
-            // scaling back to the multi scale displacement vector
-            m_all_displacements[m_load_cases[i] ] = w_inv.asDiagonal() * y;
-
-        }*/
-
-        // BiCGSTAB without scaling
-        //Eigen::BiCGSTAB<Eigen::SparseMatrix<double>/*, Eigen::DiagonalPreconditioner<double> */> solver;
-        /*for (unsigned int i = 0; i < m_load_cases.size(); i++)
-        { // for each load case
-            // pre-compute some solver values
-            solver.setTolerance(0.001);
-            solver.compute(m_sp_GSM);
-
-            if(solver.info() != Eigen::Success)
-            {
-                std::cerr << "Solver failed GSM decomposition, exiting now..." << std::endl;
-                exit(1);
-            }
-
-            // solve the GSM
-            m_all_displacements[m_load_cases[i] ] = solver.solve(m_all_loads[m_load_cases[i] ]);
-
-        }*/
 
         // add displacements to the instances of the node class
         for (node_iterator ite = m_node_map.begin(); ite != m_node_map.end(); ite++)
@@ -1067,7 +1020,8 @@ namespace BSO { namespace Structural_Design {
 
 		std::map<unsigned int, double> dof_singular;
 
-	// m = singular value ID, S(n) is singular value
+
+	// m = singular value ID, S(n) is singular value
 		for (int n = 0; n < V.cols(); n++)
 		{
 			for (unsigned int m = 0; m < V.rows(); m++)

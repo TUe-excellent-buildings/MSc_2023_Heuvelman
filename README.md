@@ -53,7 +53,7 @@
 ** Other community or team contact
 *
 * Project Manager:
-* dr.ir. H. (Hèrm) Hofmeyer
+* dr.ir. H. (HÃ¨rm) Hofmeyer
 * e-mail: h.hofmeyer@tue.nl
 * 
 * dr.ir. M. (Michael) T.M. Emmerich

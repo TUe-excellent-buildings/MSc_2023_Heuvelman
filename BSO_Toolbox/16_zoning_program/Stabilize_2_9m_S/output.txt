@@ -1,0 +1,102 @@
+Initialised the MS model (1.074 ms)
+Initialised the CF model (4.127 ms)
+Made the CF model conformal (10.06 ms)
+Commencing Visualisation...
+Commencing SD-Analysis...
+Zone 1: cuboids(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24)
+type: 1 w/p: 1, 0 Floor: 0, Floor above: 4
+Min coords: (0, 0, 0)
+Max coords: (36000, 9000, 12000)
+X-dim: 36000 Y-dim: 9000
+Floating: 0
+
+Zone 2: cuboids(1, 7, 13, 19, 25, 26, 27, 28)
+type: 2 w/p: 1, 1 Floor: 0, Floor above: 4
+Min coords: (0, 0, 0)
+Max coords: (6000, 11000, 12000)
+X-dim: 6000 Y-dim: 11000
+Floating: 0
+
+Zone 3: cuboids(3, 9, 15, 21, 33, 34, 35, 36)
+type: 2 w/p: 1, 1 Floor: 0, Floor above: 4
+Min coords: (12000, 0, 0)
+Max coords: (18000, 11000, 12000)
+X-dim: 6000 Y-dim: 11000
+Floating: 0
+
+Zone 4: cuboids(5, 11, 17, 23, 42, 44, 46, 48)
+type: 2 w/p: 1, 1 Floor: 0, Floor above: 4
+Min coords: (24000, 0, 0)
+Max coords: (30000, 11000, 12000)
+X-dim: 6000 Y-dim: 11000
+Floating: 0
+
+Zone 5: cuboids(25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48)
+type: 1 w/p: 1, 0 Floor: 0, Floor above: 4
+Min coords: (0, 9000, 0)
+Max coords: (36000, 11000, 12000)
+X-dim: 36000 Y-dim: 2000
+Floating: 0
+
+Zone 6: cuboids(2, 8, 14, 20, 29, 30, 31, 32)
+type: 2 w/p: 1, 1 Floor: 0, Floor above: 4
+Min coords: (6000, 0, 0)
+Max coords: (12000, 11000, 12000)
+X-dim: 6000 Y-dim: 11000
+Floating: 0
+
+Zone 7: cuboids(4, 10, 16, 22, 37, 38, 39, 40)
+type: 2 w/p: 1, 1 Floor: 0, Floor above: 4
+Min coords: (18000, 0, 0)
+Max coords: (24000, 11000, 12000)
+X-dim: 6000 Y-dim: 11000
+Floating: 0
+
+Zone 8: cuboids(6, 12, 18, 24, 41, 43, 45, 47)
+type: 2 w/p: 1, 1 Floor: 0, Floor above: 4
+Min coords: (30000, 0, 0)
+Max coords: (36000, 11000, 12000)
+X-dim: 6000 Y-dim: 11000
+Floating: 0
+
+Design 1: zones(1, 5)
+
+Design 2: zones(2, 3, 4, 6, 7, 8)
+
+Zoned design 1:
+Creating structural model...
+Commencing stabilization...
+Commencing Stabilization
+
+Number of points with free DOF's: 84
+Finished stabilization
+Iterations: 59
+Total compliance: 2.63439e+12
+Total structural volume: 11.8801
+Structural volume added for stabilization: 6.92011
+
+Compliances:
+2.63439e+12
+
+Added volumes:
+6.92011
+
+Zoned design 2:
+Creating structural model...
+Commencing stabilization...
+Commencing Stabilization
+
+Number of points with free DOF's: 84
+Finished stabilization
+Iterations: 39
+Total compliance: 8.57309e+10
+Total structural volume: 7.18976
+Structural volume added for stabilization: 2.22976
+
+Compliances:
+2.63439e+12
+8.57309e+10
+
+Added volumes:
+6.92011
+2.22976

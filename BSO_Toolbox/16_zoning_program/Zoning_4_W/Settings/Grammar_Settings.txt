@@ -1,0 +1,57 @@
+# Settings for Structural Design assignment of rectangles (vertical, i.e. walls)
+#	type_ID_1,	type_ID_2,	Assigned type, 	Assigned type_ID
+A,	A,		A,		Flat_Shell,		1
+A,	A,		B,		Flat_Shell,		1
+A,	A,		C,		Flat_Shell,		1
+A,	A,		E,		Flat_Shell,		1
+A,	B,		B,		Flat_Shell,		1
+A,	B,		C,		Flat_Shell,		1
+A,	B,		E,		Flat_Shell,		1
+A,	C,		C,		Flat_Shell,		1
+A,	C,		E,		Flat_Shell,		1
+A,	Z,		Z,		Beam,			1
+A,	Z,		E,		Flat_Shell,		1
+
+# Settings for Structural Design assignment of rectangles (horizontal, i.e. floors)
+#	type_ID_1,	type_ID_2,	Assigned type, Assigned type_ID
+B,	A,		A,		Flat_Shell,		1
+B,	A,		B,		Flat_Shell,		1
+B,	A,		C,		Flat_Shell,		1
+B,	A,		E,		Flat_Shell,		1
+B,	B,		B,		Flat_Shell,		1
+B,	B,		C,		Flat_Shell,		1
+B,	B,		E,		Flat_Shell,		1
+B,	C,		C,		Flat_Shell,		1
+B,	C,		E,		Flat_Shell,		1
+B,	Z,		Z,		Beam,			1
+B,	Z,		E,		Flat_Shell,		1
+
+B,	G,		G,		Ghost_Flat_Shell,	1
+
+# Settings for Building Physics assignment of spaces
+#	type_ID		Space_Set_ID (see BP_Settings)
+C,	A,	1
+C,	B,	1
+
+
+# Settings for Building Physics assignment of rectangles (vertical, i.e. walls)(type is Construction (C) or Glazing (G))
+#	type_ID_1,	type_ID_2,	Assigned type,		Assigned type_ID
+D,	A,		A,		Construction,		2
+D,	A,		B,		Construction,		2
+D,	A,		G,		Construction,		1
+D,	A,		E,		Construction,		1
+D,	B,		B,		Construction,		2
+D,	B,		G,		Construction,		1
+D,	B,		E,		Construction,		1
+
+# Settings for Building Physics assignment of rectangles (horizontal, i.e. floors)(type is Construction (C) or Glazing (G))
+#	type_ID_1,	type_ID_2,	Assigned type,		Assigned type_ID
+E,	A,		A,		Construction,		2
+E,	A,		B,		Construction,		2
+E,	A,		G,		Construction,		1
+E,	A,		E,		Construction,		1
+E,	B,		B,		Construction,		2
+E,	B,		G,		Construction,		1
+E,	B,		E,		Construction,		1
+
+

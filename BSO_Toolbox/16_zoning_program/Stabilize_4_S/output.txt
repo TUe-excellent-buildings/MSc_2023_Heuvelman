@@ -1,0 +1,4 @@
+Initialised the MS model (0.685 ms)
+Initialised the CF model (1.486 ms)
+Made the CF model conformal (9.588 ms)
+Commencing Visualisation...

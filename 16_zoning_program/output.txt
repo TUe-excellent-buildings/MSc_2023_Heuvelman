@@ -1,1 +1,0 @@
-bash: ./zoning_grammar: No such file or directory

@@ -4,7 +4,7 @@
 
 This repository contains a C++ library named the Building Spatial design Optimization toolbox (BSO toolbox). In the first place, the toolbox has been developed to support building spatial design simulation and optimization by providing tools to: (i) represent and modify building spatial designs, (ii) generate discipline specific designs from a building spatial design, (iii) analyze structural designs, (iv) analyze the building physics of a building (i.e. thermal performance), (v) analyze data obtained from the evaluations, e.g. clustering and sorting algorithms.
 
-In addition to the BSO toolbox, Graphical User Interfaces (GUIs) have been developed to accommodate interaction between users and the toolbox. These GUIs are specifically designed for the zoning and stabilization procedures within the toolbox. These GUIs are used in a graduation project to investigate the influence of AI tools on human design processes and products.
+In addition to the BSO toolbox, Graphical User Interfaces (GUIs) have been developed to accommodate interaction between users and the toolbox. The GUIs are specifically designed for the zoning and stabilization procedures within the toolbox. These GUIs are used in a graduation project to investigate the influence of AI tools on human design processes and products.
 
 ## How do I get it set up? ###
 Please refer to the [BSO-toolbox GitHub page](https://github.com/TUe-excellent-buildings/BSO-toolbox) for installation and contribution guidelines.

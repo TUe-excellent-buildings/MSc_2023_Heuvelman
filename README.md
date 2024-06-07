@@ -16,7 +16,7 @@ Dr. H.(Hèrm) Hofmeyer MSc (project leader Eindhoven University of Technology)
 h.hofmeyer[at]tue.nl  
 
 ###### Admin of the GUI's:
-J.H. (Janneke) Heuvelman (MSc graduation student Eindhoven)
+J.H. (Janneke) Heuvelman (MSc graduation student Eindhoven)   
 j.h.heuvelman[at]student.tue.nl 
 
 K.H. (Kajetan) Knopp (Student assistent Eindhoven, BSc student Computing Science Eindhoven)
